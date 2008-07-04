@@ -1,0 +1,200 @@
+\documentclass{article}
+
+\usepackage{palatino}
+\usepackage{amsmath}
+\usepackage{mathpazo}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\lstnewenvironment{java}
+  {\lstset{language=java,basicstyle={\tt\scriptsize}}}
+  {}
+
+\newenvironment{commandtable}
+  {\begin{enumerate}}
+  {\end{enumerate}}
+
+\def\command[#1]{\item[\tt #1]}
+\def\example[#1]{\par Example: {\tt #1}}
+
+\begin{document}
+  \title{Terrapin Turtle Graphics}
+  \author{Spencer Tipping}
+  \date{}
+  \maketitle
+
+  \tableofcontents
+
+  \section{Introduction}
+    \label{sec:introduction}
+
+    Terrapin turtle graphics is a capable, easy-to-use library for Java. It
+    provides many advanced features such as three-dimensional space support
+    under three different coordinate models, multiple turtles, antialiased and
+    depth-adjusted rendering, highly customizable axes and grids, and
+    perspective projection, all without losing the simplicity and elegance of
+    pure vector graphics.
+
+    This library originated as a drop-in replacement for the Galapagos turtle
+    software, used primarily for educational purposes. As such, there are two
+    sets of commands: One set uses the same nomenclature and functionality as
+    the original Galapagos library, and the other uses my nomenclature and
+    supports the extensions listed previously. For more details, see section
+    \ref{sec:command-index}.
+
+  \section{Coordinate Models}
+    \label{sec:coordinate-models}
+
+    Terrapin seamlessly integrates two-dimensional and three-dimensional
+    drawing. By default, a turtle draws only on the plane and the model is for
+    all purposes two-dimensional. However, by changing the turtle's $\phi$
+    heading, the turtle begins to change its $z$ position.
+
+    Depending on the drawing, different coordinate models will make sense. For
+    example, drawing a sphere such as those in the included example {\tt
+    spheres.java} is most easily achieved using spherical coordinates. However,
+    spherical coordinates make it very difficult to draw a spiral. There are
+    similar tasks that are well-suited to other models, so three separate
+    coordinate models are provided. Others may be written for Terrapin without
+    very much work, especially by inheriting from the {\tt Turtle} class.
+
+    \subsection{Spherical Coordinates}
+      \label{sec:z-spherical}
+      \label{sec:spherical-coordinates}
+
+      Spherical coordinates allow the turtle's default plane to be bent into a
+      cone whose depth angle is determined by $\phi$. By default, $\phi=0$, so
+      the plane is flat. Mathematically, the distance vector $\langle dx, dy,
+      dz\rangle$ moved by the turtle for a move of distance $\langle d\rangle$
+      is computed this way:
+
+      \begin{align*}
+	dx & = d \cos \theta \cos \phi \\
+	dy & = d \sin \theta \cos \phi \\
+	dz & = d \sin \phi
+      \end{align*}
+
+    \subsection{Cylindrical Coordinates}
+      \label{sec:y-cylindrical}
+      \label{sec:cylindrical-coordinates}
+
+      Cylindrical coordinates allow the turtle's drawing plane to be rotated
+      about the Y axis. The degree of rotation is determined by $\phi$, which is
+      zero by default. Mathematically, cylindrical coordinates are implemented
+      as follows (see section \ref{sec:z-spherical} for notation):
+
+      \begin{align*}
+	dx & = d \cos \theta \cos \phi \\
+	dy & = d \sin \theta \\
+	dz & = d \cos \theta \sin \phi
+      \end{align*}
+
+    \subsection{Orthogonal Planar Coordinates}
+      \label{sec:orthogonal-planar}
+
+  \section{Command Index}
+    \label{sec:command-index}
+
+    This section lists all of the commands supported by the Turtle class in
+    Terrapin. All of the examples assume the following definitions:
+
+    \lstset{gobble=6}
+    \begin{java}
+      import terrapin.*;
+
+      public class test {
+	public static void main (String[] args) {
+	  TurtleDrawingWindow w = new TurtleDrawingWindow ();
+	  Turtle t = new Turtle ();
+	  w.add (t);
+	  
+	  // Any example would be legal here.
+
+	  w.setVisible (true);
+	}
+      }
+    \end{java}
+
+    \subsection{Basic Commands}
+      \label{sec:basic-commands}
+
+      These commands allow the turtle to create basic shapes. If only these
+      commands are used, then the turtle will remain in a two-dimensional plane;
+      thus we postpone the three-dimensional details to section
+      \ref{sec:3d-commands}.
+
+      \begin{commandtable}
+	\command[move]
+	Moves the turtle a given distance along its heading, drawing a line if
+	the pen is down. If the distance is negative, then the turtle moves
+	backwards.
+	\example[t.move(100);]
+
+	\command[moveTo]
+	Moves the turtle to a specific location, drawing a line if the pen is
+	down. The turtle's heading is not taken into account and not changed by
+	this operation.
+	\example[t.moveTo(50, 10);]
+
+	\command[jump]
+	Moves the turtle a given distance along its heading without drawing a
+	line. If the distance is negative, then the turtle moves backwards.
+	\example[t.jump(100);]
+
+	\command[jumpTo]
+	Moves the turtle to a specific location without drawing a line. Like
+	{\tt moveTo}, the turtle's heading is not considered for this operation.
+	\example[t.jumpTo(10, 10);]
+
+	\command[turn]
+	Adds an angle to the turtle's heading. The turtle does not draw anything
+	when it is turned. All headings are measured in degrees.
+	\example[t.turn(90);]
+
+	\command[setPenColor]
+	Sets the color of future lines drawn by the turtle. The color may be
+	translucent, in which case the drawn lines will also be translucent.
+	\example[t.setPenColor(java.awt.Color.BLUE);]
+
+	\command[setPenIsDown]
+	Determines whether the turtle will draw lines when moved. By default,
+	this is true.
+	\example[t.setPenIsDown(true);]
+      \end{commandtable}
+
+    \subsection{3D Commands}
+      \label{sec:3d-commands}
+
+      These commands allow the turtle to travel anywhere in 3D space and change
+      coordinate models.
+
+      \begin{commandtable}
+	\command[turnTheta]
+	Rotates the turtle within its immediate plane or cone. The exact
+	behavior of this command is determined by the coordinate model used.
+	(See section \ref{sec:coordinate-models}.) This command is an alias for
+	the {\tt turn} command. (See section \ref{sec:basic-commands}.)
+	\example[t.turnTheta(-90);]
+
+	\command[turnPhi]
+	Adjusts the turtle's $\phi$ heading. The exact behavior of the $\phi$
+	heading depends on the coordinate model. (See section
+	\ref{sec:coordinate-models}.)
+	\example[t.turnPhi(45);]
+
+	\command[turnXi]
+	Adjusts the turtle's $\xi$ heading. This is meaningful only if the
+	turtle is using the orthogonal-planar coordinate model. (See sections
+	\ref{sec:orthogonal-planar} and \ref{sec:coordinate-models}.)
+	\example[t.turnXi(30);]
+
+	\command[setPolarAxisModel]
+	Determines the roles of the turtle's 3D heading coordinates, $\theta$,
+	$\phi$, and $\xi$. See section \ref{sec:coordinate-models} for a
+	mathematical description of these roles. Valid settings are
+	\verb|Turtle.Z_SPHERICAL|, \verb|Turtle.Y_CYLINDRICAL|, and
+	\verb|Turtle.ORTHOGONAL_PLANAR|.
+	\example[t.setPolarAxisModel(Turtle.Z\_SPHERICAL);]
+      \end{commandtable}
+
+\end{document}

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Takes one parameter, which is the version of the distribution to create.
+
+if [[ -z "$1" ]]; then
+  echo "Usage: $0 version, where version is a number."
+  exit 1
+fi
+
+version=$1
+
+# Build the distribution directory and populate it with all of the source
+# files.
+basedir=terrapin-$version
+mkdir $basedir
+mkdir $basedir/terrapin
+
+cp terrapin/*.java $basedir/terrapin/
+cp examples/*.java $basedir/
+cp doc/* $basedir/
+
+# Now compile all of the Java files and documentation.
+cd $basedir
+javac *.java terrapin/*.java
+[[ -x /usr/bin/asciidoc ]] && asciidoc terrapin.txt || echo "No documentation!"
+
+# Package the whole thing up into a zip file and delete the temporary
+# directory.
+cd ..
+zip -r9 $basedir.zip $basedir
+rm -rf $basedir
