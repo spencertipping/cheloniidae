@@ -1,0 +1,22 @@
+Version 2.1:
+
+	* Reimplemented depth sorting with cached line distances and less memory
+	  allocation. The user interface is correspondingly more responsive.
+
+	* Added several new example files.
+
+Version 2.0:
+
+	* Changed the invocation of Java's built-in mergesort to a quicksort that
+	  allows interruption during a depth-sort operation. This increased responsiveness
+	  of the user-interface during multiple drags.
+	
+	* Fixed perspective transformation for lines that extended into negative-Z
+	  space. Now the renderer correctly solves for the intersection with the viewplane.
+	
+	* Added the ORTHOGONAL_PLANAR coordinate model.
+
+	* Moved the depth-sorting out of the event thread. This also increased responsiveness
+	  while dragging.
+	
+	* Converted several magic numbers in the source code to constants.

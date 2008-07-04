@@ -1,0 +1,14 @@
+All of the class files in this directory are examples and tests. You should be
+able to type
+
+	java spheres
+
+for example, and Terrapin should draw two spheres. The view angle can be
+changed by dragging the mouse with various combinations of control and shift
+pressed (see the "Mouse Operations" section of the API docs in terrapin.pdf).
+
+To recompile the Terrapin core classes, just run:
+
+	javac terrapin/*.java
+
+This may be necessary depending on your Java environment.
