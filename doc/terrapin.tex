@@ -42,55 +42,112 @@
     supports the extensions listed previously. For more details, see section
     \ref{sec:command-index}.
 
-  \section{Coordinate Models}
-    \label{sec:coordinate-models}
+  \section{Extensions}
+    \label{sec:extensions}
 
-    Terrapin seamlessly integrates two-dimensional and three-dimensional
-    drawing. By default, a turtle draws only on the plane and the model is for
-    all purposes two-dimensional. However, by changing the turtle's $\phi$
-    heading, the turtle begins to change its $z$ position.
+    As mentioned earlier, Terrapin provides several extensions to the
+    traditional turtle model.
 
-    Depending on the drawing, different coordinate models will make sense. For
-    example, drawing a sphere such as those in the included example {\tt
-    spheres.java} is most easily achieved using spherical coordinates. However,
-    spherical coordinates make it very difficult to draw a spiral. There are
-    similar tasks that are well-suited to other models, so three separate
-    coordinate models are provided. Others may be written for Terrapin without
-    very much work, especially by inheriting from the {\tt Turtle} class.
+    \subsection{State Stack}
+      \label{sec:state-stack}
 
-    \subsection{Spherical Coordinates}
-      \label{sec:z-spherical}
-      \label{sec:spherical-coordinates}
+      Each turtle maintains a stack of {\em states}. A state is simply a
+      turtle's location and heading. Under normal operation, a turtle has only
+      one state, which is modified with the normal movement and turn commands.
+      However, a turtle can also ``remember'' its old states and jump back to
+      them by pushing and popping states from its internal state stack.
 
-      Spherical coordinates allow the turtle's default plane to be bent into a
-      cone whose depth angle is determined by $\phi$. By default, $\phi=0$, so
-      the plane is flat. Mathematically, the distance vector $\langle dx, dy,
-      dz\rangle$ moved by the turtle for a move of distance $\langle d\rangle$
-      is computed this way:
+      This is useful for building a fractal tree, for instance. The included
+      example file \verb|tree.java| implements this concept using the turtle
+      stack. The premise is this: A tree consists of a line forwards and two
+      more trees spaced at some angle apart. Here is some simple code to
+      implement this idea:
 
-      \begin{align*}
-	dx & = d \cos \theta \cos \phi \\
-	dy & = d \sin \theta \cos \phi \\
-	dz & = d \sin \phi
-      \end{align*}
+      \lstset{gobble=8}
+      \begin{java}
+	public static void tree (Turtle t, int recursionLevel) {
+	  t.move (10);
 
-    \subsection{Cylindrical Coordinates}
-      \label{sec:y-cylindrical}
-      \label{sec:cylindrical-coordinates}
+	  if (recursionLevel > 0) {
+	    t.pushTurtleState ();
+	    t.turn (-5);
+	    tree (t, recursionLevel - 1);
+	    t.popTurtleState ();
+	    t.pushTurtleState ();
+	    t.turn (5);
+	    tree (t, recursionLevel - 1);
+	    t.popTurtleState ();
+	  }
+	}
+      \end{java}
+      
+      The state stack works very well with recursive algorithms, as demonstrated
+      here. The number of state entries that can be stored at a time is limited
+      only by Java's heap size, however it is an error to pop an empty stack.
 
-      Cylindrical coordinates allow the turtle's drawing plane to be rotated
-      about the Y axis. The degree of rotation is determined by $\phi$, which is
-      zero by default. Mathematically, cylindrical coordinates are implemented
-      as follows (see section \ref{sec:z-spherical} for notation):
+    \subsection{Coordinate Models}
+      \label{sec:coordinate-models}
 
-      \begin{align*}
-	dx & = d \cos \theta \cos \phi \\
-	dy & = d \sin \theta \\
-	dz & = d \cos \theta \sin \phi
-      \end{align*}
+      Terrapin seamlessly integrates two-dimensional and three-dimensional
+      drawing. By default, a turtle draws only on the plane and the model is for
+      all purposes two-dimensional. However, by changing the turtle's $\phi$
+      heading, the turtle begins to change its $z$ position.
 
-    \subsection{Orthogonal Planar Coordinates}
-      \label{sec:orthogonal-planar}
+      Depending on the drawing, different coordinate models will make sense. For
+      example, drawing a sphere such as those in the included example {\tt
+      spheres.java} is most easily achieved using spherical coordinates. However,
+      spherical coordinates make it very difficult to draw a spiral. There are
+      similar tasks that are well-suited to other models, so three separate
+      coordinate models are provided. Others may be written for Terrapin without
+      very much work, especially by inheriting from the {\tt Turtle} class.
+
+      \subsubsection{Spherical Coordinates}
+	\label{sec:z-spherical}
+	\label{sec:spherical-coordinates}
+
+	Spherical coordinates allow the turtle's default plane to be bent into a
+	cone whose depth angle is determined by $\phi$. By default, $\phi=0$, so
+	the plane is flat. Mathematically, the distance vector $\langle dx, dy,
+	dz\rangle$ moved by the turtle for a move of distance $d$ is computed
+	this way:
+
+	\begin{align*}
+	  dx & = d \cos \theta \cos \phi \\
+	  dy & = d \sin \theta \cos \phi \\
+	  dz & = d \sin \phi
+	\end{align*}
+
+      \subsubsection{Cylindrical Coordinates}
+	\label{sec:y-cylindrical}
+	\label{sec:cylindrical-coordinates}
+
+	Cylindrical coordinates allow the turtle's drawing plane to be rotated
+	about the Y axis. The degree of rotation is determined by $\phi$, which is
+	zero by default. Mathematically, cylindrical coordinates are implemented
+	as follows (see section \ref{sec:z-spherical} for notation):
+
+	\begin{align*}
+	  dx & = d \cos \theta \cos \phi \\
+	  dy & = d \sin \theta \\
+	  dz & = d \cos \theta \sin \phi
+	\end{align*}
+
+      \subsubsection{Orthogonal Planar Coordinates}
+	\label{sec:orthogonal-planar}
+
+	The idea behing orthogonal planar coordinates is that the plane in which
+	the turtle's local $\theta$ coordinate operates can be rotated
+	arbitrarily. By default, its normal vector is oriented along the $z$ axis;
+	however, $\phi$ and $\xi$ provide $y$-axis rotation and relative $x$-axis
+	rotation, respectively, in a spherical setting. Mathematically, orthogonal
+	planar coordinates are implemented as follows (see section
+	\ref{sec:z-spherical} for notation):
+
+	\begin{align*}
+	  dx & = d \cdot [\cos\theta \cos\phi + \sin\theta \sin\phi \sin\xi] \\
+	  dy & = d \sin\theta \cos\xi \\
+	  dz & = d \cdot [\cos\theta \sin\phi - \sin\theta \cos\phi \sin\xi]
+	\end{align*}
 
   \section{Command Index}
     \label{sec:command-index}
@@ -169,6 +226,15 @@
       coordinate models.
 
       \begin{commandtable}
+	\command[moveTo]
+	In addition to the two-dimensional version, {\tt moveTo} may also take a
+	$z$ parameter.
+	\example[t.moveTo(0, 3, 10);]
+
+	\command[jumpTo]
+	The same is true of the {\tt jumpTo} command.
+	\example[t.jumpTo(10, 28, 1);]
+
 	\command[turnTheta]
 	Rotates the turtle within its immediate plane or cone. The exact
 	behavior of this command is determined by the coordinate model used.
@@ -195,6 +261,88 @@
 	\verb|Turtle.Z_SPHERICAL|, \verb|Turtle.Y_CYLINDRICAL|, and
 	\verb|Turtle.ORTHOGONAL_PLANAR|.
 	\example[t.setPolarAxisModel(Turtle.Z\_SPHERICAL);]
+      \end{commandtable}
+
+    \subsection{Accessors}
+      \label{sec:accessors}
+
+      The turtle provides accessors to its position, heading, and several other
+      fields. Accessors follow a standard naming convention; a field named {\tt
+      namingConvention}, for example, would have accessors {\tt
+      getNamingConvention} and {\tt setNamingConvention}.
+
+      \begin{itemize}
+	\item X, Y, Z: {\tt double}
+	\item headingTheta, headingPhi, headingXi: {\tt double}
+	\item bodyColor: {\tt java.awt.Color}
+	\item penColor: {\tt java.awt.Color}
+	\item penIsDown: {\tt boolean}
+	\item penSize: {\tt double}
+	\item delayPerMove: {\tt int}
+	\item visible: {\tt boolean}
+	\item polarAxisModel: {\tt int} -- see section \ref{sec:3d-commands} for
+	      a list of valid values.
+      \end{itemize}
+
+    \subsection{Advanced Turtle Commands}
+      \label{sec:advanced-commands}
+
+      These commands are not normally used for simple scenes. They are provided
+      for more complex scenes such as fractal formations. Others are simply more
+      esoteric commands that one doesn't normally use.
+
+      \begin{commandtable}
+	\command[pushTurtleState]
+	Each turtle maintains a stack of states (see section
+	\ref{sec:state-stack}). This command causes the turtle to push its
+	current state onto the stack for later recovery. Its current state is
+	not altered by this command.
+	\example[t.pushTurtleState();]
+
+	\command[popTurtleState]
+	This command causes the turtle to pop the last pushed state from the
+	stack and restore its state. Its current state is replaced by the state
+	from the top of the stack.
+	\example[t.popTurtleState();]
+
+	\command[replicate]
+	Returns a duplicate of the current turtle and adds it to the current
+	{\tt TurtleDrawingWindow}. The result is that code such as this:
+
+	\lstset{gobble=10}
+	\begin{java}
+	  Turtle t1 = t.replicate ();
+	  t1.move (100);
+	\end{java}
+
+	\noindent is not only legal but does what it seems like it should.
+
+	\command[setBodyColor]
+	Each turtle is drawn in its position on the screen. Setting the body
+	color determines what color it is drawn in. Translucency is enabled for
+	this color setting.
+	\example[t.setBodyColor(java.awt.Color.BLACK);]
+
+	\command[setPenSize]
+	Sets the width of the lines that the turtle draws. 0.5 is approximately
+	the minimum, and there is no maximum.
+	\example[t.setPenSize(0.5);]
+
+	\command[setVisible]
+	Determines whether the turtle itself is drawn. If this is false, then
+	only the lines drawn by the turtle are visible, but the turtle is
+	hidden. Setting this value to false may improve rendering speed if
+	rendering is performed while the {\tt TurtleDrawingWindow} is visible.
+	\example[t.setVisible(false);]
+
+	\command[setDelayPerMove]
+	Each turtle has a default delay amount per move. This is so that the
+	drawing process can be observed step-by-step. The number of milliseconds
+	to wait per move may be changed using this parameter. If set to zero,
+	then the turtle draws as fast as possible. Note that this parameter
+	doesn't make any difference if the turtle is drawing on a window before
+	the window is shown.
+	\example[t.setDelayPerMove(0);]
       \end{commandtable}
 
 \end{document}

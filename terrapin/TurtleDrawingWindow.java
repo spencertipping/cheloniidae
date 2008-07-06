@@ -105,7 +105,7 @@
 				public static final double	TURTLE_RADIUS				= 4.0;
 				public static final double	TURTLE_HEADING_LENGTH		= 16.0;
 				public static final int		TURTLE_ALPHA				= 128;
-				public static final int		DRAWING_REFRESH_PER_LINES	= 1000;
+				public static final int		DRAWING_REFRESH_PER_LINES	= 10000;
 				public static final int		INTERMEDIATE_RENDER_CUTOFF	= 10000;
 				public static final int		LINE_POINT_MAXIMUM_DISTANCE	= 16;
 																						// }}}
