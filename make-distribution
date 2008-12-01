@@ -34,3 +34,7 @@ javac *.java terrapin/*.java
 cd ..
 zip -r9 $basedir.zip $basedir
 rm -rf $basedir
+
+# Place the new zip file into the site and give the user a notice.
+mv $basedir.zip site/
+echo "$basedir.zip has been placed in the site/ subdirectory."

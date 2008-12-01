@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Uploads the site directory to my web server.
+
+scp -r site/* spences7@projects.spencertipping.com:terrapin/

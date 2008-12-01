@@ -12,7 +12,7 @@ public class tree {
 		w.add (t);
 		t.turn (-90);
 		t.jump (-100);
-		tree (t, 60, 16, new Random ());
+		tree (t, 60, 14, new Random ());
 		w.setVisible (true);
 	}
 

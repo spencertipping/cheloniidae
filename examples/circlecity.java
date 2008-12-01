@@ -10,7 +10,7 @@ public class circlecity {
 
 		t.setPolarAxisModel (Turtle.Y_CYLINDRICAL);
 		t.setDelayPerMove (0);
-		t.setPenSize (0.5);
+		t.setPenSize (1);
 		t.setPenColor (new Color (0.5f, 0.65f, 0.55f, 0.5f));
 		t.setVisible (false);
 

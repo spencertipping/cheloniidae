@@ -1,0 +1,28 @@
+% vim: set syntax=javatex :
+\documentclass{article}
+\usepackage{spencer}
+\begin{document}
+  \title{Turtle Base Class}
+  \author{Spencer Tipping}
+  \maketitle
+
+  \tableofcontents
+
+  \section{Introduction}
+    \label{sec:introduction}
+
+    This class provides a useful base for anything wanting to be a turtle. That is, it manages the interfacing with the turtle window and provides a
+    protected-scope API for standard turtle classes to use. All of this is done without making any specifications about user-level concerns such as coordinate
+    models or even whether the turtle is two-dimensional or three-dimensional.
+
+    \begin{javacode}
+package terrapin;
+
+public abstract class TurtleBase implements ITurtle {
+  private ITurtleCanvas canvas = null;
+
+  void           setCanvas (ITurtleCanvas canvas) {this.canvas = canvas;}
+  protected void drawLine  (Line line)            {this.canvas.add (line);}
+}
+    \end{javacode}
+\end{document}

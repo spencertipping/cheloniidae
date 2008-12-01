@@ -15,7 +15,7 @@ public class sierpinski {
 
 		t.jumpTo (-150.0, -150.0);
 
-		sierpinski_iteration (t, 300.0, 3);
+		sierpinski_iteration (t, 300.0, 4);
 		w.setVisible (true);
 	}
 
