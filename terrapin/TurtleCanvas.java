@@ -78,14 +78,19 @@
       protected double        viewportPreProjectionX          = 0.0;
       protected double        viewportPreProjectionY          = 0.0;
 
+      // Determines the default depth of rendered objects. This is useful for
+      // determining the scale of the model being rendered, though it is
+      // overridden when zooming.
+      protected double        zBase                           = 500.0;
+
       // These variables are cached values for the foremost and backmost Z
       // values of the lines. They are used for theta and phi rotation.
       protected double        xMinimumExtent                  = 0.0;
       protected double        xMaximumExtent                  = 0.0;
       protected double        yMinimumExtent                  = 0.0;
       protected double        yMaximumExtent                  = 0.0;
-      protected double        zMinimumExtent                  = 0.0;
-      protected double        zMaximumExtent                  = 0.0;
+      protected double        zMinimumExtent                  = zBase;
+      protected double        zMaximumExtent                  = zBase;
 
       // These variables keep track of the location that the user pressed down
       // the mouse. We need to know this to determine how far to move the
@@ -114,11 +119,6 @@
       // fisheye3D option enables this consideration to be observed.
       protected boolean       fisheye3D                       = false;
 
-      // Determines the default depth of rendered objects. This is useful for
-      // determining the scale of the model being rendered, though it is
-      // overridden when zooming.
-      protected double        zBase                           = 500.0;
-
       // These values control how turtles are displayed to the user. Each
       // turtle is rendered as a circle with a line sticking out, and the line
       // indicates the turtle's heading. (This is computed by the turtle's
@@ -138,7 +138,10 @@
       protected int           drawingLinePointDistance        = 16;
 
     // Constructors
-      public TurtleCanvas () {}
+      public TurtleCanvas () {
+        // Do all event initialization and such.
+        initialize ();
+      }
 
     // Accessors
       public boolean  getFisheye3D ()                                                         {return fisheye3D;}
@@ -166,8 +169,10 @@
         protected void regenerateImages () {
           // Reallocate both the turtle output layer and the turtle layer.
 
-          turtleOutput = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
-          turtleLayer  = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
+          if (super.getWidth () > 0 && super.getHeight () > 0) {
+            turtleOutput = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
+            turtleLayer  = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
+          }
         }
 
         protected void handleResize () {
@@ -315,9 +320,11 @@
             final TurtleCanvas _this         = this;
             graphicsRequestRunner = new Thread (new Runnable () {
               public void run () {
-                _this.drawLines   (_drawAllLines, _antialiased);
-                _this.drawTurtles (_antialiased);
-                _this.repaint     ();
+                synchronized (lines) {
+                  _this.drawLines   (_drawAllLines, _antialiased);
+                  _this.drawTurtles (_antialiased);
+                  _this.repaint     ();
+                }
               }
             });
 
@@ -363,9 +370,8 @@
                      !graphicsRequestCancel)
                 ia++;
 
-              while (((Line) lines.get (ib)).cachedDistance < ((Line) lines.get (a)).cachedDistance &&
-                     !graphicsRequestCancel)
-                ib--;
+              while (((Line) lines.get (--ib)).cachedDistance < ((Line) lines.get (a)).cachedDistance &&
+                     !graphicsRequestCancel);
 
               if (ia < ib)
                 swap (l, ia, ib);
@@ -684,7 +690,7 @@
         }
 
         boolean shouldDelayMoves () {
-          return super.isVisible ();
+          return super.isVisible () && super.getParent () != null && super.getParent ().isVisible ();
         }
 
         void turtleMoveCompleted (TurtleBase t) {

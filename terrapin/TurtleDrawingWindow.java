@@ -27,11 +27,12 @@
     // Constructors
       public TurtleDrawingWindow () {
         super ("Terrapin");
-        super.setSize (600, 380);
+        super.setSize (600, 350);
         super.setLayout (new BorderLayout ());
         super.add (canvas, BorderLayout.CENTER);
 
         final TurtleDrawingWindow _this = this;
+
         super.addWindowListener (new WindowListener () {
           public void windowClosing (WindowEvent e) {
             _this.dispose ();

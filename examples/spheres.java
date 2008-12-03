@@ -6,7 +6,7 @@ import java.awt.*;
 public class spheres {
 	public static void main (String [] args) {
 		TurtleDrawingWindow w = new TurtleDrawingWindow ();
-		Turtle t = new Turtle ();
+		YCylindricalTurtle t = new YCylindricalTurtle ();
 		AxialGrid g = new AxialGrid (AxialGrid.XY_PLANE | AxialGrid.XZ_PLANE);
 		
 		// Notice that we don't have the w.setVisible (true) line here.
@@ -24,32 +24,31 @@ public class spheres {
 		
 		for (int i = 0; i < 35; i++) {
 			zsphere (t, 8);
-			t.turn (3);
+			t.turnTheta (3.0);
 		}
 
 		t.setHeadingTheta (0);
 		t.jump (300);
-		t.setPolarAxisModel (Turtle.Y_CYLINDRICAL);
 
 		for (int i = 0; i < 35; i++) {
 			tsphere (t, 7);
-			t.turnPhi (5);
+			t.turnPhi (5.0);
 		}
 		
 		w.setVisible (true);
 	}
 
-	public static void tsphere (Turtle t, double step) {
+	public static void tsphere (YCylindricalTurtle t, double step) {
 		for (int i = 0; i < 72; i++) {
 			t.move (step);
-			t.turnTheta (5);
+			t.turnTheta (5.0);
 		}
 	}
 	
-	public static void zsphere (Turtle t, double step) {
+	public static void zsphere (YCylindricalTurtle t, double step) {
 		for (int i = 0; i < 72; i++) {
 			t.move (step);
-			t.turnPhi (5);
+			t.turnPhi (5.0);
 		}
 	}
 }
