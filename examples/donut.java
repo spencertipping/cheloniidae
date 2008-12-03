@@ -4,11 +4,10 @@ import java.awt.*;
 public class donut {
 	public static void main (String[] args) {
 		TurtleDrawingWindow w = new TurtleDrawingWindow ();
-		Turtle t = new Turtle ();
+		YCylindricalTurtle t = new YCylindricalTurtle ();
 
 		w.add (t);
 
-		t.setPolarAxisModel (Turtle.Y_CYLINDRICAL);
 		t.setDelayPerMove (0);
 		t.setPenSize (0.5);
 		t.setPenColor (new Color (0.5f, 0.65f, 0.55f, 0.5f));
@@ -17,7 +16,7 @@ public class donut {
 			t.jump (100);
 
 			for (int j = 0; j < 90; j++) {
-				t.forward (2.0);
+				t.move (2.0);
 				t.turnTheta (4);
 			}
 

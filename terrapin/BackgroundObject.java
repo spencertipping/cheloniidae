@@ -1,4 +1,4 @@
-// Terrapin Turtle System copyright 2006 by Spencer Tipping (all rights reserved)
+// Terrapin Turtle System copyright 2006 by Spencer Tipping
 // Written 08-02-2006; licensed under the LGPL, latest version
 
   package terrapin;

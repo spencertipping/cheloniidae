@@ -33,14 +33,14 @@
       }
 
     // Turn methods
-      public OrthogonalPlanarTurtle turnTheta (double delta) {
+      public ZSphericalTurtle turnTheta (double delta) {
         startMove ();
         headingTheta += delta;
         finishMove ();
         return this;
       }
 
-      public OrthogonalPlanarTurtle turnPhi (double delta) {
+      public ZSphericalTurtle turnPhi (double delta) {
         startMove ();
         headingPhi += delta;
         finishMove ();

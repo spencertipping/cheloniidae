@@ -34,14 +34,14 @@
       }
 
     // Turn methods
-      public OrthogonalPlanarTurtle turnTheta (double delta) {
+      public YCylindricalTurtle turnTheta (double delta) {
         startMove ();
         headingTheta += delta;
         finishMove ();
         return this;
       }
 
-      public OrthogonalPlanarTurtle turnPhi (double delta) {
+      public YCylindricalTurtle turnPhi (double delta) {
         startMove ();
         headingPhi += delta;
         finishMove ();

@@ -3,7 +3,7 @@
 //
 // This file was imported from the Rockhopper raytracer project.
 //
-// Point3D by Spencer Tipping, copyright 2006 (all rights reserved)
+// Point3D by Spencer Tipping, copyright 2006
 // Written some time ago; licensed under the LGPL, latest version
 //
 
@@ -36,6 +36,13 @@
 	 */
 	
 		public class Point3D implements Serializable {									// {{{
+            //
+            // Constants
+            //
+                                                                                        // {{{
+                public static final long serialVersionUID   = 0x01;
+                                                                                        // }}}
+
 			//
 			// Fields
 			//
