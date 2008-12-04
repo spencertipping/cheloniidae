@@ -8,19 +8,19 @@ public class tree {
 
 	public static void main (String[] args) {
 		TurtleDrawingWindow w = new TurtleDrawingWindow ();
-		Turtle t = new Turtle ();
+		ZSphericalTurtle t = new ZSphericalTurtle ();
 		w.add (t);
-		t.turn (-90);
+		t.turnTheta (-90);
 		t.jump (-100);
 		tree (t, 60, 14, new Random ());
 		w.setVisible (true);
 	}
 
-	public static void tree (Turtle t, double distance, int recursionLevel, Random r) {
+	public static void tree (ZSphericalTurtle t, double distance, int recursionLevel, Random r) {
 		t.setPenColor (branches);
 		t.setPenSize (distance * distance / 200.0);
 		t.move (distance * (0.3 + 0.7 * r.nextDouble ()));
-		t.turn (-15 * r.nextDouble () * 2.0);
+		t.turnTheta (-15 * r.nextDouble () * 2.0);
 
 		t.turnPhi ((r.nextDouble () - 0.5) * 60.0);
 
@@ -28,7 +28,7 @@ public class tree {
 			t.pushTurtleState ();
 			tree (t, distance / 1.04 * (0.8 + 0.2 * r.nextDouble ()), recursionLevel - 1, r);
 			t.popTurtleState ();
-			t.turn (30 + r.nextDouble () * 4.0);
+			t.turnTheta (30 + r.nextDouble () * 4.0);
 			t.pushTurtleState ();
 			tree (t, distance / 1.04 * (0.8 + 0.2 * r.nextDouble ()), recursionLevel - 1, r);
 			t.popTurtleState ();
@@ -41,11 +41,11 @@ public class tree {
 
 			for (int i = 0; i < 4; i++) {
 				t.pushTurtleState ();
-				t.turn (-45 + (r.nextDouble () - 0.5) * 15.0);
+				t.turnTheta (-45 + (r.nextDouble () - 0.5) * 15.0);
 				t.move (distance * 0.2 * (4 - i));
 				t.popTurtleState ();
 				t.pushTurtleState ();
-				t.turn (45 + (r.nextDouble () - 0.5) * 15.0);
+				t.turnTheta (45 + (r.nextDouble () - 0.5) * 15.0);
 				t.move (distance * 0.2 * (4 - i));
 				t.popTurtleState ();
 				t.jump (distance * 0.3);

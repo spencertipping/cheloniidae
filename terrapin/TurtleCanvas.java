@@ -320,11 +320,9 @@
             final TurtleCanvas _this         = this;
             graphicsRequestRunner = new Thread (new Runnable () {
               public void run () {
-                synchronized (lines) {
-                  _this.drawLines   (_drawAllLines, _antialiased);
-                  _this.drawTurtles (_antialiased);
-                  _this.repaint     ();
-                }
+                _this.drawLines   (_drawAllLines, _antialiased);
+                _this.drawTurtles (_antialiased);
+                _this.repaint     ();
               }
             });
 
@@ -694,7 +692,8 @@
         }
 
         void turtleMoveCompleted (TurtleBase t) {
-          enqueueGraphicsRefreshRequest (false, true);
+          if (super.isVisible ())
+            enqueueGraphicsRefreshRequest (false, true);
         }
 
   }

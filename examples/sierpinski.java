@@ -4,22 +4,21 @@ import java.awt.*;
 public class sierpinski {
 	public static void main (String[] args) {
 		TurtleDrawingWindow w = new TurtleDrawingWindow ();
-		Turtle t = new Turtle ();
+		OrthogonalPlanarTurtle t = new OrthogonalPlanarTurtle ();
 
 		w.add (t);
 
-		t.setPolarAxisModel (Turtle.ORTHOGONAL_PLANAR);
 		t.setDelayPerMove (0);
 		t.setPenSize (0.5);
 		t.setPenColor (new Color (0.5f, 0.65f, 0.55f, 0.5f));
 
-		t.jumpTo (-150.0, -150.0);
+		t.jumpTo (-150.0, -150.0, 0.0);
 
 		sierpinski_iteration (t, 300.0, 4);
 		w.setVisible (true);
 	}
 
-	public static void sierpinski_iteration (Turtle t, double length, int recursionLevel) {
+	public static void sierpinski_iteration (OrthogonalPlanarTurtle t, double length, int recursionLevel) {
 		//
 		// Fill out the lines to make a 20-cube section of a Menger
 		// sponge. We assume that we start at a corner, and then we return

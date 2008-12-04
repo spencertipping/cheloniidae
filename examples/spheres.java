@@ -16,7 +16,7 @@ public class spheres {
 		
 		w.add (t);
 		w.add (g);
-		t.setPenSize (0.5);
+		t.setPenSize (5);
 		t.setDelayPerMove (0);
 		t.setVisible (false);
 		t.setPenColor (new Color (0.3f, 0.5f, 0.5f, 0.5f));
