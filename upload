@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cd site; tar -c | ssh spences7@spencertipping.com 'cd projects/cheloniidae; tar -xv'
