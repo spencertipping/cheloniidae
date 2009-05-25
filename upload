@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cd site; tar -c | ssh spences7@spencertipping.com 'cd projects/cheloniidae; tar -xv'
+cd site; tar -cj . | ssh spences7@spencertipping.com 'cd www/projects/cheloniidae; tar -xvj'
