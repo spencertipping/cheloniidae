@@ -1,0 +1,512 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+	<!-- vim: set ts=2 sw=2 foldmethod=marker : -->
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+		<title>Cheloniidae Turtle Graphics</title>
+
+		<!-- Stylesheet {{{ -->
+		<style type="text/css">
+			body {
+				margin: 0;
+				font-family: sans-serif;
+				border-bottom: solid 30px #248;
+			}
+
+			div#header {
+				height: 240px;
+				width: 100%;
+				background: #248 url(header.png) no-repeat top left;
+			}
+
+			div#header > h1 {
+				display: none;
+			}
+
+			div.section {
+				padding-top: 10px;
+				padding-bottom: 40px;
+				border-left: solid 230px #124;
+				clear: both;
+				text-align: justify;
+			}
+
+			div.section > div.title {
+				color: #ddf;
+				position: relative;
+				left: -230px;
+				width: 220px;
+				height: 30px;
+				border-top: solid 1px #456;
+				font-size: 16pt;
+				font-variant: small-caps;
+				text-align: right;
+				padding-right: 10px;
+			}
+
+			div.section > div.content {
+				border-top: solid 1px #eee;
+				position: relative;
+				top: -30px;
+				padding-top: 4px;
+				padding-left: 50px;
+				padding-right: 25px;
+				font-size: 8pt;
+				color: #444;
+				line-height: 1.5em;
+			}
+
+			div.section > div.content > img {
+				float: right;
+				margin: 10px;
+			}
+
+			div.section > div.content pre {
+				margin-left: 0px;
+				font-size: 8pt;
+				line-height: 1.2em;
+				width: 200px;
+				border: solid 1px #ddd;
+				border-right: none;
+			}
+
+			span.line-number {
+				color: #888;
+				border-right: solid 1px #ddd;
+				background: #f8f8f8;
+				margin-right: 5px;
+			}
+
+			span.keyword {
+				color: #ea5;
+				font-weight: bold;
+			}
+
+			span.symbol {
+				color: #888;
+			}
+
+			span.comment {
+				color: #595;
+			}
+		</style>
+		<!-- }}} -->
+
+		<!-- Script for code listings {{{ -->
+		<script type="text/javascript">
+		<!--
+			function is_alpha (c) {
+				return (c >= "a" && c <= "z") || (c >= "A" && c <= "Z");
+			}
+
+			function process_keyword (w) {
+				var keywords = [
+					"public", "protected", "private", "class", "import", "interface",
+					"extends", "int", "short", "byte", "long", "float", "double",
+					"void", "static", "synchronized", "transient", "volatile",
+					"new", "if", "for", "while", "do", "true", "false", "null",
+					"package", "final", "abstract", "else", "try", "catch", "finally",
+					"switch", "break", "continue", "case", "default"];
+
+				for (var i = 0; i < keywords.length; i++) {
+					if (keywords[i] == w)
+						return "<span class='keyword'>" + w + "<\/span>";
+				}
+
+				return w;
+			}
+
+			function pad_out (number) {
+				var result = String (number);
+				while (result.length < 3)
+					result = " " + result;
+				return result;
+			}
+
+			function is_symbol (c) {
+				return "!@#$%^&*()-+=[]\\|{}<>,./?\"':;~`".indexOf (c) >= 0;
+			}
+
+			function highlighted_code (code) {
+				//
+				// Define states.
+				//
+
+				var NORMAL = 0;
+				var LINE_COMMENT = 1;
+				var BLOCK_COMMENT = 2;
+
+				var state = NORMAL;
+				var stack = "";
+				var line_number = 1;
+				var result = "<span class='line-number'>" + pad_out (1) + ": <\/span>";
+				var last_was_slash = false;
+				var last_was_asterisk = false;
+
+				for (var i = 0; i < code.length; i++) {
+					var c = code.slice (i, i+1);
+
+					if (c == "\t")
+						c = "  ";
+
+					switch (state) {
+						case NORMAL:
+							if (is_alpha (c)) {
+								stack += c;
+							} else {
+								if (stack.length > 0) {
+									//
+									// Process the stack.
+									//
+
+									result += process_keyword (stack);
+									stack = "";
+								}
+
+								if (is_symbol (c))
+									result += "<span class='symbol'>" + c + "<\/span>";
+								else
+									result += c;
+
+								if (last_was_slash && c == "/") {
+									state = LINE_COMMENT;
+									result += "<span class='comment'>";	
+								} else if (last_was_slash && c == "*") {
+									state = BLOCK_COMMENT;
+									result += "<span class='comment'>";
+								}
+							}
+							break;
+
+						case LINE_COMMENT:
+							result += c;
+
+							if (c == "\n" || c == "\r") {
+								state = NORMAL;
+								result += "<\/span>";
+							}
+
+							break;
+
+						case BLOCK_COMMENT:
+							result += c;
+
+							if (last_was_asterisk && c == "/") {
+								state = NORMAL;
+								result += "</span>";
+							}
+
+							break;
+					}
+
+					last_was_slash = (c == "/");
+					last_was_asterisk = (c == "*");
+					if (c == "\n" || c == "\r")
+						result += "<span class='line-number'>" + pad_out (++line_number) + ": <\/span>";
+				}
+
+				return result;
+			}
+
+			function highlight (pre_id) {
+				//
+				// Grab the text node.
+				//
+
+				var pre = document.getElementById (pre_id);
+				var t = pre.firstChild.nodeValue;
+				pre.removeChild (pre.firstChild);
+
+				//
+				// Run a state-based syntax highlighter.
+				//
+
+				pre.innerHTML = highlighted_code (t.substring (0, t.length - 1));
+			}
+			// -->
+		</script>
+		<!-- }}} -->
+	</head>
+	<body>
+		<div id="header"><h1>Cheloniidae</h1></div>
+
+		<div class="section" id="whatis">
+			<div class="title">What is Cheloniidae?</div>
+			<div class="content">
+        Cheloniidae (formerly Terrapin) is an advanced Java turtle graphics library written by
+        <a href="http://www.spencertipping.com/">Spencer Tipping</a>. It originated as a drop-in
+        replacement for Galapagos, but has since grown into its own project. All of the images
+				on this page were produced with Cheloniidae using the included example programs.
+			</div>
+		</div>
+
+		<div class="section" id="getting">
+			<div class="title">Getting Cheloniidae</div>
+			<div class="content">
+				Cheloniidae is free software and is licensed under the terms of the LGPL.
+				The latest release (source code, binaries, documentation, and sample files)
+				can be downloaded here: <a href="cheloniidae-2.1.zip">cheloniidae-2.1.zip</a>. Cheloniidae
+				should work with the JRE 1.4.2 or higher on any platform, although
+				the GCJ JRE seems to have some trouble on Linux.
+				<p></p>
+				The previous version of Cheloniidae was version 2.0, available here: <a
+				href="cheloniidae-2.0.zip">cheloniidae-2.0.zip</a>. Changes since then include
+				more example scenes and a large performance increase for drawings that
+				contain hundreds of thousands of line segments.
+				<p></p>
+				<strong>Note:</strong> A few of the sample files used with Cheloniidae consume a lot
+				of memory when run. To be able to view the results, you will need to increase the
+				Java heap limit. The option for doing this is <code>-Xmx512m</code>, where <code>512</code>
+				can be any number of megabytes. 512 megabytes should be enough to run any of the example
+				files without problems, though if you don't have 512 MB of memory then
+				you probably shouldn't let Java allocate that much. So, for example, you
+				might run Cheloniidae this way:
+				<pre>java -Xmx512m blockcity</pre>
+				If your classpath is not configured correctly (i.e. does not include the
+				current directory), you may need to run this:
+				<pre>java -Xmx512m -cp ./ blockcity</pre>
+				Documentation is maintained in <a href="http://www.methods.co.nz/asciidoc">AsciiDoc</a>
+				format (the <code>cheloniidae.html</code> file in the download), and the <code>README</code>
+				file should contain instructions for rebuilding Cheloniidae. (This may be necessary depending
+				on your version of the JRE). Future major releases will include
+				documentation in <a href="http://tug.org">TeX</a> format.
+				<p></p>
+				If you like Cheloniidae, think it should be changed, have a cool image that you
+				made with it, etc., send me an e-mail at
+				<a href="mailto:spencer@spencertipping.com">spencer@spencertipping.com</a>.
+			</div>
+		</div>
+
+		<div class="section" id="coding">
+			<div class="title">Coding in Cheloniidae</div>
+			<div class="content">
+				Writing Cheloniidae programs is easy! Here's a square:
+				<img src="square.png" alt="Square in Cheloniidae">
+
+<pre id="listing1">
+import cheloniidae.*;
+
+public class Square {
+	public static void main (String[] args) {
+		TurtleDrawingWindow w = new TurtleDrawingWindow ();
+		Turtle t = new Turtle ();
+
+		w.add (t);
+
+		for (int i = 0; i &lt; 4; i++) {
+			t.move (100);
+			t.turn (90);	// Angles are CW from due east.
+		}
+
+		w.setVisible (true);
+	}
+}
+</pre>
+<script type="text/javascript">highlight ("listing1");</script>
+
+				<img src="spiral.png" alt="Spiral in Cheloniidae">
+				To break out of the plane, we use <code>turnPhi</code>. Depending on whether we're
+				using spherical or cylindrical coordinates, this will either bend the plane into
+				a cone away from the camera or rotate it about the Y axis, respectively.
+
+<pre id="listing2">
+import cheloniidae.*;
+
+public class Phi {
+	public static void main (String[] args) {
+		TurtleDrawingWindow w = new TurtleDrawingWindow ();
+		Turtle t = new Turtle ();
+
+		w.add (t);
+
+		t.setPenSize (0.25);
+		t.setPenColor (new java.awt.Color (
+			0.2f, 0.5f, 0.4f, 0.5f));
+
+		/*
+		 * Translucency is enabled on the colors (hence
+		 * fourth channel above). Also, lines are depth-sorted
+		 * in 3D view so that the overlap effects are correct
+		 * for the view angle.
+		 */
+
+		t.turnPhi (10);
+
+		for (int i = 0; i &lt; 1440; i++) {
+			t.move (1);
+			t.turn (1);
+		}
+
+		w.setVisible (true);
+	}
+}
+</pre>
+<script type="text/javascript">highlight ("listing2");</script>
+
+			</div>
+		</div>
+
+		<div class="section" id="three">
+			<div class="title">3D Turtle Space</div>
+			<div class="content">
+				<img src="spirals.png" alt="Spirals with Multiple Turtles">
+				Cheloniidae provides a 3D space for the turtle and three coordinate
+				models (cylindrical, spherical, and orthogonal planar) that can
+				govern the turtle's navigation of space. In the included spiral
+				program, you can see this capability. In the cylindrical model, &phi;
+				governs the angle of the turtle's plane (in
+				which it still uses polar coordinates with respect to &theta;).
+				The plane is rotated about the turtle, so simply changing the
+				value of &phi; will never alter the turtle's location.
+				<p></p>
+				Using spherical coordinates (the default) results in the turtle's plane
+				being bent into a cone whose angle of intersection with the Y axis is
+				&phi;. As with cylindrical coordinates, alterations to &phi; do
+				not affect the turtle's location; rather, all transformation is
+				performed treating the turtle as the origin. This is the desired
+				functionality in most cases, since alterations of the turtle's heading
+				do not normally produce lines.
+				<p></p>
+				The third coordinate model, orthogonal planar coordinates, allows
+				full flexibility for the plane's orientation. It uses the auxiliary
+				angular coordinate &xi;, which provides pivoting around the transformed
+				X axis of a cylindrical transformation of the plane. This mode is
+				used to construct toroidal figures from a series of circles (see below).
+				<div style="clear: both"> </div>
+			</div>
+		</div>
+
+		<div class="section" id="axes">
+			<div class="title">Axes and Grids</div>
+			<div class="content">
+				<img src="spheres.png" alt="spheres">
+				One helpful feature of Cheloniidae is its support for grids and axes.
+				Grids and axes may be added independently of one another and along
+				any of the three basic coordinate directions. Here is the code, for
+				example, to add a grid:
+
+<pre id="listing3" style="clear: both">
+// w is a TurtleDrawingWindow
+AxialGrid g = new AxialGrid (AxialGrid.XY_PLANE | AxialGrid.XZ_PLANE);
+w.add (g);
+</pre>
+<script type="text/javascript">highlight ("listing3");</script>
+			</div>
+		</div>
+
+		<div class="section" id="capacity">
+			<div class="title">Stable Rendering</div>
+			<div class="content">
+				<img src="cubes.png" alt="Cubes example scene">
+				Cheloniidae supports results with many line segments very efficiently. During
+				a redraw operation, lines are drawn using a custom recursive algorithm that
+				accelerates intermediate rendering.
+				<img src="donut.png" alt="Donuts example scene">
+				<div style="clear: both"> </div>
+			</div>
+		</div>
+
+		<div class="section" id="fractals">
+			<div class="title">Fractals</div>
+			<div class="content">
+				<img src="tree.png" alt="tree">
+				To facilitate fractal generation, each turtle has a stack so
+				that its location and headings can be stored and loaded. That way,
+				fractal algorithms become very easy to write, yielding complex
+				results from under 100 lines of code. (The image on the right contains
+				over 650,000 lines).
+
+<pre id="listing4">
+import cheloniidae.*;
+import java.awt.Color;
+import java.util.Random;
+
+public class tree {
+	public static final Color branches =
+		new Color (0.4f, 0.35f, 0.2f, 0.8f);
+	public static final Color leaves =
+		new Color (0.0f, 0.2f, 0.0f, 0.5f);
+
+	public static void main (
+			String[] args) {
+
+		TurtleDrawingWindow w =
+			new TurtleDrawingWindow ();
+		Turtle t = new Turtle ();
+		w.add (t);
+
+		/*
+		 * This turn and jump rotate the tree
+		 * so that it points upwards and move
+		 * 100 units down, respectively, the
+		 * end result being that it is better
+		 * centered in the viewport.
+		 */
+
+		t.turn (-90);
+		t.jump (-100);
+
+		tree (t, 60, 16, new Random ());
+		w.setVisible (true);
+	}
+
+	public static void tree (
+			Turtle t, double distance,
+			int recursionLevel, Random r) {
+		t.setPenColor (branches);
+		t.setPenSize (distance * distance / 200.0);
+		t.move (distance * (0.3 + 0.7 * r.nextDouble ()));
+		t.turn (-15 * r.nextDouble () * 2.0);
+
+		t.turnPhi ((r.nextDouble () - 0.5) * 60.0);
+
+		if (recursionLevel &gt; 0) {
+			t.pushTurtleState ();
+
+			/*
+			 * Before rendering a sub-tree, we remember the turtle's location
+			 * with a stack push. When we pop the turtle state, its location,
+			 * theta heading, and phi heading will all be restored.
+			 */
+
+			tree (t, distance / 1.04 * (0.8 + 0.2 * r.nextDouble ()), recursionLevel - 1, r);
+			t.popTurtleState ();
+			t.turn (30 + r.nextDouble () * 4.0);
+			t.pushTurtleState ();
+			tree (t, distance / 1.04 * (0.8 + 0.2 * r.nextDouble ()), recursionLevel - 1, r);
+			t.popTurtleState ();
+		} else {
+			t.jump (distance * -0.3);
+			t.setPenSize (distance * distance / 300.0);
+			t.setPenColor (leaves);
+
+			t.turnPhi ((r.nextDouble () - 0.5) * 360.0);
+
+			for (int i = 0; i &lt; 4; i++) {
+				t.pushTurtleState ();
+				t.turn (-45 + (r.nextDouble () - 0.5) * 15.0);
+				t.move (distance * 0.2 * (4 - i));
+				t.popTurtleState ();
+				t.pushTurtleState ();
+				t.turn (45 + (r.nextDouble () - 0.5) * 15.0);
+				t.move (distance * 0.2 * (4 - i));
+				t.popTurtleState ();
+				t.jump (distance * 0.3);
+			}
+		}
+	}
+}
+</pre>
+<script type="text/javascript">highlight ("listing4");</script>
+
+			</div>
+		</div>
+
+		<script type="text/javascript">
+		if (navigator.appName.indexOf ("Explorer") >= 0)
+			alert ("This page does not render properly in Internet Explorer. Please use Firefox " +
+						 "or another W3C-compliant browser.");
+		</script>
+	</body>
+</html>
