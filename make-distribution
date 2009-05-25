@@ -11,23 +11,23 @@ version=$1
 
 # Build the distribution directory and populate it with all of the source
 # files.
-basedir=terrapin-$version
+basedir=cheloniidae-$version
 mkdir $basedir
-mkdir $basedir/terrapin
+mkdir $basedir/cheloniidae
 
 # Compile the documentation separately, since it makes a mess out of its working
 # directory.
 pushd doc
-latex terrapin.tex && pdflatex terrapin.tex
+latex cheloniidae.tex && pdflatex cheloniidae.tex
 popd
 
-cp terrapin/*.java $basedir/terrapin/
+cp cheloniidae/*.java $basedir/cheloniidae/
 cp examples/*.java $basedir/
-cp doc/{terrapin.tex,terrapin.pdf,CHANGELOG,README} $basedir/
+cp doc/{cheloniidae.tex,cheloniidae.pdf,CHANGELOG,README} $basedir/
 
 # Now compile all of the Java files and documentation.
 cd $basedir
-javac *.java terrapin/*.java
+javac *.java cheloniidae/*.java
 
 # Package the whole thing up into a zip file and delete the temporary
 # directory.

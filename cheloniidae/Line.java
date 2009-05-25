@@ -1,7 +1,7 @@
 // vim: set ts=4 sw=4 foldmethod=marker foldminlines=1 foldlevel=0 :					// {{{
 
 //
-// Terrapin Turtle System copyright 2006 by Spencer Tipping (all rights reserved)
+// Cheloniidae Turtle System copyright 2006 by Spencer Tipping (all rights reserved)
 // Written 07-26-2006; licensed under the LGPL, latest version
 //
 
@@ -9,7 +9,7 @@
 // Package definition
 // 
 
-	package terrapin;
+	package cheloniidae;
 
 
 //

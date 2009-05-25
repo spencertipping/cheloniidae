@@ -1,7 +1,7 @@
 // vim: set ts=4 sw=4 foldmethod=marker foldminlines=1 :								// {{{
 
 //
-// Terrapin Turtle System copyright 2006 by Spencer Tipping (all rights reserved)
+// Cheloniidae Turtle System copyright 2006 by Spencer Tipping (all rights reserved)
 // Written 07-26-2006; licensed under the LGPL, latest version
 // 
 
@@ -9,7 +9,7 @@
 // Package definition
 //
 
-	package terrapin;
+	package cheloniidae;
 
 
 //
@@ -229,7 +229,7 @@
 
 				protected boolean				fisheye3D					= false;
 					//
-					// By default, Terrapin uses one vanishing point for
+					// By default, Cheloniidae uses one vanishing point for
 					// rendering. This is advantageous for two-dimensional
 					// models, whose proportions will be preserved as if they
 					// were rendered orthographically onto the two-dimensional
@@ -456,7 +456,7 @@
 						//
 
 						super.setSize (600, 372);
-						super.setTitle ("Terrapin");
+						super.setTitle ("Cheloniidae");
 						super.setVisible (true);
 						super.setBackground (Color.WHITE);
 

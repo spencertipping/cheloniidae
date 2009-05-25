@@ -1,0 +1,203 @@
+Cheloniidae Turtle System
+=========================
+Spencer Tipping <spencer@spencertipping.com>
+
+Turtle Drawing Commands
+-----------------------
+The standard turtle supports these commands:
+
+New Commands
+~~~~~~~~~~~~
+jump (distance):-
+	Moves the turtle as it would normally be moved, but
+	does not draw a line.
+
+moveTo (x, y):-
+	Moves the turtle to a new (x,y) location, drawing a line.
+
+moveTo (x, y, z):-
+	Moves the turtle to a new (x,y,z) location, drawing a line.
+
+jumpTo (x, y):-
+	Moves the turtle to a new (x,y) location without drawing a
+	line.
+
+jumpTo (x, y, z):-
+	Moves the turtle to a new (x,y,z) location without drawing
+	a line.
+
+forward (distance):-
+	Equivalent to `move (distance)`.
+
+backup (distance):-
+	Equivalent to `move (-distance)`.
+
+turnTheta (angle):-
+	Turns the turtle 'angle' degrees in the X-Y plane. Equivalent
+	to `turn (angle)`.
+
+turnPhi (angle):-
+	Turns the turtle 'angle' degrees in Z-space, the exact
+	behavior of which is dependent upon the coordinate model
+	in use.
+
+turnXi (angle):-
+	Turns the turtle 'angle' degrees in orthogonal-planar space.
+	This is meaningful only in the orthogonal planar axis model.
+
+getX, getY, getZ, setX (x), setY (y), setZ (z):-
+	Gets or sets parts of the turtle's location.
+
+getHeadingTheta, setHeadingTheta (angle):-
+	Gets or sets the turtle's heading angle in the XY plane.
+
+getHeadingPhi, setHeadingPhi (angle):-
+	Gets or sets the turtle's heading angle in the cylindrical
+	space if cylindrical coordinates are being used (the default),
+	or the spherical angle if spherical coordinates are being used.
+
+getHeadingXi, setHeadingXi (angle):-
+	Gets or sets the planar vertical tilt in the orthogonal planar
+	coordinate model.
+
+getBodyColor, setBodyColor (color):-
+	Gets or sets the color that the turtle appears on the screen.
+	Analogous to 'bodyColor' in the Galapagos library.
+
+getPenColor, setPenColor (color):-
+	Gets or sets the color of the lines that the turtle draws.
+	Analogous to 'penColor' in the Galapagos library.
+
+getPenIsDown, setPenIsDown (down):-
+	Gets or sets whether the turtle draws lines when it moves.
+	If the pen is down, then the turtle draws lines; otherwise,
+	the turtle won't draw anything when it moves. By default,
+	the pen is down. Analogous to 'penDown' and 'penUp' in
+	the Galapagos turtle library.
+
+getDelayPerMove, setDelayPerMove (delay):-
+	Gets or sets the delay, in milliseconds, per turtle move.
+
+getVisible, setVisible (visibility):-
+	Gets or sets the visibility of the turtle's body.
+
+getPolarAxisModel, setPolarAxisModel (model):-
+	Gets or sets the polar axis model, which is the coordinate
+	system used to determine the behavior of phi. Valid values
+	are 'Z_SPHERICAL' and 'Y_CYLINDRICAL'. 'Z_SPHERICAL' means
+	that the turtle's X-Y plane is turned into a cone as the
+	phi angle grows; 'Y_CYLINDRICAL' means that the turtle's
+	X coordinate varies with Z as phi grows. For a more complete
+	understanding, change the behavior in `star.java` and
+	observe the differences. As of version 2.0, a new coordinate model `ORTHOGONAL_PLANAR`
+	is available. This allows the turtle's plane to have an
+	arbitrary orientation. For more information, see the Cheloniidae
+	website (http://projects.spencertipping.com/cheloniidae).
+
+pushTurtleState, popTurtleState:-
+	These commands manipulate the turtle's stack of remembered
+	positions and headings. When you push the turtle's state, its
+	location and heading (both phi and theta) are pushed onto the
+	stack so that later you can snap the turtle back with a pop.
+	Each turtle maintains its own stack.
+
+replicate:-
+	Returns a copy of the turtle. All fields are copied except
+	for the colors and the turtle drawing window, which are
+	referenced.
+
+Galapagos-Compatible Commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+move (distance):-
+	Moves the turtle forward if 'distance' is positive,
+	backwards if 'distance' is negative.
+
+turn (angle):-
+	Turns 'angle' degrees clockwise. If 'angle' is negative,
+	then turn counterclockwise.
+
+heading (angle):-
+	Sets the turtle's heading to 'angle' degrees.
+
+bodyColor (color):-
+	Sets the turtle's body color to 'color' -- note that this does
+	not change the color of the lines drawn by the turtle.
+
+penColor (color):-
+	Sets the turtle's pen color to 'color'.
+
+penDown ():-
+	Makes the lines drawn by this turtle visible.
+
+penUp ():-
+	Makes the lines drawn by this turtle invisible.
+
+penSize (size):-
+	Sets the line width drawn by the turtle to 'size' pixels.
+
+speed (s):-
+	Changes the speed of the turtle, where 0 is minimum and
+	1000 is maximum.
+
+Using Cheloniidae
+-----------------
+The Java Library
+~~~~~~~~~~~~~~~~
+Let's look at some Cheloniidae code:
+------------------------------------
+import cheloniidae.*;
+public class test {
+  public static void main (String [] args) {
+    TurtleDrawingWindow w = new TurtleDrawingWindow ();  <1>
+    Turtle t = new Turtle ();  <2>
+    w.add (t);
+    for (int i = 0; i < 100; i++) {
+      t.move (i);  <3>
+      t.turn (30);  <4>
+    }
+    w.setVisible (true);  <5>
+  }
+}
+-----------------------------
+<1> A TurtleDrawingWindow is necessary to see what the turtle has
+    drawn.
+<2> A Turtle must be created as well, and added to the window.
+<3> We move the turtle forwards.
+<4> And turn it.
+<5> Finally, we must show the window; by default, the window is hidden.
+
+In this example, we get a spiral in the middle of the screen.
+
+NOTE: There were no delays in turtle movements because the window
+      was invisible while the turtle was drawing. If we had made
+      the window visible earlier, the delays would have been
+      significant.
+
+Mouse Operations
+~~~~~~~~~~~~~~~~
+Cheloniidae relies heavily on the mouse for input. Here is a short
+list of what you can do:
+
+Mouse Dragging:-
+	Moves the image on the screen around. Does not affect the
+	3D camera location.
+
+Control & Mouse Dragging:-
+	Moves the camera in 3D space. For a noticeable example of
+	this, see `cube.java`.
+
+Shift & Mouse Dragging:-
+	Rotates the camera around the center of everything that
+	the turtle has drawn. For a noticeable example of this,
+	see `spheres.java`.
+
+Control & Shift & Mouse Dragging:-
+	Zooms when the mouse is moved vertically.
+
+Further Reading
+~~~~~~~~~~~~~~~
+For more examples, look at the source files distributed with Cheloniidae.
+They provide a good overview of the features implemented. Also, any
+Galapagos program should work in Cheloniidae as well, though it may require
+recompilation. (To port, simply replace the Galapagos `import` statement
+with `import terrapin.*`)

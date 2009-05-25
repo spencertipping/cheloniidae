@@ -1,7 +1,7 @@
 // vim: set ts=4 sw=4 foldmethod=marker foldminlines=1 foldlevel=0 :					// {{{
 
 //
-// Terrapin Turtle System copyright 2006 by Spencer Tipping (all rights reserved)
+// Cheloniidae Turtle System copyright 2006 by Spencer Tipping (all rights reserved)
 // Written 07-26-2006; licensed under LGPL, latest version
 //
 
@@ -9,7 +9,7 @@
 // Package definition
 // 
 
-	package terrapin;
+	package cheloniidae;
 
 
 //
@@ -28,7 +28,7 @@
 	/**
 	 * The Turtle class provides an object with a heading, location, color, and
 	 * other attributes to facilitate easy turtle graphics drawing. To use one
-	 * in code, see the example in {@see terrapin.TurtleDrawingWindow TurtleDrawingWindow}.
+	 * in code, see the example in {@see cheloniidae.TurtleDrawingWindow TurtleDrawingWindow}.
 	 *
 	 * @author spencer
 	 */
@@ -42,7 +42,7 @@
 				public static final int				NO_DEFAULT_WINDOW	= 0;
 					//
 					// This constant is provided for compatibility with the Galapagos turtle
-					// library. It has no use in Terrapin.
+					// library. It has no use in Cheloniidae.
 					//
 
 				public static final int				Z_SPHERICAL			= 0;
