@@ -1,0 +1,185 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+# Split-document parser
+# Compiles a ctex document into a source file.
+
+my @c_preprocess_args = ();
+my @literal_languages = ();
+my $line_comment = '';
+my $extension = 'out';
+my $no_cpp_stage = 1;
+
+while ($ARGV[0] =~ /^-/) {
+  $_ = shift @ARGV;
+  if (/^--cpreprocessor$/) {
+    $no_cpp_stage = 0;
+  } elsif (/^--literal-language=([^[:space:]]*)/) {
+    push @literal_languages, $1;
+  } elsif (/^--extension=([^[:space:]]*)/) {
+    $extension = $1;
+  } elsif (/^--line-comment=([^[:space:]]*)/) {
+    $line_comment = $1;
+  } elsif (/^--cpp$/) {
+    push @literal_languages, "cppcode";
+    $extension = "h";
+    $line_comment = "//";
+  } elsif (/^--lisp$/) {
+    push @literal_languages, "lispcode";
+    $extension = "lisp";
+    $line_comment = ";;; --";
+  } elsif (/^--scheme$/) {
+    push @literal_languages, "schemecode";
+    $extension = "sc";
+    $line_comment = ";;; --";
+  } elsif (/^--java$/) {
+    push @literal_languages, "javacode";
+    $extension = "java";
+    $line_comment = "// --";
+  } elsif (/^--python$/) {
+    push @literal_languages, "pythoncode";
+    $extension = "py";
+    $line_comment = "# --";
+  } elsif (/^--ocaml$/) {
+    push @literal_languages, "ocamlcode";
+    $extension = "ml";
+    $line_comment = "# --";
+  } elsif (/^--scala$/) {
+    push @literal_languages, "scalacode";
+    $extension = "scala";
+    $line_comment = "// --";
+  } else {
+    push @c_preprocess_args, $_;
+  }
+}
+
+if (length ($line_comment) == 0) {
+  die "Error: No line comment was specified.";
+}
+
+print "sd: Using preprocessor options (@c_preprocess_args)\n";
+
+my $filename = shift @ARGV;
+my $output_filename = $filename;
+$output_filename =~ s/tex/$extension/g;
+
+if ($output_filename eq $filename) {
+  die "Error: Input files must end with .tex.";
+}
+
+system "rm -f '$output_filename' '$output_filename.in' '$output_filename.defs'";
+
+sub output {
+  my $suffix = shift;
+  open OUTPUT, ">> $output_filename$suffix";
+  print OUTPUT shift;
+  close OUTPUT;
+}
+
+sub lisp_output {
+  open LISP, "| filtered_clisp '$output_filename.defs' '$output_filename.in'";
+  print LISP shift;
+  close LISP;
+}
+
+sub grab_definitions {
+  open DOC, shift;
+
+  # Grab Lisp definitions.
+  my $reading_definitions = 0;
+  my $line = 0;
+  while (<DOC>) {
+    $line++;
+
+    if (/^[[:space:]]*\\stopdefs/ || /^[[:space]]*\\end\{defs\}/) {
+      $reading_definitions = 0;
+    }
+
+    if ($reading_definitions != 0) {
+      output ".defs", $_;
+    }
+
+    if (/^[[:space:]]*\\startdefs/ || /^[[:space:]]*\\begin\{defs\}/) {
+      $reading_definitions = $line;
+    }
+  }
+
+  ($reading_definitions != 0) && die "Error: Unended definition that started on line $line.";
+
+  close DOC;
+}
+
+sub grab_literal_languages {
+  # Run through the input. We accumulate snippets of Lisp generator code
+  # and feed them to the Lisp process all at once (this lets us combine
+  # output lines).
+  open DOC, shift;
+
+  my @accumulated_lisp = ();
+  my $line = 0;
+  my $reading_lisp = 0;
+  my $reading_literal = 0;
+  my $reading_language = '';
+
+  while (<DOC>) {
+    $line++;
+
+    if (/^[[:space:]]*\\stop([[:alpha:]]+)[[:space:]]*$/ ||
+        /^[[:space:]]*\\end\{([[:alpha:]]+)\}[[:space:]]*$/) {
+      if ($1 eq $reading_language) {
+        $reading_literal = 0;
+        $reading_language = "";
+      }
+    } elsif (/^[[:space:]]*\\stoplisp/ || /^[[:space:]]*\\end\{lisp\}/) {
+      $_ = '';
+      lisp_output join ("\n", @accumulated_lisp);
+      @accumulated_lisp = ();
+      $reading_lisp = 0;
+    }
+
+    if ($reading_literal != 0) {
+      output '.in', $_;
+    } elsif ($reading_lisp != 0) {
+      push @accumulated_lisp, $_;
+      output '.in', $line_comment . ' ' . $_;
+    } else {
+      my $temp = $_;
+      $temp =~ s/\\/\\\\/g;
+      output '.in', $line_comment . ' ' . $temp;
+    }
+
+    if (/^[[:space:]]*\\startlisp/ || /^[[:space:]]*\\begin\{lisp\}/) {
+      $reading_lisp = $line;
+    } elsif (/^[[:space:]]*\\start([[:alpha:]]+)/ || /^[[:space:]]*\\begin\{([[:alpha:]]+)\}/) {
+      if (grep (/$1/, @literal_languages)) {
+        $reading_literal = $line;
+        $reading_language = $1;
+      }
+    }
+  }
+
+  ($reading_lisp != 0) && die "Error: Unended Lisp snippet that began on line $reading_lisp.";
+  ($reading_literal != 0) && die "Error: Unended $reading_language language snippet that began on line $reading_literal.";
+
+  close DOC;
+}
+
+sub c_preprocess {
+  # Pipe the input through the C preprocessor. The primary purpose for this is
+  # to provide macros for conditional compilation.
+  my $output_filename = shift;
+  my @cpp_args = shift || ();
+
+  system "cpp @cpp_args < '$output_filename.in' | grep -v '^\#' > '$output_filename'";
+}
+
+grab_definitions $filename;
+grab_literal_languages $filename;
+
+unless ($no_cpp_stage) {
+  c_preprocess $output_filename, (@c_preprocess_args);
+} else {
+  system "mv '$output_filename.in' '$output_filename'";
+}

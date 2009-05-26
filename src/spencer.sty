@@ -1,0 +1,52 @@
+% Default packages included by Spencer
+
+\usepackage{pslatex}
+\usepackage{palatino}
+\usepackage{amsmath}
+\usepackage{amssymb}
+%\usepackage{amsfonts}
+\usepackage{mathpazo}
+\usepackage{hyperref}
+\usepackage{listings}
+
+\def\noindentpars{
+  \setlength{\parindent}{0pt}
+  \setlength{\parskip}{1em}}
+
+\lstnewenvironment{ccode}
+  {\lstset{language=c,frame=tlb,basicstyle={\scriptsize\tt}}}
+  {}
+
+\lstnewenvironment{cppcode}
+  {\lstset{language=c++,frame=tlb,basicstyle={\scriptsize\tt}}}
+  {}
+
+\lstnewenvironment{lispcode}
+  {\lstset{language=lisp,frame=tlb,basicstyle={\scriptsize\tt}}}
+  {}
+
+\lstnewenvironment{schemecode}
+  {\lstset{language=lisp,frame=tlb,basicstyle={\scriptsize\tt}}}
+  {}
+
+\lstnewenvironment{pythoncode}
+  {\lstset{language=python,frame=tlb,basicstyle={\scriptsize\tt}}}
+  {}
+
+\lstnewenvironment{scalacode}
+  {\lstset{frame=tlb,basicstyle={\scriptsize\tt}}}
+  {}
+
+\lstnewenvironment{javacode}
+  {\lstset{frame=tlb,basicstyle={\scriptsize\tt},language=java}}
+  {}
+
+\newenvironment{proof}{\noindent\textbf{Proof.}}{\hfill$\square$}
+
+\newtheorem{axiom}{Axiom}
+\newtheorem{definition}{Definition}
+\newtheorem{thm}{Theorem}
+\newtheorem{prop}{Proposition}
+\newtheorem{cor}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{notation}{Notation}
