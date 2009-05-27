@@ -100,24 +100,72 @@ case class LineSegment (v1: Vector, v2: Vector, c: Color) {
 }
       \end{scalacode}
 
-  \section{Turtle Monad}
-    \label{sec:turtle-monad}
+  \section{Turtles}
+    \label{sec:turtles}
 
-    A turtle is represented as a monad whose data structures are a positional vector, represented either by $p$ or by $\langle x, y, z \rangle$, and a
-    directional vector, represented either by $d$ or by $\langle dx, dy, dz \rangle$. Operations performed on the turtle yield a new turtle and are expected to
-    have side-effects on the turtle's drawing window. In addition to its geometric attributes, a turtle also has a color and a drawing window.
+    Turtles are abstracted at several levels. At the very top, they are things that have the ability to modify a list of line segments that is tracked by the
+    containing window. This is useful so that the window can keep a record of all line segments added and perform intermittent redraws as the scene is
+    developed.
 
-    \begin{scalacode}
-case class Turtle (p: Vector, d: Vector, c: Color, l: LineReceiver) {
-  def <<[T] (f: Turtle => T) = f (this)
+    The next level abstraction is that of a monad -- this is to say that turtles are immutable data structures that know how to return instances of themselves
+    after certain transformations have taken place. Further, not just turtles work this way. A group of connected turtles can be given a bunch of commands
+    simultaneously.
+
+    \subsection{Turtle taxonomy}
+      \label{sec:turtle-taxonomy}
+
+      In the class hierarchy there are several different interfaces that can be implemented. First, there is the {\tt Turtle} interface defined in section
+      \ref{sec:turtle-monad}. This allows different types of turtles to be defined; for example, turtles that use polar angles instead of Cartesian directions,
+      or probabilistic turtles whose drawing operations are inexact.
+
+      Turtles have turtle-specific mutator functions, such as {\tt fd} or {\tt rt}, but they can also accept other commands that the user defines. These
+      secondary commands
+
+      The normal turtle is the {\tt DirectionalTurtle}, which implements what most people would expect from a turtle.
+
+    \subsection{Turtle Monad}
+      \label{sec:turtle-monad}
+
+      A turtle is represented as a monad whose data structures are a positional vector, represented either by $p$ or by $\langle x, y, z \rangle$, and a
+      directional vector, represented either by $d$ or by $\langle dx, dy, dz \rangle$. Operations performed on the turtle yield a new turtle and are expected to
+      have side-effects on the turtle's drawing window. In addition to its geometric attributes, a turtle also has a color and a drawing window.
+
+      \begin{scalacode}
+trait Turtle {
+  def << (l: LineReceiver)
+  def << (f: Turtle => Turtle) = f (this)
 }
-    \end{scalacode}
+      \end{scalacode}
+
+    \subsection{Basic turtle implementation}
+      \label{sec:basic-turtle-implementation}
+
+      The trait defined above provides the standard interface for turtle-like things, but we need a solid implementation to store the data. Well, here is such
+      an implementation:
+
+      \begin{scalacode}
+class GeometricTurtle (p: Vector, d: Vector, c: Color) extends Turtle {
+  
+}
+      \end{scalacode}
 
     \subsection{Turtle networks}
       \label{sec:turtle-networks}
 
       Multiple turtles can be coordinated and can draw lines between each other. This is useful when constructing grids, for instance. There are several types
       of turtle networks, and they connect turtles in different ways.
+
+      \begin{scalacode}
+class TurtleNetwork {
+  protected var ts = new scala.List[Turtle] ()
+
+  abstract def create (l: List[Turtle])
+
+  def << (l: List[Turtle])     = {ts = l; this}
+  def << (t: Turtle)           = {ts = t :: ts; this}
+  def << (f: Turtle => Turtle) = this.create (ts.map (f))
+}
+      \end{scalacode}
 
       \subsubsection{Linear turtle network}
         \label{sec:linear-turtle-network}
@@ -129,9 +177,19 @@ case class Turtle (p: Vector, d: Vector, c: Color, l: LineReceiver) {
 val w = new TurtleDrawingWindow ()
 val n = new LinearNetwork ()
 w << n
-val t1 = n.createTurtle ()
+val t1 = w.createTurtle ()
 val t2 = t1 + new Vector (50, 0, 0)
 n << fd(100) << synchronize << rt(10) << fd(100) << synchronize
+        \end{verbatim}
+
+        \begin{scalacode}
+class LinearNetwork extends TurtleNetwork {
+  def create (l: List[Turtle]) = new LinearNetwork () << l
+  
+  def << (f: Synchronize) = 
+}
+        \end{scalacode}
+
     \subsection{Drawing primitives}
       \label{sec:drawing-primitives}
 
@@ -140,14 +198,14 @@ n << fd(100) << synchronize << rt(10) << fd(100) << synchronize
       \begin{scalacode}
 object Drawing {
   def changePosition (pprime: Vector) = (t: Turtle) => t match {
-    case Turtle (p, d, c, l) => {w.addLineSegment (p, pprime, c)
-                                 new Turtle (pprime, d, c, l)}}
+    case GeometricTurtle (p, d, c, l) => {w.addLineSegment (p, pprime, c)
+                                          new GeometricTurtle (pprime, d, c, l)}}
 
   def changeDirection (dprime: Vector) = (t: Turtle) => t match {
-    case Turtle (p, d, c, l) => new Turtle (p, dprime, c, l)}
+    case GeometricTurtle (p, d, c, l) => new GeometricTurtle (p, dprime, c, l)}
 
   def fd (x: Double) = (t: Turtle) => t match {
-    case Turtle (p, d, c, l) => changePosition (p + d * x) (t)}
+    case GeometricTurtle (p, d, c, l) => changePosition (p + d * x) (t)}
 }
       \end{scalacode}
 
