@@ -47,21 +47,14 @@ public final class Point3D implements Serializable {
   public Point3D divide   (double factor) {x /= factor;  y /= factor;  z /= factor;  return this;}
 
   public double dot (Point3D other) {return x * other.x + y * other.y + z * other.z;}
+  public double length ()           {return Math.sqrt (x*x + y*y + z*z);}
+  public double lengthSquared ()    {return x*x + y*y + z*z;}
 
-  public Point3D cross (Point3D other) {
-    return new Point3D (
-        y * other.z - z * other.y,
-        z * other.x - x * other.z,
-        x * other.y - y * other.x);
-  }
+  public double distanceFrom (Point3D other) {return Math.sqrt ((x - other.x) * (x - other.x) +
+                                                                (y - other.y) * (y - other.y) +
+                                                                (z - other.z) * (z - other.z));}
 
-  public double length () {return Math.sqrt (x*x + y*y + z*z);}
-
-  public double lengthSquared () {return x*x + y*y + z*z;}
-
-  public double distanceFrom (Point3D other) {
-    return Math.sqrt ((x - other.x) * (x - other.x) +
-                      (y - other.y) * (y - other.y) +
-                      (z - other.z) * (z - other.z));
-  }
+  public Point3D cross (Point3D other) {return new Point3D (y * other.z - z * other.y,
+                                                            z * other.x - x * other.z,
+                                                            x * other.y - y * other.x);}
 }
