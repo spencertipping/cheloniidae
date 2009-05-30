@@ -13,352 +13,202 @@ import java.util.*;
  *
  * @author spencer
  */
+
 public class Turtle {
-  public static final int        Z_SPHERICAL            = 0;
-    // The Z spherical axis model means that phi changes the turtle's movement
-    // base along the rho-theta plane into a cone with central angle 90 - phi.
+  public enum PolarAxisModel {ZSpherical, YCylindrical, OrthogonalPlanar}
 
-  public static final int        Y_CYLINDRICAL          = 1;
-    // The Y cylindrical axis model means that phi rotates the turtle's plane
-    // of movement (x, y) into Z-space.
+  public static class TurtleState {
+    public Point3D position;
+    public Point3D heading;
+    public TurtleState (Point3D _position, Point3D _heading) {position = _position; heading = _heading}
+  }
 
-  public static final int        ORTHOGONAL_PLANAR      = 2;
-    // Uses the third angular measure. Phi is used as a base angle around the
-    // Z axis. Then, xi is used as an elevation angle. After that, theta is
-    // the angle within that plane.
+  public Point3D position  = new Point3D ();
+  public Point3D heading   = new Point3D ();
 
-  protected double              x                       = 0.0;
-  protected double              y                       = 0.0;
-  protected double              z                       = TurtleDrawingWindow.DEFAULT_Z_BASE;
-    // These variables store the location of the turtle in 3D space.
+  public Color   bodyColor = new Color (0x30, 0x50, 0xA0);
+  public Color   penColor  = new Color (0x30, 0xA0, 0x50);
+  public boolean penDown   = true;
+  public double  penSize   = 0.5;
+  public int     delayPerMove            = 500;
+  public boolean              visible                 = true;
 
-  protected double              headingTheta            = 0.0;
-    // This variable stores the heading of the turtle in degrees. It is never
-    // corrected modulo 360, so it may contain values such as -180.0 or 540.0.
-
-  protected double              headingPhi              = 0.0;
-    // This variable stores the heading of the turtle on the r-z plane.
-
-  protected double              headingXi               = 0.0;
-    // This is used for orthogonal-planar coordinates. Xi is the elevatory
-    // skew of the cylinder.
-
-  protected Color               bodyColor               = Color.BLUE;
-    // This is the color of the turtle as displayed on the screen.
-
-  protected Color               penColor                = Color.BLACK;
-    // This is the color that the turtle will draw. By default, it is set to
-    // black, contrasting with the TurtleDrawingWindow's default background
-    // of white.
-
-  protected boolean             penDown                 = true;
-    // If the pen is down, then the turtle will draw when it moves. Otherwise,
-    // the turtle will not leave any marks.
-
-  protected double              penSize                 = 2.0;
-    // This specifies line width when the turtle is drawing.
-
-  protected java.util.List      lines                   = null;
+  protected java.util.List<Line> lines                   = null;
     // This is the list of lines to which to add when the turtle moves.
     // It is set by the TurtleDrawingWindow and is not visible to the user.
 
-  protected TurtleDrawingWindow window                  = null;
+  protected TurtleDrawingWindow  window                  = null;
     // This is the window into which to draw. It receives a notification
     // when we make a new line by a call to drawLines (false). (The false
     // means that we don't redraw all lines, but just new ones)
-
-  protected int                 delayPerMove            = 500;
-    // This is the amount of time slept per move or turn command.
-
-  protected boolean             visible                 = true;
-    // If true, the turtle is shown in the TurtleDrawingWindow. Otherwise,
-    // the turtle is not shown.
 
   protected int                 polarAxisModel          = Z_SPHERICAL;
     // This variable controls how the turtle handles phi and theta in 3D space.
 
   protected Stack               turtleStates            = new Stack ();
-    // This is used to store turtle location/angle information.
 
   public Turtle () {}
-  public Turtle (double _x, double _y) {x = _x; y = _y;}
-  public Turtle (double _x, double _y, double _headingTheta) {this (_x, _y);
-                                                              headingTheta = _headingTheta;}
 
-  public double  getX ()                                 {return x;}
-  public void    setX (double _x)                        {x = _x;}
-  public double  getY ()                                 {return y;}
-  public void    setY (double _y)                        {y = _y;}
-  public double  getZ ()                                 {return z;}
-  public void    setZ (double _z)                        {z = _z;}
+  // Turtle internals
+  // These methods are used to change the internal state of the turtle and are not visible
+  // to users.
 
-  public double  getHeadingTheta ()                      {return headingTheta;}
-  public void    setHeadingTheta (double _headingTheta)  {headingTheta = _headingTheta;}
-  public double  getHeadingPhi ()                        {return headingPhi;}
-  public void    setHeadingPhi (double _headingPhi)      {headingPhi = _headingPhi;}
-  public double  getHeadingXi ()                         {return headingXi;}
-  public void    setHeadingXi (double _headingXi)        {headingXi = _headingXi;}
+    protected void line (double x1, double y1, double z1, double x2, double y2, double z2) {
+      // Step 1: Make sure that the pen is down. If it isn't, then 
+      //        all we need to do is to put in a delay.
+      if (penDown) {
+        // Step 2: Make sure we have a window and a line list. If
+        //        we don't, then print a warning.
+        if (lines != null && window != null) {
+          // Add the new line to the list and prompt the turtle drawing
+          // window to refresh its display.
 
-  public Color   getBodyColor ()                         {return bodyColor;}
-  public void    setBodyColor (Color _bodyColor)         {bodyColor = _bodyColor;}
+          synchronized (lines) {
+            lines.add (new Line (x1, y1, z1, x2, y2, z2, penSize, penColor));
+          }
 
-  public Color   getPenColor ()                          {return penColor;}
-  public void    setPenColor (Color _penColor)           {penColor = _penColor;}
-
-  public boolean getPenDown ()                           {return penDown;}
-  public void    setPenDown (boolean _penDown)           {penDown = _penDown;}
-
-  public double  getPenSize ()                           {return penSize;}
-  public void    setPenSize (double _penSize)            {penSize = _penSize;}
-
-  public int     getDelayPerMove ()                      {return delayPerMove;}
-  public void    setDelayPerMove (int _delayPerMove)     {delayPerMove = _delayPerMove;}
-
-  public boolean getVisible ()                           {return visible;}
-  public void    setVisible (boolean _visible)           {visible = _visible;}
-
-  void           setLines (java.util.List _lines)        {lines = _lines;}
-  void           setWindow (TurtleDrawingWindow _window) {window = _window;}
-    // These accessors are used by the TurtleDrawingWindow during the
-    // TurtleDrawingWindow.add (Turtle) method.
-
-  public int     getPolarAxisModel ()                    {return polarAxisModel;}
-  public void    setPolarAxisModel (int _polarAxisModel) {polarAxisModel = _polarAxisModel;}
-
-  protected void line (double x1, double y1, double z1, double x2, double y2, double z2) {
-    // Step 1: Make sure that the pen is down. If it isn't, then 
-    //        all we need to do is to put in a delay.
-    if (penDown) {
-      // Step 2: Make sure we have a window and a line list. If
-      //        we don't, then print a warning.
-      if (lines != null && window != null) {
-        // Add the new line to the list and prompt the turtle drawing
-        // window to refresh its display.
-
-        synchronized (lines) {
-          lines.add (new Line (x1, y1, z1, x2, y2, z2, penSize, penColor));
-        }
-
-        window.updateExtents (x1, x2, y1, y2, z1, z2);
-        window.enqueueGraphicsRefreshRequest (false, true);
-      } else System.err.println ("Warning: Turtle does not have a graphics window!");
+          window.updateExtents (x1, x2, y1, y2, z1, z2);
+          window.enqueueGraphicsRefreshRequest (false, true);
+        } else System.err.println ("Warning: Turtle does not have a graphics window!");
+      }
     }
-  }
 
-  protected void startMove () {
-    // Create the delay per move here.
-    if (delayPerMove > 0 && window.isVisible ())
-      try {
-        Thread.sleep (delayPerMove);
-      } catch (InterruptedException e) {}
-  }
+    protected void startMove () {
+      // Create the delay per move here.
+      if (delayPerMove > 0 && window.isVisible ())
+        try {Thread.sleep (delayPerMove);}
+        catch (InterruptedException e) {}
+    }
 
-  protected void finishMove () {
-    // This method should be called whenever a move or turn operation is
-    // completed. We tell the window to refresh its graphics.
-    window.enqueueGraphicsRefreshRequest (false, true);
-    Thread.yield ();
-  }
+    protected void finishMove () {
+      // This method should be called whenever a move or turn operation is
+      // completed. We tell the window to refresh its graphics.
+      window.enqueueGraphicsRefreshRequest (false, true);
+      Thread.yield ();
+    }
 
   // Turtle management (available to user)
+  // This is how the user interacts with the turtle. Particularly, these commands have to
+  // do with the more managerial aspects of a turtle and less to do with stuff that draws
+  // lines.
 
+    public void pushTurtleState () {
+      stkTurtleStates.push (new double[] {x, y, z, headingTheta, headingPhi, headingXi});
+    }
 
-  public void pushTurtleState () {
-    stkTurtleStates.push (new double [] {x, y, z, headingTheta, headingPhi, headingXi});
-  }
+    public void popTurtleState () {
+      double[] state = (double[]) stkTurtleStates.pop ();
 
-  public void popTurtleState () {
-    double [] state = (double []) stkTurtleStates.pop ();
+      x = state[0];
+      y = state[1];
+      z = state[2];
+      headingTheta = state[3];
+      headingPhi   = state[4];
+      headingXi    = state[5];
 
-    x = state [0];
-    y = state [1];
-    z = state [2];
-    headingTheta = state [3];
-    headingPhi = state [4];
-    headingXi = state [5];
+      finishMove ();
+    }
 
-    finishMove ();
-  }
+    public Turtle replicate () {
+      // Returns a duplicate of this turtle. The duplicate will have been added to the window.
+      Turtle result = new Turtle (x, y);
 
-  public Turtle replicate () {
+      result.setZ (z);
+      result.setHeadingTheta (headingTheta);
+      result.setHeadingPhi (headingPhi);
+      result.setHeadingXi (headingXi);
+      result.setBodyColor (bodyColor);
+      result.setPenColor (penColor);
+      result.setPenIsDown (penDown);
+      result.setPenSize (penSize);
+      result.setDelayPerMove (delayPerMove);
+      result.setVisible (visible);
+      result.setPolarAxisModel (polarAxisModel);
 
-    // Returns a duplicate of this turtle.
+      window.add (result);
 
-
-    Turtle result = new Turtle (x, y);
-
-    result.setZ (z);
-    result.setHeadingTheta (headingTheta);
-    result.setHeadingPhi (headingPhi);
-    result.setHeadingXi (headingXi);
-    result.setBodyColor (bodyColor);
-    result.setPenColor (penColor);
-    result.setPenIsDown (penDown);
-    result.setPenSize (penSize);
-    result.setDelayPerMove (delayPerMove);
-    result.setVisible (visible);
-    result.setPolarAxisModel (polarAxisModel);
-
-    window.add (result);
-
-    return result;
-  }
-
-
+      return result;
+    }
 
   // Turtle information (available to user)
+  // Stuff that is used internally but is not so implementation-specific as to be meaningless
+  // or misleading to a user.
 
+    public Point3D computeTurtleVector (double distance) {
+      // Computes the difference in location of the turtle based on the
+      // distance that it would travel.
+      if (polarAxisModel == Z_SPHERICAL)
+        return new Point3D (Math.cos (Math.toRadians (headingTheta)) *
+                            Math.cos (Math.toRadians (headingPhi)) * distance,
 
-  public Point3D computeTurtleVector (double distance) {
+                            Math.sin (Math.toRadians (headingTheta)) *
+                            Math.cos (Math.toRadians (headingPhi)) * distance,
 
-    // Computes the difference in location of the turtle based on the
-    // distance that it would travel.
+                            Math.sin (Math.toRadians (headingPhi)) * distance);
 
+      else if (polarAxisModel == Y_CYLINDRICAL)
+        return new Point3D (Math.cos (Math.toRadians (headingTheta)) *
+                            Math.cos (Math.toRadians (headingPhi)) * distance,
 
-    Point3D result = new Point3D ();
+                            Math.sin (Math.toRadians (headingTheta)) * distance,
 
-    if (polarAxisModel == Z_SPHERICAL) {
-      result.X =
-        Math.cos (Math.toRadians (headingTheta)) *
-        Math.cos (Math.toRadians (headingPhi)) * distance;
+                            Math.cos (Math.toRadians (headingTheta)) *
+                            Math.sin (Math.toRadians (headingPhi)) * distance);
+      else if (polarAxisModel == ORTHOGONAL_PLANAR)
+        return new Point3D ((Math.cos (Math.toRadians (headingTheta)) *
+                             Math.cos (Math.toRadians (headingPhi)) +
+                             Math.sin (Math.toRadians (headingTheta)) *
+                             Math.sin (Math.toRadians (headingPhi)) *
+                             Math.sin (Math.toRadians (headingXi))) * distance,
 
-      result.Y =
-        Math.sin (Math.toRadians (headingTheta)) *
-        Math.cos (Math.toRadians (headingPhi)) * distance;
+                            Math.sin (Math.toRadians (headingTheta)) *
+                            Math.cos (Math.toRadians (headingXi)) * distance,
 
-      result.Z =
-        Math.sin (Math.toRadians (headingPhi)) * distance;  
-    } else if (polarAxisModel == Y_CYLINDRICAL) {
-      result.X =
-        Math.cos (Math.toRadians (headingTheta)) *
-        Math.cos (Math.toRadians (headingPhi)) * distance;
-
-      result.Y =
-        Math.sin (Math.toRadians (headingTheta)) * distance;
-
-      result.Z =
-        Math.cos (Math.toRadians (headingTheta)) *
-        Math.sin (Math.toRadians (headingPhi)) * distance;
-    } else if (polarAxisModel == ORTHOGONAL_PLANAR) {
-      result.X =
-        (Math.cos (Math.toRadians (headingTheta)) *
-         Math.cos (Math.toRadians (headingPhi)) +
-         Math.sin (Math.toRadians (headingTheta)) *
-         Math.sin (Math.toRadians (headingPhi)) *
-         Math.sin (Math.toRadians (headingXi))) * distance;
-
-      result.Y =
-        Math.sin (Math.toRadians (headingTheta)) *
-        Math.cos (Math.toRadians (headingXi)) * distance;
-
-      result.Z =
-        (Math.cos (Math.toRadians (headingTheta)) *
-         Math.sin (Math.toRadians (headingPhi)) -
-         Math.sin (Math.toRadians (headingTheta)) *
-         Math.cos (Math.toRadians (headingPhi)) *
-         Math.sin (Math.toRadians (headingXi))) * distance;
-    } else
-      System.err.println ("Warning: Current polar axis model is not supported.");
-
-    return result;
-  }
-
-
+                            (Math.cos (Math.toRadians (headingTheta)) *
+                             Math.sin (Math.toRadians (headingPhi)) -
+                             Math.sin (Math.toRadians (headingTheta)) *
+                             Math.cos (Math.toRadians (headingPhi)) *
+                             Math.sin (Math.toRadians (headingXi))) * distance);
+      else {
+        System.err.println ("Warning: Current polar axis model is not supported.");
+        return null;
+      }
+    }
 
   // Turtle movement commands (available to user)
 
+    public Turtle move (double distance, boolean invisible) {
+      // Angles should go CCW from due east as theta varies.
+      startMove ();
+      Point3D delta = computeTurtleVector (distance);
 
-  public void move (double distance) {
-    move (distance, false);
-  }
+      if (z + delta.Z < 1.0) delta.Z = 1.0 - z;
+      if (! invisible) line (x, y, z, x + delta.X, y + delta.Y, z + delta.Z);
 
-  public void jump (double distance) {
-    move (distance, true);
-  }
+      x += delta.X;
+      y += delta.Y;
+      z += delta.Z;
+      finishMove ();
 
-  public void move (double distance, boolean invisible) {
+      return this;
+    }
 
-    // Angles should go CCW from due east as theta varies.
+    public Turtle moveTo (double nx, double ny, double nz) {startMove (); line (x, y, z, nx, ny, nz);
+                                                                          x = nx; y = ny; z = nz; finishMove ();
+                                                            return this;}
 
+    public Turtle jumpTo (double nx, double ny, double nz) {startMove (); x = nx; y = ny; z = nz; finishMove ();
+                                                            return this;}
 
-    startMove ();
+    public Turtle turnTheta (double angle) {startMove (); headingTheta += angle; finishMove (); return this;}
+    public Turtle turnPhi   (double angle) {startMove (); headingPhi   += angle; finishMove (); return this;}
+    public Turtle turnXi    (double angle) {startMove (); headingXi    += angle; finishMove (); return this;}
 
-    Point3D delta = computeTurtleVector (distance);
+  // Command aliases
+  // Easier to use than the above commands, and these appear quite commonly.
 
-    if ((z + delta.Z) < 1.0)
-      delta.Z = 1.0 - z;
-
-    if (!invisible)
-      line (x, y, z, x + delta.X, y + delta.Y, z + delta.Z);
-
-    x += delta.X;
-    y += delta.Y;
-    z += delta.Z;
-
-    finishMove ();
-  }
-
-  public void moveTo (double nx, double ny) {
-    startMove ();
-    line (x, y, z, nx, ny, z);
-    x = nx;
-    y = ny;
-    finishMove ();
-  }
-
-  public void moveTo (double nx, double ny, double nz) {
-    startMove ();
-    line (x, y, z, nx, ny, nz);
-    x = nx;
-    y = ny;
-    z = nz;
-    finishMove ();
-  }
-
-  public void jumpTo (double nx, double ny) {
-    startMove ();
-    x = nx;
-    y = ny;
-    finishMove ();
-  }
-
-  public void jumpTo (double nx, double ny, double nz) {
-    startMove ();
-    x = nx;
-    y = ny;
-    z = nz;
-    finishMove ();
-  }
-
-  public void forward (double distance) {
-    move (distance);
-  }
-
-  public void backup (double distance) {
-    move (-distance);
-  }
-
-  public void turnTheta (double angle) {
-    startMove ();
-    headingTheta += angle;
-    finishMove ();
-  }
-
-  public void turn (double angle) {
-    turnTheta (angle);
-  }
-
-  public void turnPhi (double angle) {
-    startMove ();
-    headingPhi += angle;
-    finishMove ();
-  }
-
-  public void turnXi (double angle) {
-    startMove ();
-    headingXi += angle;
-    finishMove ();
-  }
-
+    public Turtle move (double distance) {return move (distance, false);}
+    public Turtle jump (double distance) {return move (distance, true);}
+    public Turtle turn (double angle)    {return turnTheta (angle);}
 
 }
