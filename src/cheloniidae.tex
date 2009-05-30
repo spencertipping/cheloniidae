@@ -24,8 +24,8 @@
     \begin{scalacode}
 package cheloniidae
 
-import java.awt._
-import java.util._
+import java.awt.Color
+import java.awt.Frame
     \end{scalacode}
 
   \section{Geometric Logic}
@@ -126,22 +126,23 @@ case class LineSegment (v1: Vector, v2: Vector, c: Color) {
     \subsection{Turtle Monad}
       \label{sec:turtle-monad}
 
-      A turtle is represented as a monad whose data structures are a positional vector, represented either by $p$ or by $\langle x, y, z \rangle$, and a
-      directional vector, represented either by $d$ or by $\langle dx, dy, dz \rangle$. Operations performed on the turtle yield a new turtle and are expected to
-      have side-effects on the turtle's drawing window. In addition to its geometric attributes, a turtle also has a color and a drawing window.
-
       \begin{scalacode}
 trait Turtle {
-  def << (l: LineReceiver)
   def << (f: Turtle => Turtle) = f (this)
+  def >> (f: LineSegment => Unit)
 }
       \end{scalacode}
 
     \subsection{Basic turtle implementation}
       \label{sec:basic-turtle-implementation}
 
-      The trait defined above provides the standard interface for turtle-like things, but we need a solid implementation to store the data. Well, here is such
-      an implementation:
+      A geometric turtle is represented as an object whose data structures are a positional vector, represented either by $p$ or by $\langle x, y, z \rangle$,
+      and a directional vector, represented either by $d$ or by $\langle dx, dy, dz \rangle$. Operations performed on the turtle yield a new turtle and are
+      expected to have side-effects on the turtle's drawing window. In addition to its geometric attributes, a turtle also has a color and a drawing window.
+
+
+      The trait defined in section \ref{sec:turtle-monad} provides the standard interface for turtle-like things, but we need a solid implementation to store
+      the data. Well, here is such an implementation:
 
       \begin{scalacode}
 class GeometricTurtle (p: Vector, d: Vector, c: Color) extends Turtle {
@@ -156,14 +157,21 @@ class GeometricTurtle (p: Vector, d: Vector, c: Color) extends Turtle {
       of turtle networks, and they connect turtles in different ways.
 
       \begin{scalacode}
-class TurtleNetwork {
-  protected var ts = new scala.List[Turtle] ()
+class TurtleNetwork extends Turtle {
+  var turtles: List[Turtle] = Nil
+  def << (l: List[Turtle]) = {this <<< l}
+  def << (t: Turtle) = {ts = t :: ts; this}
+  protected abstract def <<< (l: List[Turtle])
+  protected abstract def <<< (f: Turtle => Turtle)
+  protected abstract def <<< (f: Synchronize)
+}
+      \end{scalacode}
 
-  abstract def create (l: List[Turtle])
+      By default, a network will distribute commands across all turtles. Thus we have a completely distributive network:
 
-  def << (l: List[Turtle])     = {ts = l; this}
-  def << (t: Turtle)           = {ts = t :: ts; this}
-  def << (f: Turtle => Turtle) = this.create (ts.map (f))
+      \begin{scalacode}
+class CompletelyDistributiveNetwork extends TurtleNetwork {
+  protected abstract def <<< (f: Turtle => Turtle) = this << turtles.map (f)
 }
       \end{scalacode}
 
@@ -178,15 +186,13 @@ val w = new TurtleDrawingWindow ()
 val n = new LinearNetwork ()
 w << n
 val t1 = w.createTurtle ()
-val t2 = t1 + new Vector (50, 0, 0)
+val t2 = t1 + Vector (50, 0, 0)
 n << fd(100) << synchronize << rt(10) << fd(100) << synchronize
         \end{verbatim}
 
         \begin{scalacode}
-class LinearNetwork extends TurtleNetwork {
-  def create (l: List[Turtle]) = new LinearNetwork () << l
-  
-  def << (f: Synchronize) = 
+class LinearNetwork extends CompletelyDistributiveTurtleNetwork {
+  def <<< (f: Synchronize) = 
 }
         \end{scalacode}
 
