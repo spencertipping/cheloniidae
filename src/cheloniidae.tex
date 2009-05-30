@@ -18,11 +18,10 @@
     multiple turtles, turtle networks, 3D coordinate spaces, translucent lines, and optically-accurate projective rendering.
 
     A Cheloniidae scene is built by creating a drawing window and then adding turtles and other drawing objects to the window. Turtles are then driven by using
-    a series of monadic invocations. This has the advantage that driving one turtle and driving multiple turtles can be achieved using the same syntax. (See
-    section \ref{sec:turtle-monad})
+    a series of binary operators (see section \ref{sec:turtles}).
 
     \begin{scalacode}
-package cheloniidae
+object cheloniidae {
 
 import java.awt.Color
 import java.awt.Frame
@@ -72,6 +71,7 @@ case class Vector (x: Double, y: Double, z: Double) {
   def length = Math.sqrt (this dot this)
 
   def to (that: Vector, c: Color) = new LineSegment (this, that, c)
+  def to (that: Vector)           = new LineSegment (this, that, null)
 
   override def toString = "<" + x.toString + ", " + y.toString + ", " + z.toString + ">"
 }
@@ -89,7 +89,6 @@ case class LineSegment (v1: Vector, v2: Vector, c: Color) {
   def midpoint = (v1 + v2) / 2.0
   def length   = (v1 - v2).length
 
-  def <*> (x: Double) = new LineSegment (midpoint + (v1 - midpoint) * x, midpoint + (v2 - midpoint) * x, c)
   def  *> (x: Double) = new LineSegment (v1, midpoint + (v2 - midpoint) * x, c)
   def <*  (x: Double) = new LineSegment (midpoint + (v1 - midpoint) * x, v2, c)
 
@@ -103,117 +102,43 @@ case class LineSegment (v1: Vector, v2: Vector, c: Color) {
   \section{Turtles}
     \label{sec:turtles}
 
-    Turtles are abstracted at several levels. At the very top, they are things that have the ability to modify a list of line segments that is tracked by the
-    containing window. This is useful so that the window can keep a record of all line segments added and perform intermittent redraws as the scene is
-    developed.
+    Turtles are mutable data structures that support a basic set of commands. Most likely you won't use these commands directly; to operate a turtle you will
+    probably want to instantiate a subclass of {\tt TurtleDriver}, which wraps the turtle with a more friendly interface. Particularly, it enables you to drive
+    the turtle with a series of binary operators, so your code looks like this:
 
-    The next level abstraction is that of a monad -- this is to say that turtles are immutable data structures that know how to return instances of themselves
-    after certain transformations have taken place. Further, not just turtles work this way. A group of connected turtles can be given a bunch of commands
-    simultaneously.
+    \begin{verbatim}
+val a = new AngularTurtleDriver (new GeometricTurtle ())
+(new TurtleDrawingWindow () << a) setVisible true
+4 times {a fd 100 rt 90}
+    \end{verbatim}
 
-    \subsection{Turtle taxonomy}
-      \label{sec:turtle-taxonomy}
+    \subsection{Imperative control structures}
+      \label{sec:imperative-control-structures}
 
-      In the class hierarchy there are several different interfaces that can be implemented. First, there is the {\tt Turtle} interface defined in section
-      \ref{sec:turtle-monad}. This allows different types of turtles to be defined; for example, turtles that use polar angles instead of Cartesian directions,
-      or probabilistic turtles whose drawing operations are inexact.
-
-      Turtles have turtle-specific mutator functions, such as {\tt fd} or {\tt rt}, but they can also accept other commands that the user defines. These
-      secondary commands
-
-      The normal turtle is the {\tt DirectionalTurtle}, which implements what most people would expect from a turtle.
-
-    \subsection{Turtle Monad}
-      \label{sec:turtle-monad}
+      To iterate like Ruby, we can provide an implicit integer conversion. The resulting object supports methods such as {\tt times}, which encapsulate the
+      iteration step.
 
       \begin{scalacode}
-trait Turtle {
-  def << (f: Turtle => Turtle) = f (this)
-  def >> (f: LineSegment => Unit)
+implicit def integer_to_iteration_container (x: Int) = IterationContainer (x)
+
+case class IterationContainer (x: Int) {
+  def times (what: Int => Unit) = {
+    var i = 0
+    while (i < x) {
+      what (i)
+      i += 1
+    }
+    x
+  }
+
+  def times (what: => Unit) = this times ((x: Int) => what)
 }
       \end{scalacode}
 
-    \subsection{Basic turtle implementation}
-      \label{sec:basic-turtle-implementation}
+    \subsection{Basic turtle interface}
+      \label{sec:basic-turtle-interface}
 
-      A geometric turtle is represented as an object whose data structures are a positional vector, represented either by $p$ or by $\langle x, y, z \rangle$,
-      and a directional vector, represented either by $d$ or by $\langle dx, dy, dz \rangle$. Operations performed on the turtle yield a new turtle and are
-      expected to have side-effects on the turtle's drawing window. In addition to its geometric attributes, a turtle also has a color and a drawing window.
-
-
-      The trait defined in section \ref{sec:turtle-monad} provides the standard interface for turtle-like things, but we need a solid implementation to store
-      the data. Well, here is such an implementation:
-
-      \begin{scalacode}
-class GeometricTurtle (p: Vector, d: Vector, c: Color) extends Turtle {
-  
-}
-      \end{scalacode}
-
-    \subsection{Turtle networks}
-      \label{sec:turtle-networks}
-
-      Multiple turtles can be coordinated and can draw lines between each other. This is useful when constructing grids, for instance. There are several types
-      of turtle networks, and they connect turtles in different ways.
-
-      \begin{scalacode}
-class TurtleNetwork extends Turtle {
-  var turtles: List[Turtle] = Nil
-  def << (l: List[Turtle]) = {this <<< l}
-  def << (t: Turtle) = {ts = t :: ts; this}
-  protected abstract def <<< (l: List[Turtle])
-  protected abstract def <<< (f: Turtle => Turtle)
-  protected abstract def <<< (f: Synchronize)
-}
-      \end{scalacode}
-
-      By default, a network will distribute commands across all turtles. Thus we have a completely distributive network:
-
-      \begin{scalacode}
-class CompletelyDistributiveNetwork extends TurtleNetwork {
-  protected abstract def <<< (f: Turtle => Turtle) = this << turtles.map (f)
-}
-      \end{scalacode}
-
-      \subsubsection{Linear turtle network}
-        \label{sec:linear-turtle-network}
-
-        A linear turtle network is used when you have $n$ turtles and you wish to form an $n\times m$ grid. The idea is that at any point you can invoke the
-        {\tt synchronize} operation on the network and each turtle will draw a line to its neighbor. Thus a standard use case might look something like this:
-
-        \begin{verbatim}
-val w = new TurtleDrawingWindow ()
-val n = new LinearNetwork ()
-w << n
-val t1 = w.createTurtle ()
-val t2 = t1 + Vector (50, 0, 0)
-n << fd(100) << synchronize << rt(10) << fd(100) << synchronize
-        \end{verbatim}
-
-        \begin{scalacode}
-class LinearNetwork extends CompletelyDistributiveTurtleNetwork {
-  def <<< (f: Synchronize) = 
-}
-        \end{scalacode}
-
-    \subsection{Drawing primitives}
-      \label{sec:drawing-primitives}
-
-      A turtle wouldn't be of much use without some primitives to work with. These drawing primitives allow the turtle to render lines and change its direction.
-
-      \begin{scalacode}
-object Drawing {
-  def changePosition (pprime: Vector) = (t: Turtle) => t match {
-    case GeometricTurtle (p, d, c, l) => {w.addLineSegment (p, pprime, c)
-                                          new GeometricTurtle (pprime, d, c, l)}}
-
-  def changeDirection (dprime: Vector) = (t: Turtle) => t match {
-    case GeometricTurtle (p, d, c, l) => new GeometricTurtle (p, dprime, c, l)}
-
-  def fd (x: Double) = (t: Turtle) => t match {
-    case GeometricTurtle (p, d, c, l) => changePosition (p + d * x) (t)}
-}
-      \end{scalacode}
+      
 
   \section{Turtle Drawing Window}
     \label{sec:turtle-drawing-window}
@@ -222,8 +147,15 @@ object Drawing {
     defaults.
 
     \begin{scalacode}
-class TurtleDrawingWindow extends Frame with LineReceiver {
+class TurtleDrawingWindow extends Frame {
 }
+    \end{scalacode}
+  
+  \section{Closing}
+    \label{sec:closing}
+
+    \begin{scalacode}
+} // object cheloniidae
     \end{scalacode}
 
 % vim: set syntax=scalatex :
