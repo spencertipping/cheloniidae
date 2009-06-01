@@ -1,33 +1,21 @@
-// Cheloniidae Turtle System copyright 2006 by Spencer Tipping (all rights reserved)
-// Written 07-26-2006; licensed under the LGPL, latest version
+// Cheloniidae Turtle Graphics
+// Created by Spencer Tipping and licensed under the terms of the MIT source code license
 
 package cheloniidae;
 
-import java.awt.*;
+import java.awt.Color;
 
+public final class Line {
+  public Vector v1    = null;
+  public Vector v2    = null;
+  public double width = 2.0;
+  public Color  color = null;
 
-/**
- * This class represents a single line that can be drawn by a turtle.
- *
- * @author Spencer Tipping
- */
-
-class Line {
-  double x1 = 0.0, y1 = 0.0, z1 = 0.0;
-  double x2 = 0.0, y2 = 0.0, z2 = 0.0;
-  double width = 2.0;
-
-  // This is the color that the line should appear on the screen. It may
-  // include an alpha component for translucent lines.
-  Color lineColor = null;
-
-  // This is used in depth-sorting. (See TurtleDrawingWindow.java)
+  // This is used in depth-sorting. (See LineProvider.java)
   double cachedDistance = 0.0;
 
-  Line (double _x1, double _y1, double _z1, double _x2, double _y2, double _z2, double _width, Color _lineColor) {
-    x1 = _x1; y1 = _y1; z1 = _z1;
-    x2 = _x2; y2 = _y2; z2 = _z2;
-    lineColor = _lineColor;
-    width = _width;
-  }
+  public Line (Vector _v1, Vector _v2,  double _width,   Color _color)
+  {              v1 = _v1;   v2 = _v2; width = _width; color = _color;}
+
+  public final Vector midpoint () {return new Vector (v1).multiply (0.5).addScaled (v2, 0.5);}
 }
