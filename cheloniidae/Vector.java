@@ -49,6 +49,8 @@ public final class Vector implements Serializable {
   public final double length ()          {return Math.sqrt (x*x + y*y + z*z);}
   public final double lengthSquared ()   {return x*x + y*y + z*z;}
 
+  public final Vector normalize () {return divide (length ());}
+
   public final double distanceFrom (Vector other) {return Math.sqrt ((x - other.x) * (x - other.x) +
                                                                      (y - other.y) * (y - other.y) +
                                                                      (z - other.z) * (z - other.z));}
