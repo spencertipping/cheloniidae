@@ -45,7 +45,7 @@ public class QueueLineProvider extends ArrayList<Line> implements LineProvider {
     if (b > ib)     quicksort (ib + 1, b);
   }
 
-  public void sort (Point3D center) {
+  public void sort (Vector center) {
     for (int i = 0; i < super.size (); ++i) super.get (i).cachedDistance = super.get (i).midpoint ().distanceFrom (center);
     quicksort (0, super.size () - 1);
   }

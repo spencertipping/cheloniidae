@@ -9,7 +9,7 @@ public abstract class CartesianTurtle extends EuclideanTurtle {
   public Vector          direction ()                  {return direction;}
   public CartesianTurtle direction (Vector _direction) {direction = _direction; return this;}
 
-  protected final CartesianTurtle changeDirection (Vector delta) {
+  public final CartesianTurtle changeDirection (Vector delta) {
     direction.add (delta).normalize ();
     return this;
   }
