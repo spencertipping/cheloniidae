@@ -12,7 +12,7 @@ public abstract class Turtle {
   protected double                 lineSize     = 0.5;
   protected boolean                visible      = true;
   protected TurtleProgressListener listener     = null;
-  protected LineProvider           lineProvider = new LineProvider ();
+  protected LineProvider           lineProvider = null;
 
   public Turtle () {}
 

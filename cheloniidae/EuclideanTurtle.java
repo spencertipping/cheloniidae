@@ -4,6 +4,8 @@
 package cheloniidae;
 
 public abstract class EuclideanTurtle extends Turtle {
+  public EuclideanTurtle () {provider = new QueueLineProvider ();}
+
   protected abstract Vector direction ();
 
   protected final Turtle line (Vector p1, Vector p2) {
