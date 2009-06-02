@@ -9,6 +9,7 @@ import java.awt.event.*;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -38,252 +39,113 @@ public class TurtleDrawingWindow extends Frame {
   public static final int    INTERMEDIATE_RENDER_CUTOFF  = 10000;
   public static final int    LINE_POINT_MAXIMUM_DISTANCE = 16;
 
-  protected BufferedImage      turtleOutput        = null;
-  protected BufferedImage      turtleLayer        = null;
-  protected List<LineProvider> providers                = new ArrayList<LineProvider> ();
+  protected BufferedImage      turtleOutput              = null;
+  protected BufferedImage      turtleLayer               = null;
+  protected List<LineProvider> providers                 = new ArrayList<LineProvider> ();
 
-  protected Vector virtualTranslation  = new Vector ();
-  protected Vector viewportTranslation = new Vector ();
-  protected Vector viewportPOV         = new Vector (0, 0, -1);
+  protected Vector             virtualPOV                = new Vector (0, 0, -1);
+  protected Vector             virtualTarget             = new Vector ();
+  protected Vector             viewportTranslation       = new Vector ();
 
-  protected Vector minimumExtent = new Vector ();
-  protected Vector maximumExtent = new Vector ();
-
-  protected int          mouseDownX          = 0;
-  protected int          mouseDownY          = 0;
-  protected boolean        mouseDown          = false;
-
-  protected Thread        graphicsRequestRunner  = null;
-
-  protected boolean        graphicsRequestCancelFlag  = false;
-
-  protected boolean        fisheye3D          = false;
+  protected int                mouseDownX                = 0;
+  protected int                mouseDownY                = 0;
+  protected boolean            mouseDown                 = false;
+  protected Thread             graphicsRequestRunner     = null;
+  protected boolean            graphicsRequestCancelFlag = false;
+  protected boolean            fisheye3D                 = false;
   
   public TurtleDrawingWindow () {}
 
-  protected void regenerateImages () {                // {{{
-    //
-    // Reallocate both the turtle output layer and the turtle layer.
-    //
+  protected void regenerateImages () {
+    turtleOutput = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
+    turtleLayer  = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
+  }
 
-    imgTurtleOutput = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
-    imgTurtleLayer  = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
-  }                                  // }}}
-
-  protected void handleResize () {                  // {{{
-    //
-    // Set up the viewport dimensions. I know that we snap back to
-    // center on a resize, and while this may not be desirable, I
-    // would consider it to be so because if the user for some reason
-    // pans too far off center and loses the image, this is a convenient
-    // way to restore it.
-    // 
-    viewportX = super.getWidth () / 2;
-    viewportY = super.getHeight () / 2;
-
-    //
-    // Regenerate the images and repaint the screen.
-    //
+  protected void handleResize () {
+    viewportTranslation.assign (super.getWidth () >> 1, super.getHeight () >> 1, 0);
     regenerateImages ();
     enqueueGraphicsRefreshRequest (true, true);
-  }                                  // }}}
+  }
 
-  protected void initialize () {                    // {{{
-    //
-    // Step 1. Add listeners to the frame.
-    //
-
-    //
-    // Provide a backreference for all of the anonymous classes.
-    // Java's rules say that it must be final.
-    //
+  protected void initialize () {
     final TurtleDrawingWindow t = this;
 
-    super.addWindowListener (new WindowListener () {        // {{{
-        //
-        // Methods
-        //
+    super.addWindowListener      (new WindowListener      () {public void windowClosing     (WindowEvent e)    {t.dispose ();}
+                                                              public void windowActivated   (WindowEvent e)    {}
+                                                              public void windowClosed      (WindowEvent e)    {}
+                                                              public void windowDeactivated (WindowEvent e)    {}
+                                                              public void windowDeiconified (WindowEvent e)    {}
+                                                              public void windowIconified   (WindowEvent e)    {}
+                                                              public void windowOpened      (WindowEvent e)    {}});
 
-        public void windowClosing    (WindowEvent e) {
-        t.dispose ();
-        }
+    super.addComponentListener   (new ComponentListener   () {public void componentResized  (ComponentEvent e) {t.handleResize ();}
+                                                              public void componentMoved    (ComponentEvent e) {}
+                                                              public void componentHidden   (ComponentEvent e) {}
+                                                              public void componentShown    (ComponentEvent e) {}});
 
-        //
-        // Empty methods
-        //
+    super.addMouseListener       (new MouseListener       () {public void mouseReleased     (MouseEvent e)     {mouseDown = false;
+                                                                                                                t.enqueueGraphicsRefreshRequest (true, true);}
+                                                              public void mousePressed      (MouseEvent e)     {mouseDown = true;
+                                                                                                                mouseDownX = e.getX ();
+                                                                                                                mouseDownY = e.getY ();}
+                                                              public void mouseClicked      (MouseEvent e)     {}
+                                                              public void mouseEntered      (MouseEvent e)     {}
+                                                              public void mouseExited       (MouseEvent e)     {}});
 
-        public void windowActivated    (WindowEvent e) {}
-        public void windowClosed    (WindowEvent e) {}
-        public void windowDeactivated  (WindowEvent e) {}
-        public void windowDeiconified  (WindowEvent e) {}
-        public void windowIconified    (WindowEvent e) {}
-        public void windowOpened    (WindowEvent e) {}
+    super.addMouseMotionListener (new MouseMotionListener () {public void mouseDragged (MouseEvent e) {
+                                                                if (mouseDown) {
+                                                                  if (e.isShiftDown () && e.isControlDown ()) {
+                                                                    viewportZoom += e.getY () - mouseDownY;
+                                                                  } else if (e.isShiftDown ()) {
+                                                                  viewportTheta += e.getX () - mouseDownX;
+                                                                  viewportPhi += e.getY () - mouseDownY;
+                                                                  } else if (e.isControlDown ()) {
+                                                                    viewportPreProjectionX += e.getX () - mouseDownX;
+                                                                    viewportPreProjectionY += e.getY () - mouseDownY;
+                                                                  } else {
+                                                                    viewportX += e.getX () - mouseDownX;
+                                                                    viewportY += e.getY () - mouseDownY;
+                                                                  }
 
-        });                                // }}}
+                                                                  mouseDownX = e.getX ();
+                                                                  mouseDownY = e.getY ();
 
-    super.addComponentListener (new ComponentListener () {      // {{{
-        //
-        // Methods
-        //
+                                                                  t.enqueueGraphicsRefreshRequest (true, false);
+                                                                }
+                                                              }
+                                                              public void mouseMoved (MouseEvent e) {}});
 
-        public void componentResized  (ComponentEvent e) {
-        t.handleResize ();
-        }
-
-        //
-        // Empty methods
-        // 
-
-        public void componentMoved    (ComponentEvent e) {}
-        public void componentHidden    (ComponentEvent e) {}
-        public void componentShown    (ComponentEvent e) {}
-
-        });                                // }}}
-
-    super.addMouseListener (new MouseListener () {          // {{{
-        //
-        // Methods
-        //
-
-        public void mouseReleased (MouseEvent e) {
-        mouseDown = false;
-        t.enqueueGraphicsRefreshRequest (true, true);
-        }
-
-        public void mousePressed (MouseEvent e) {
-        mouseDown = true;
-        mouseDownX = e.getX ();
-        mouseDownY = e.getY ();
-        }
-
-        //
-        // Empty methods
-        //
-
-        public void mouseClicked (MouseEvent e) {}
-        public void mouseEntered (MouseEvent e) {}
-        public void mouseExited (MouseEvent e) {}
-
-    });                                // }}}
-
-    super.addMouseMotionListener (new MouseMotionListener () {    // {{{
-        //
-        // Methods
-        //
-
-        public void mouseDragged (MouseEvent e) {
-        if (mouseDown) {
-        if (e.isShiftDown () && e.isControlDown ()) {
-        //
-        // Zoom in and out and rotate the view.
-        //
-        viewportZoom += e.getY () - mouseDownY;
-
-        if (viewportZoom > DEFAULT_Z_BASE)
-        viewportZoom = (int) DEFAULT_Z_BASE;
-        } else if (e.isShiftDown ()) {
-        //
-        // Shift the rotation coefficients.
-        //
-        viewportTheta += e.getX () - mouseDownX;
-        viewportPhi += e.getY () - mouseDownY;
-        } else if (e.isControlDown ()) {
-          //
-          // Shift the 3D viewport plane.
-          //
-          viewportPreProjectionX += e.getX () - mouseDownX;
-          viewportPreProjectionY += e.getY () - mouseDownY;
-        } else {
-          //
-          // Shift the viewport over.
-          // 
-          viewportX += e.getX () - mouseDownX;
-          viewportY += e.getY () - mouseDownY;
-        }
-
-        //
-        // Now, move the effective click location. This way,
-        // we can move the viewport again by clicking and dragging
-        // and it won't start back at the center of the window.
-        // 
-        mouseDownX = e.getX ();
-        mouseDownY = e.getY ();
-
-        //
-        // Show the user a snapshot of the image.
-        //
-
-        t.enqueueGraphicsRefreshRequest (true, false);
-        }
-        }
-
-        //
-        // Empty methods
-        //
-
-        public void mouseMoved (MouseEvent e) {}
-
-    });                                // }}}
-
-    //
-    // Step 2. Make the frame visible and set a default size. Also, set the
-    //        default background color.
-    //
-
-    super.setSize (600, 372);
-    super.setTitle ("Cheloniidae");
-    super.setVisible (true);
+    super.setSize       (600, 372);
+    super.setTitle      ("Cheloniidae");
+    super.setVisible    (true);
     super.setBackground (Color.WHITE);
 
-    //
-    // Step 3. Generate the initial images and paint the screen.
-    //
+    handleResize ();
+  }
 
-    regenerateImages ();
-    enqueueGraphicsRefreshRequest (true, true);
-  }                                  // }}}
-
-  protected void initializeAntialiasing (Graphics2D g) {        // {{{
-    //
+  protected void initializeAntialiasing (Graphics2D g) {
     // Due to the architecture of rendering hints, we must first
     // load them into a variable, then change them, and finally
     // put them back into the graphics context in order to commit
     // changes. Otherwise, this would be a one-liner.
-    //
+
     RenderingHints rh = g.getRenderingHints ();
     rh.put (rh.KEY_ANTIALIASING, rh.VALUE_ANTIALIAS_ON);
     g.setRenderingHints (rh);
-  }                                  // }}}
-  // }}}
+  }
 
-  //
+
   // Graphical methods (available to user)
-  //
-  // {{{
-  public void clear () {                        // {{{
-    //
-    // Clear off the background image and the list of lines.
-    //
 
-    lstLines.clear ();
-    zMinimumExtent = zMaximumExtent = DEFAULT_Z_BASE;
-
-    //
-    // Once the list is clear, ask the window to refresh the graphics.
-    // Since we've told it to redraw all lines, the screen will be clear.
-    //
-    enqueueGraphicsRefreshRequest (true, false);
-  }                                  // }}}
-
-  public void update (Graphics g) {                  // {{{
+  public void update (Graphics g) {
     paint (g);
-  }                                  // }}}
+  }
 
-  public void paint (Graphics g) {                  // {{{
-    g.drawImage (imgTurtleLayer, 0, 0, null);
-  }                                  // }}}
+  public void paint (Graphics g) {
+    g.drawImage (turtleLayer, 0, 0, null);
+  }
 
-  public void enqueueGraphicsRefreshRequest (              // {{{
+  public void enqueueGraphicsRefreshRequest (
       boolean drawAllLines, boolean antialiased) {
     //
     // If the images are not yet initialized, then don't do anything.
@@ -312,94 +174,15 @@ public class TurtleDrawingWindow extends Frame {
 
       thrGraphicsRequestRunner.start ();
     }
-  }                                  // }}}
-  // }}}
+  }
+
 
   //
   // 3D methods (hidden from user)
   //
-  // {{{
-  protected double lineDistance (Line l) {              // {{{
-    Point3D transformed = new Point3D ((l.x1 + l.x2) / 2.0,
-        (l.y1 + l.y2) / 2.0,
-        (l.z1 + l.z2) / 2.0);
 
-    transformPoint (transformed);
 
-    return Math.sqrt (transformed.X * transformed.X +
-        transformed.Y * transformed.Y +
-        transformed.Z * transformed.Z);
-  }                                  // }}}
-
-  protected final void swap (java.util.ArrayList l, int a, int b) {  // {{{
-    Object ltmp = l.get (a);
-    l.set (a, l.get (b));
-    l.set (b, ltmp);
-  }                                  // }}}
-
-  protected void quickSort (java.util.ArrayList l, int a, int b) {  // {{{
-    //
-    // This quicksort algorithm keys on the cached distance
-    // of each line in l. It sorts in reverse, so greater
-    // distances are sorted before lesser distances.
-    //
-
-    if (a < b && !graphicsRequestCancelFlag) {
-      int ia = a + 1;
-      int ib = b + 1;
-      int pivot = (a + b) / 2;
-
-      swap (l, a, pivot);
-
-      while (ia < ib && !graphicsRequestCancelFlag) {
-        //
-        // Bug fix: Sometimes the view takes a while to
-        // respond. To fix this, we can break out of the
-        // while loops as soon as the graphics cancel
-        // flag is set.
-        //
-        while (ia < b &&
-            ((Line) lstLines.get (ia)).cachedDistance > ((Line) lstLines.get (a)).cachedDistance &&
-            !graphicsRequestCancelFlag)
-          ia++;
-
-        while (((Line) lstLines.get (--ib)).cachedDistance < ((Line) lstLines.get (a)).cachedDistance &&
-            !graphicsRequestCancelFlag);
-
-        if (ia < ib)
-          swap (l, ia, ib);
-      }
-
-      swap (l, a, ib);
-
-      quickSort (l, a, ib - 1);
-      quickSort (l, ib + 1, b);
-    }
-  }                                  // }}}
-
-  protected void resortLines () {                    // {{{
-    //
-    // Sorts the lines in order of distance from the viewport.
-    // We do this so that when they are rendered, the lines don't overlap
-    // each other unnaturally.
-    //
-    // This isn't a foolproof algorithm; there are cases where it will
-    // make mistakes. However, it uses a decent heuristic that the center
-    // of the line is what determines its distance.
-    //
-    // This algorithm does not allocate memory, which should
-    // noticeably save time on large drawings.
-    //
-
-    synchronized (lstLines) {
-      for (int i = 0; i < lstLines.size () && !graphicsRequestCancelFlag; i++)
-        ((Line) lstLines.get (i)).cachedDistance = lineDistance ((Line) lstLines.get (i));
-
-      quickSort (lstLines, 0, lstLines.size () - 1);
-    }
-  }                                  // }}}
-
-  protected synchronized void transformPoint (Point3D p) {      // {{{
+  protected synchronized void transformPoint (Point3D p) {
     //
     // This method considers the values of viewportTheta, viewportPhi,
     // and viewportX and viewportY and transforms a point
@@ -429,9 +212,9 @@ public class TurtleDrawingWindow extends Frame {
     p.X += (xMinimumExtent + xMaximumExtent) / 2.0 + viewportPreProjectionX;
     p.Y += (yMinimumExtent + yMaximumExtent) / 2.0 + viewportPreProjectionY;
     p.Z += (zMinimumExtent + zMaximumExtent) / 2.0 + viewportZoom;
-  }                                  // }}}
+  }
 
-  protected void renderLine (                      // {{{
+  protected void renderLine (
       BufferedImage target, Color c, int x1, int y1, int x2, int y2) {
     //
     // This method renders a single line sloppily onto an image.
@@ -444,9 +227,9 @@ public class TurtleDrawingWindow extends Frame {
       renderLine (target, c, (x1 + x2) / 2, (y1 + y2) / 2, x2, y2);
     } else
       target.setRGB ((x1 + x2) / 2, (y1 + y2)  / 2, c.getRGB ());
-  }                                  // }}}
+  }
 
-  protected double projectPoint (Point3D p) {              // {{{
+  protected double projectPoint (Point3D p) {
     //
     // Performs an in-place projection of the point p into
     // 2D space. Returns the effective distance of the point
@@ -467,9 +250,9 @@ public class TurtleDrawingWindow extends Frame {
 
       return p.Z;
     }
-  }                                  // }}}
+  }
 
-  protected void renderLine (                      // {{{
+  protected void renderLine (
       Line l, Graphics2D g, BufferedImage target, boolean antialiasing) {
     //
     // This method renders a single line onto the screen.
@@ -540,9 +323,9 @@ public class TurtleDrawingWindow extends Frame {
         renderLine (target, l.lineColor, 
             (int) newPoint1.X + viewportX, (int) newPoint1.Y + viewportY,
             (int) newPoint2.X + viewportX, (int) newPoint2.Y + viewportY);
-  }                                  // }}}
+  }
 
-  void updateExtents (                        // {{{
+  void updateExtents (
       double x1, double x2,
       double y1, double y2,
       double z1, double z2) {
@@ -578,14 +361,14 @@ public class TurtleDrawingWindow extends Frame {
     if (z1 > zMaximumExtent) zMaximumExtent = z1;
     if (z2 < zMinimumExtent) zMinimumExtent = z2;
     if (z2 > zMaximumExtent) zMaximumExtent = z2;
-  }                                  // }}}
-  // }}}
+  }
+
 
   //
   // Graphical methods (hidden from user)
   //
-  // {{{
-  protected void drawTurtles (boolean antialiased) {          // {{{
+
+  protected void drawTurtles (boolean antialiased) {
     //
     // Step 1: Set up antialiasing.
     //
@@ -649,9 +432,9 @@ public class TurtleDrawingWindow extends Frame {
               1.0, g.getColor ()), g, imgTurtleLayer, antialiased);
       }
     }
-  }                                  // }}}
+  }
 
-  protected void drawBackgroundObjects (boolean antialiased) {    // {{{
+  protected void drawBackgroundObjects (boolean antialiased) {
     //
     // Step 1. Set up antialiasing.
     //
@@ -679,9 +462,9 @@ public class TurtleDrawingWindow extends Frame {
       while (j.hasNext ())
         renderLine ((Line) j.next (), g, imgTurtleOutput, antialiased);
     }
-  }                                  // }}}
+  }
 
-  protected void drawLines (boolean startOver, boolean antialiased) {  // {{{
+  protected void drawLines (boolean startOver, boolean antialiased) {
     //
     // Step 1: Set up antialiasing.
     //
@@ -740,28 +523,28 @@ public class TurtleDrawingWindow extends Frame {
         }
       }
     }
-  }                                  // }}}
-  // }}}
+  }
+
 
   //
   // Turtle management (available to user)
   //
-  // {{{
-  public void add (Turtle t) {                    // {{{
+
+  public void add (Turtle t) {
     t.setWindow (this);
     t.setLines (lstLines);
     lstTurtles.add (t);
-  }                                  // }}}
-  // }}}
+  }
+
 
   //
   // Background management (available to user)
   //
-  // {{{
-  public void add (BackgroundObject b) {                // {{{
-    lstBackgrounds.add (b);
-  }                                  // }}}
-  // }}}
-  // }}}
 
-}                                        // }}}
+  public void add (BackgroundObject b) {
+    lstBackgrounds.add (b);
+  }
+
+
+
+}
