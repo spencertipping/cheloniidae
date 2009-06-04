@@ -6,7 +6,7 @@ package cheloniidae;
 public class OrthogonalPlanarTurtle extends EuclideanTurtle {
   protected Vector angles = new Vector ();
 
-  public OrthogonalPlanarTurtle (EuclideanTurtle _turtle) {turtle = _turtle;}
+  public OrthogonalPlanarTurtle () {}
 
   public final double                 theta  ()               {return angles.x;}
   public final OrthogonalPlanarTurtle theta  (double _theta)  {angles.x = _theta; return this;}

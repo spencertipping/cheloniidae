@@ -4,9 +4,9 @@
 package cheloniidae;
 
 public abstract class CartesianTurtle extends EuclideanTurtle {
-  protected Vector direction;
+  protected Vector direction = new Vector (0, 1, 0);
 
-  public Vector          direction ()                  {return direction;}
+  public Vector          direction ()                  {return new Vector (direction);}
   public CartesianTurtle direction (Vector _direction) {direction = _direction; return this;}
 
   public final CartesianTurtle changeDirection (Vector delta) {

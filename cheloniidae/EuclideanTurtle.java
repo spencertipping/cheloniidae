@@ -3,24 +3,40 @@
 
 package cheloniidae;
 
-public abstract class EuclideanTurtle extends Turtle {
-  public EuclideanTurtle () {provider = new QueueLineProvider ();}
+import java.awt.Graphics2D;
 
-  protected abstract Vector direction ();
+public abstract class EuclideanTurtle extends Turtle {
+  public EuclideanTurtle () {lineProvider = new QueueLineProvider ();}
+
+  public abstract Vector direction ();
 
   public final Turtle line (Vector p1, Vector p2) {
-    if (lineProvider != null) lines.add (new Line (p1, p2, lineSize, lineColor));
+    if (lineProvider != null) ((QueueLineProvider) lineProvider).add (new Line (p1, p2, lineSize, lineColor));
     if (listener     != null) listener.turtleProgress (this);
     return this;
   }
 
   public final EuclideanTurtle moveByDistance (double d) {
     Vector oldPosition = new Vector (position);
-    return this.line (oldPosition, position.addScaled (this.direction (), d));
+    this.line (oldPosition, position.addScaled (this.direction (), d));
+    return this;
   }
 
   public final EuclideanTurtle jumpByDistance (double d) {
     position.addScaled (this.direction (), d);
+    return this;
+  }
+
+  public EuclideanTurtle render (Graphics2D g, TurtleViewport viewport) {
+    if (viewport != null) {
+      Vector projectedPosition  = viewport.projectPoint (viewport.transformPoint (position));
+      Vector projectedDirection = viewport.projectPoint (viewport.transformPoint (position).addScaled (direction (), 10.0));
+
+      g.setColor (bodyColor ());
+      g.drawOval ((int) projectedPosition.x - 2, (int) projectedPosition.y - 2, 4, 4);
+      g.drawLine ((int) projectedPosition.x, (int) projectedPosition.y, (int) projectedDirection.x, (int) projectedDirection.y);
+    }
+
     return this;
   }
 }

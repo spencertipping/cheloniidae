@@ -4,6 +4,7 @@
 package cheloniidae;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 
 public abstract class Turtle {
   protected Vector                 position     = new Vector ();
@@ -28,5 +29,7 @@ public abstract class Turtle {
   public final Turtle                 visible      (boolean _visible)                 {visible = _visible; return this;}
   public final TurtleProgressListener listener     ()                                 {return listener;}
   public final Turtle                 listener     (TurtleProgressListener _listener) {listener = _listener; return this;}
-  public final LineProvider           lineProvider ()                                 {return p;}
+  public final LineProvider           lineProvider ()                                 {return lineProvider;}
+
+  public abstract Turtle render (Graphics2D g, TurtleViewport viewport);
 }
