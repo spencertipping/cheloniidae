@@ -14,8 +14,8 @@ public final class Line {
   // This is used in depth-sorting. (See LineProvider.java)
   double cachedDistance = 0.0;
 
-  public Line (Vector _v1, Vector _v2,  double _width,   Color _color)
-  {              v1 = _v1;   v2 = _v2; width = _width; color = _color;}
+  public Line (Vector _v1, Vector _v2, double _width, Color _color)
+    {v1 = new Vector (_v1); v2 = new Vector (_v2); width = _width; color = _color;}
 
   public final Vector midpoint () {return new Vector (v1).multiply (0.5).addScaled (v2, 0.5);}
 }

@@ -11,18 +11,18 @@ public class RotationalCartesianTurtle extends CartesianTurtle {
 
   public RotationalCartesianTurtle pitch (double angle) {
     Vector axis = direction.cross (directionComplement);
-    direction.rotateAbout           (axis, angle);
-    directionComplement.rotateAbout (axis, angle);
+    direction           = direction.rotateAbout           (axis, angle);
+    directionComplement = directionComplement.rotateAbout (axis, angle);
     return this;
   }
 
   public RotationalCartesianTurtle bank (double angle) {
-    directionComplement.rotateAbout (direction, angle);
+    directionComplement = directionComplement.rotateAbout (direction, angle);
     return this;
   }
 
   public RotationalCartesianTurtle turn (double angle) {
-    direction.rotateAbout (directionComplement, angle);
+    direction = direction.rotateAbout (directionComplement, angle);
     return this;
   }
 }

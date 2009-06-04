@@ -29,7 +29,6 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
   protected Vector             virtualPOV                  = new Vector (0, 0, -1.0);
   protected Vector             virtualPOVUp                = new Vector (0, 1, 0);
   protected Vector             virtualPOVForward           = new Vector (0, 0, 1);
-  protected Vector             virtualPOVRight             = new Vector (1, 0, 0);
 
   protected int                mouseDownX                  = 0;
   protected int                mouseDownY                  = 0;
@@ -76,14 +75,15 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
 
     super.addMouseMotionListener (new MouseMotionListener () {public void mouseDragged (MouseEvent e) {
                                   if (mouseDown) {
+                                    Vector virtualPOVRight = virtualPOVUp.cross (virtualPOVForward);
+
                                     // A normal drag translates the view locally.
                                     if (! e.isShiftDown () && ! e.isControlDown ())
                                       virtualPOV.add (new Vector (virtualPOVUp).multiply (e.getY () - mouseDownY).addScaled (virtualPOVRight, e.getX () - mouseDownX));
                                     else if (e.isShiftDown ()) {
-                                      virtualPOVRight   = virtualPOVRight.rotateAbout   (virtualPOVUp,    (e.getX () - mouseDownX) * Math.PI / 180.0).normalize ();
-                                      virtualPOVForward = virtualPOVForward.rotateAbout (virtualPOVUp,    (e.getX () - mouseDownX) * Math.PI / 180.0);
+                                      virtualPOVForward = virtualPOVForward.rotateAbout (virtualPOVUp,    (e.getX () - mouseDownX) * Math.PI / 180.0).
+                                                                            rotateAbout (virtualPOVRight, (e.getY () - mouseDownY) * Math.PI / 180.0).normalize ();
                                       virtualPOVUp      = virtualPOVUp.rotateAbout      (virtualPOVRight, (e.getY () - mouseDownY) * Math.PI / 180.0).normalize ();
-                                      virtualPOVForward = virtualPOVForward.rotateAbout (virtualPOVRight, (e.getY () - mouseDownY) * Math.PI / 180.0).normalize ();
                                     }
 
                                     mouseDownX = e.getX ();
@@ -95,7 +95,8 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
                                                               public void mouseMoved (MouseEvent e) {}});
 
     super.addMouseWheelListener  (new MouseWheelListener  () {public void mouseWheelMoved (MouseWheelEvent e) {
-                                                                virtualPOV.addScaled (virtualPOVForward, e.getScrollAmount ());
+                                                                virtualPOV.addScaled (virtualPOVForward, (e.isShiftDown () ? -10 : -1) * e.getWheelRotation ());
+                                                                setTitle (virtualPOV.toString ());
                                                                 enqueueGraphicsRefreshRequest (false);
                                                               }});
 
@@ -136,7 +137,7 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
   }
 
   public synchronized Vector transformPoint (Vector v)
-    {return new Vector (v).subtract (virtualPOV).toCoordinateSpace (virtualPOVRight, virtualPOVUp, virtualPOVForward);}
+    {return new Vector (v).subtract (virtualPOV).toCoordinateSpace (virtualPOVUp.cross (virtualPOVForward), virtualPOVUp, virtualPOVForward);}
 
   public synchronized Vector projectPoint (Vector v)
     {return (fisheye3D ? new Vector (v).normalize () : new Vector (v).divide (v.z)).multiply (super.getHeight ()).add (new Vector (super.getWidth () >> 1, super.getHeight () >> 1, 0));}
@@ -167,8 +168,6 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
     Vector v1 = transformPoint (l.v1);
     Vector v2 = transformPoint (l.v2);
 
-    System.err.println ("Rendering line " + v1.toString () + " x " + v2.toString ());
-
     // If either point is behind the camera (but not both), then solve
     // for the point at Z = 1. We then use that point for the end of the
     // line.
@@ -185,7 +184,7 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
       }
     }
 
-    double thickness = (v1.z + v2.z) / 2.0;
+    double thickness = 2.0 / (v1.z + v2.z);
 
     if (antialiasing) {
       // Do nice rendering with strokes and such.
@@ -251,12 +250,6 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
             nextMaximum  = providers.get (maximumIndex).get (maximumIndices[maximumIndex]).cachedDistance;
             maximumIndex = i;
           }
-
-        System.err.println (totalLines);
-        System.err.println (lineCount);
-        System.err.println (maximumIndices[maximumIndex]);
-        System.err.println (nextMaximum);
-        System.err.println (providers.get (maximumIndex).get (maximumIndices[maximumIndex]).cachedDistance);
 
         while (maximumIndices[maximumIndex] >= 0 && providers.get (maximumIndex).get (maximumIndices[maximumIndex]).cachedDistance >= nextMaximum) {
           renderLine (providers.get (maximumIndex).get (maximumIndices[maximumIndex]), g, turtleOutput, true);

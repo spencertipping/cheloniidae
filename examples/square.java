@@ -7,9 +7,9 @@ public class square {
     w.add (t);
     w.setVisible (true);
 
-    for (int i = 0; i < 4; ++i) {
-      t.moveByDistance (100);
-      t.turn (Math.PI / 2.0);
+    for (int i = 0; i < 360; ++i) {
+      t.moveByDistance (1);
+      t.turn (Math.PI / 180.0);
     }
   }
 }

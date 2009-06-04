@@ -42,7 +42,7 @@ public final class Vector implements Serializable {
   public synchronized final double lengthSquared ()   {return x*x + y*y + z*z;}
 
   public synchronized final Vector proj (Vector base) {return new Vector (base).multiply (this.dot (base) / base.lengthSquared ());}
-  public synchronized final Vector orth (Vector base) {return this.proj (base).addScaled (this, -1.0);}
+  public synchronized final Vector orth (Vector base) {return this.proj (base).multiply (-1.0).add (this);}
 
   public synchronized final Vector normalize () {return divide (length ());}
 
@@ -68,6 +68,6 @@ public final class Vector implements Serializable {
     Vector b3 = b1.cross (b2);                  // The cross product of orthogonal unit vectors is a unit vector.
     double l  = this.orth (b1).length ();
 
-    return this.proj (b1).addScaled (b2, Math.sin (angle) * l).addScaled (b3, Math.cos (angle) * l);
+    return this.proj (b1).addScaled (b2, Math.cos (angle) * l).addScaled (b3, Math.sin (angle) * l);
   }
 }
