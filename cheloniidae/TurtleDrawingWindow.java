@@ -139,7 +139,7 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
     {return new Vector (v).subtract (virtualPOV).toCoordinateSpace (virtualPOVLeft, virtualPOVUp, virtualPOVForward);}
 
   public synchronized Vector projectPoint (Vector v)
-    {return fisheye3D ? new Vector (v).normalize () : new Vector (v).divide (v.z);}
+    {return (fisheye3D ? new Vector (v).normalize () : new Vector (v).divide (v.z)).add (new Vector (super.getWidth () >> 1, super.getHeight () >> 1, 0));}
 
   public TurtleDrawingWindow add (Turtle t) {
     visibleTurtles.add (t);
