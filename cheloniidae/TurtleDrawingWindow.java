@@ -26,9 +26,12 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
   protected List<LineProvider> providers                   = new ArrayList<LineProvider> ();
   protected List<Turtle>       visibleTurtles              = new ArrayList<Turtle> ();
 
-  protected Vector             virtualPOV                  = new Vector (0, 0, -1.0);
+  protected Vector             virtualPOV                  = new Vector (0, 0, -500.0);
   protected Vector             virtualPOVUp                = new Vector (0, 1, 0);
   protected Vector             virtualPOVForward           = new Vector (0, 0, 1);
+
+  protected Vector             minimumExtent               = new Vector (0, 0, 0);
+  protected Vector             maximumExtent               = new Vector (0, 0, 0);
 
   protected int                mouseDownX                  = 0;
   protected int                mouseDownY                  = 0;
@@ -75,28 +78,33 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
 
     super.addMouseMotionListener (new MouseMotionListener () {public void mouseDragged (MouseEvent e) {
                                   if (mouseDown) {
-                                    Vector virtualPOVRight = virtualPOVUp.cross (virtualPOVForward);
+                                    final Vector virtualPOVRight = virtualPOVForward.cross (virtualPOVUp);
+                                    final Vector center          = new Vector (maximumExtent).multiply (0.5).addScaled (minimumExtent, 0.5);
+                                    final double factor          = e.isControlDown () ? 0.1 : 1.0;
 
                                     // A normal drag translates the view locally.
-                                    if (! e.isShiftDown () && ! e.isControlDown ())
-                                      virtualPOV.add (new Vector (virtualPOVUp).multiply (e.getY () - mouseDownY).addScaled (virtualPOVRight, e.getX () - mouseDownX));
-                                    else if (e.isShiftDown ()) {
-                                      virtualPOVForward = virtualPOVForward.rotateAbout (virtualPOVUp,    (e.getX () - mouseDownX) * Math.PI / 180.0).
-                                                                            rotateAbout (virtualPOVRight, (e.getY () - mouseDownY) * Math.PI / 180.0).normalize ();
-                                      virtualPOVUp      = virtualPOVUp.rotateAbout      (virtualPOVRight, (e.getY () - mouseDownY) * Math.PI / 180.0).normalize ();
+                                    if (! e.isShiftDown ())
+                                      virtualPOV.addScaled (virtualPOVUp, factor * (mouseDownY - e.getY ())).addScaled (virtualPOVRight, factor * (e.getX () - mouseDownX));
+                                    else {
+                                      final double pitchAngle = (e.getY () - mouseDownY) * factor * Math.PI / 180.0;
+                                      final double turnAngle  = (e.getX () - mouseDownX) * factor * Math.PI / 180.0;
+                                      virtualPOV = virtualPOV.subtract (center).rotateAbout (virtualPOVUp,    turnAngle).
+                                                                                rotateAbout (virtualPOVRight, pitchAngle).add (center);
+
+                                      virtualPOVForward = virtualPOVForward.rotateAbout (virtualPOVUp,    turnAngle).
+                                                                            rotateAbout (virtualPOVRight, pitchAngle).normalize ();
+                                      virtualPOVUp      = virtualPOVUp.rotateAbout      (virtualPOVRight, pitchAngle).normalize ();
                                     }
 
                                     mouseDownX = e.getX ();
                                     mouseDownY = e.getY ();
-
                                     enqueueGraphicsRefreshRequest (false);
                                   }
                                                               }
                                                               public void mouseMoved (MouseEvent e) {}});
 
     super.addMouseWheelListener  (new MouseWheelListener  () {public void mouseWheelMoved (MouseWheelEvent e) {
-                                                                virtualPOV.addScaled (virtualPOVForward, (e.isShiftDown () ? -10 : -1) * e.getWheelRotation ());
-                                                                setTitle (virtualPOV.toString ());
+                                                                virtualPOV.addScaled (virtualPOVForward, (e.isControlDown () ? -1 : -10) * e.getWheelRotation ());
                                                                 enqueueGraphicsRefreshRequest (false);
                                                               }});
 
@@ -111,7 +119,7 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
   public void update (Graphics g) {paint (g);}
   public void paint  (Graphics g) {g.drawImage (turtleLayer, 0, 0, null);}
 
-  public void enqueueGraphicsRefreshRequest (boolean antialiased) {
+  public void enqueueGraphicsRefreshRequest (final boolean antialiased) {
     if (turtleOutput != null && turtleLayer != null) {
       if (graphicsRequestRunner != null && graphicsRequestRunner.isAlive ()) {
         graphicsRequestCancelFlag = true;
@@ -119,36 +127,30 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
         catch (InterruptedException e) {}
       }
 
-      if (antialiased) {
-        graphicsRequestCancelFlag = false;
-        (graphicsRequestRunner = new Thread (new Runnable () {
-          public void run () {
-            drawLines (true);
-            drawTurtles (true);
-            repaint ();
-          }
-        })).start ();
-      } else {
-        drawLines (false);
-        drawTurtles (false);
-        repaint ();
-      }
+      graphicsRequestCancelFlag = false;
+      (graphicsRequestRunner = new Thread (new Runnable () {
+        public void run () {
+          drawLines (antialiased);
+          drawTurtles (antialiased);
+          repaint ();
+        }
+      })).start ();
     }
   }
 
-  public synchronized Vector transformPoint (Vector v)
+  public synchronized Vector transformPoint (final Vector v)
     {return new Vector (v).subtract (virtualPOV).toCoordinateSpace (virtualPOVUp.cross (virtualPOVForward), virtualPOVUp, virtualPOVForward);}
 
-  public synchronized Vector projectPoint (Vector v)
+  public synchronized Vector projectPoint (final Vector v)
     {return (fisheye3D ? new Vector (v).normalize () : new Vector (v).divide (v.z)).multiply (super.getHeight ()).add (new Vector (super.getWidth () >> 1, super.getHeight () >> 1, 0));}
 
-  public TurtleDrawingWindow add (Turtle t) {
+  public TurtleDrawingWindow add (final Turtle t) {
     visibleTurtles.add (t);
     providers.add (t.lineProvider ());
     return this;
   }
 
-  protected void renderLine (BufferedImage target, Color c, int x1, int y1, int x2, int y2) {
+  protected void renderLine (final BufferedImage target, final Color c, final int x1, final int y1, final int x2, final int y2) {
     // This method renders a single line sloppily onto an image.
     // Basically, it keeps filling in points until no two points
     // are more than 4 pixels apart. It uses binary splitting.
@@ -160,7 +162,7 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
       target.setRGB ((x1 + x2) >> 1, (y1 + y2) >> 1, c.getRGB ());
   }
 
-  protected void renderLine (Line l, Graphics2D g, BufferedImage target, boolean antialiasing) {
+  protected void renderLine (final Line l, final Graphics2D g, BufferedImage target, final boolean antialiasing) {
     // This method renders a single line onto the screen.
     // I'm assuming that the graphics context has already been
     // initialized as far as antialiasing is concerned.
@@ -173,18 +175,20 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
     // line.
     if (v1.z < 0.0 && v2.z < 0.0) return;
     else if (v1.z < 0.0 || v2.z < 0.0) {
-      double difference_in_z = v1.z - v2.z;             // Must be nonzero.
-
+      final double difference_in_z = v1.z - v2.z;             // Will always be nonzero.
       if (v1.z < 0.0) {
-        double factor = Math.abs ((1.0 - v1.z) / difference_in_z);
+        final double factor = Math.abs ((1.0 - v1.z) / difference_in_z);
         v1.multiply (1.0 - factor).addScaled (v2, factor);
       } else {
-        double factor = Math.abs ((1.0 - v2.z) / difference_in_z);
+        final double factor = Math.abs ((1.0 - v2.z) / difference_in_z);
         v2.multiply (1.0 - factor).addScaled (v1, factor);
       }
     }
 
-    double thickness = 2.0 / (v1.z + v2.z);
+    final double thickness = 2.0 * super.getHeight () / (v1.z + v2.z);
+
+    v1 = projectPoint (v1);
+    v2 = projectPoint (v2);
 
     if (antialiasing) {
       // Do nice rendering with strokes and such.
@@ -204,64 +208,67 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
         renderLine (target, l.color, (int) v1.x, (int) v1.y, (int) v2.x, (int) v2.y);
   }
 
-  protected void initializeAntialiasing (Graphics2D g) {
+  protected final void initializeAntialiasing (final Graphics2D g) {
     // Due to the architecture of rendering hints, we must first
     // load them into a variable, then change them, and finally
     // put them back into the graphics context in order to commit
     // changes. Otherwise, this would be a one-liner.
 
-    RenderingHints rh = g.getRenderingHints ();
+    final RenderingHints rh = g.getRenderingHints ();
     rh.put (rh.KEY_ANTIALIASING, rh.VALUE_ANTIALIAS_ON);
     g.setRenderingHints (rh);
   }
 
-  protected void drawTurtles (boolean antialiased) {
+  protected void drawTurtles (final boolean antialiased) {
     final Graphics2D g = (Graphics2D) turtleLayer.getGraphics ();
-    if (antialiased) initializeAntialiasing (g);
-    g.drawImage (turtleOutput, 0, 0, null);
+    if (antialiased) {
+      initializeAntialiasing (g);
+      g.drawImage (turtleOutput, 0, 0, null);
+    }
     for (Turtle t : visibleTurtles) t.render (g, this);
   }
 
-  protected void drawLines (boolean antialiased) {
-    final Graphics2D g = (Graphics2D) turtleOutput.getGraphics ();
+  protected void drawLines (final boolean antialiased) {
+    final Graphics2D g = (Graphics2D) (antialiased ? turtleOutput : turtleLayer).getGraphics ();
     if (antialiased) initializeAntialiasing (g);
 
     g.setColor (super.getBackground ());
     g.fillRect (0, 0, super.getWidth (), super.getHeight ());
 
-    int lineCount  = 0;
-    int totalLines = 0;
+    maximumExtent.center ();
+    minimumExtent.center ();
 
+    int totalLines = 0;
     for (LineProvider p : providers) totalLines += p.size ();
 
     if (antialiased) {
       // Line ordering matters. Merge the arrays as they're rendered.
       int[] maximumIndices = new int[providers.size ()];
-
       for (int i = 0; i < providers.size (); ++i) maximumIndices[i] = providers.get (i).size () - 1;
 
-      while (lineCount < totalLines) {
-        // Find the next line of maximum distance.
-        int    maximumIndex = 0;
-        double nextMaximum  = 0.0;
+      while (totalLines-- > 0) {
+        int maximumIndex = 0;
 
+        // The initial loop index must remain 0 because we need to mark the /finished/
+        // flag as being false if even the first index is nonnegative.
         for (int i = 0; i < providers.size (); ++i)
-          if (maximumIndices[i] >= 0 && providers.get (i).get (maximumIndices[i]).cachedDistance > providers.get (maximumIndex).get (maximumIndices[maximumIndex]).cachedDistance) {
-            nextMaximum  = providers.get (maximumIndex).get (maximumIndices[maximumIndex]).cachedDistance;
+          if (maximumIndices[i] >= 0 && providers.get (i).get (maximumIndices[i]).cachedDistance >= providers.get (maximumIndex).get (maximumIndices[maximumIndex]).cachedDistance)
             maximumIndex = i;
-          }
 
-        while (maximumIndices[maximumIndex] >= 0 && providers.get (maximumIndex).get (maximumIndices[maximumIndex]).cachedDistance >= nextMaximum) {
-          renderLine (providers.get (maximumIndex).get (maximumIndices[maximumIndex]), g, turtleOutput, true);
-          --maximumIndices[maximumIndex];
-          ++lineCount;
-        }
+        final Line immediate = providers.get (maximumIndex).get (maximumIndices[maximumIndex]--);
+        minimumExtent.componentwiseMinimum (immediate.v1).componentwiseMinimum (immediate.v2);
+        maximumExtent.componentwiseMaximum (immediate.v1).componentwiseMaximum (immediate.v2);
+        renderLine (immediate, g, turtleOutput, true);
       }
     } else {
       final int lineSkip = totalLines / INTERMEDIATE_RENDER_CUTOFF + 1;
       for (LineProvider p : providers)
-        for (int i = 0; ! graphicsRequestCancelFlag && i < p.size (); i += lineSkip)
-          renderLine (p.get (i), g, turtleOutput, false);
+        for (int i = 0; ! graphicsRequestCancelFlag && i < p.size (); i += lineSkip) {
+          final Line immediate = p.get (i);
+          minimumExtent.componentwiseMinimum (immediate.v1).componentwiseMinimum (immediate.v2);
+          maximumExtent.componentwiseMaximum (immediate.v1).componentwiseMaximum (immediate.v2);
+          renderLine (immediate, g, turtleLayer, false);
+        }
     }
   }
 }

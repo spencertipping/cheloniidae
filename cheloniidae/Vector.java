@@ -37,6 +37,13 @@ public final class Vector implements Serializable {
   public synchronized final Vector divide   (Vector other)  {x /= other.x; y /= other.y; z /= other.z; return this;}
   public synchronized final Vector divide   (double factor) {x /= factor;  y /= factor;  z /= factor;  return this;}
 
+  public synchronized final Vector componentwiseMinimum (Vector other) {return this.assign (other.x < this.x ? other.x : this.x,
+                                                                                            other.y < this.y ? other.y : this.y,
+                                                                                            other.z < this.z ? other.z : this.z);}
+  public synchronized final Vector componentwiseMaximum (Vector other) {return this.assign (other.x > this.x ? other.x : this.x,
+                                                                                            other.y > this.y ? other.y : this.y,
+                                                                                            other.z > this.z ? other.z : this.z);}
+
   public synchronized final double dot (Vector other) {return x * other.x + y * other.y + z * other.z;}
   public synchronized final double length ()          {return Math.sqrt (x*x + y*y + z*z);}
   public synchronized final double lengthSquared ()   {return x*x + y*y + z*z;}

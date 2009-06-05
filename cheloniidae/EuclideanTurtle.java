@@ -30,7 +30,7 @@ public abstract class EuclideanTurtle extends Turtle {
   public EuclideanTurtle render (Graphics2D g, TurtleViewport viewport) {
     if (viewport != null) {
       Vector projectedPosition  = viewport.projectPoint (viewport.transformPoint (position));
-      Vector projectedDirection = viewport.projectPoint (viewport.transformPoint (position).addScaled (direction (), 10.0));
+      Vector projectedDirection = viewport.projectPoint (viewport.transformPoint (new Vector (position).addScaled (direction (), 10.0)));
 
       g.setColor (bodyColor ());
       g.drawOval ((int) projectedPosition.x - 2, (int) projectedPosition.y - 2, 4, 4);
