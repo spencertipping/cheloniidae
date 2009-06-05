@@ -69,12 +69,12 @@ public final class Vector implements Serializable {
   public synchronized final Vector fromCoordinateSpace (Vector v1, Vector v2, Vector v3)
     {return new Vector (v1).multiply (x).addScaled (v2, y).addScaled (v3, z);}
 
-  public synchronized final Vector rotateAbout (Vector v, double angle) {
+  public synchronized final Vector rotateAbout (Vector v, double degrees) {
     Vector b1 = new Vector (v).normalize ();
     Vector b2 = this.orth (b1).normalize ();
     Vector b3 = b1.cross (b2);                  // The cross product of orthogonal unit vectors is a unit vector.
     double l  = this.orth (b1).length ();
 
-    return this.proj (b1).addScaled (b2, Math.cos (angle) * l).addScaled (b3, Math.sin (angle) * l);
+    return this.proj (b1).addScaled (b2, Math.cos (degrees * Math.PI / 180.0) * l).addScaled (b3, Math.sin (degrees * Math.PI / 180.0) * l);
   }
 }

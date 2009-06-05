@@ -86,8 +86,8 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
                                     if (! e.isShiftDown ())
                                       virtualPOV.addScaled (virtualPOVUp, factor * (mouseDownY - e.getY ())).addScaled (virtualPOVRight, factor * (e.getX () - mouseDownX));
                                     else {
-                                      final double pitchAngle = (e.getY () - mouseDownY) * factor * Math.PI / 180.0;
-                                      final double turnAngle  = (e.getX () - mouseDownX) * factor * Math.PI / 180.0;
+                                      final double pitchAngle = (e.getY () - mouseDownY) * factor;
+                                      final double turnAngle  = (e.getX () - mouseDownX) * factor;
                                       virtualPOV = virtualPOV.subtract (center).rotateAbout (virtualPOVUp,    turnAngle).
                                                                                 rotateAbout (virtualPOVRight, pitchAngle).add (center);
 
@@ -235,9 +235,6 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
     g.setColor (super.getBackground ());
     g.fillRect (0, 0, super.getWidth (), super.getHeight ());
 
-    maximumExtent.center ();
-    minimumExtent.center ();
-
     int totalLines = 0;
     for (LineProvider p : providers) totalLines += p.size ();
 
@@ -245,6 +242,9 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
       // Line ordering matters. Merge the arrays as they're rendered.
       int[] maximumIndices = new int[providers.size ()];
       for (int i = 0; i < providers.size (); ++i) maximumIndices[i] = providers.get (i).size () - 1;
+
+      maximumExtent.center ();
+      minimumExtent.center ();
 
       while (totalLines-- > 0) {
         int maximumIndex = 0;
@@ -263,12 +263,8 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
     } else {
       final int lineSkip = totalLines / INTERMEDIATE_RENDER_CUTOFF + 1;
       for (LineProvider p : providers)
-        for (int i = 0; ! graphicsRequestCancelFlag && i < p.size (); i += lineSkip) {
-          final Line immediate = p.get (i);
-          minimumExtent.componentwiseMinimum (immediate.v1).componentwiseMinimum (immediate.v2);
-          maximumExtent.componentwiseMaximum (immediate.v1).componentwiseMaximum (immediate.v2);
-          renderLine (immediate, g, turtleLayer, false);
-        }
+        for (int i = 0; ! graphicsRequestCancelFlag && i < p.size (); i += lineSkip)
+          renderLine (p.get ((i * ((p.size () >> 1) - 1)) % p.size ()), g, turtleLayer, false);
     }
   }
 }
