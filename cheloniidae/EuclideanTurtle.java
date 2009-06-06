@@ -5,24 +5,24 @@ package cheloniidae;
 
 import java.awt.Graphics2D;
 
-public abstract class EuclideanTurtle extends Turtle {
+public abstract class EuclideanTurtle extends Turtle implements EuclideanDriver {
   public EuclideanTurtle () {lineProvider = new QueueLineProvider ();}
 
   public abstract Vector direction ();
 
-  public final Turtle line (Vector p1, Vector p2) {
+  public EuclideanTurtle line (Vector p1, Vector p2) {
     if (lineProvider != null) ((QueueLineProvider) lineProvider).add (new Line (p1, p2, lineSize, lineColor));
     if (listener     != null) listener.turtleProgress (this);
     return this;
   }
 
-  public final EuclideanTurtle moveByDistance (double d) {
+  public EuclideanTurtle move (double d) {
     Vector oldPosition = new Vector (position);
     this.line (oldPosition, position.addScaled (this.direction (), d));
     return this;
   }
 
-  public final EuclideanTurtle jumpByDistance (double d) {
+  public EuclideanTurtle jump (double d) {
     position.addScaled (this.direction (), d);
     return this;
   }

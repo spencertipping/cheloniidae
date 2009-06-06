@@ -3,7 +3,7 @@
 
 package cheloniidae;
 
-public class OrthogonalPlanarTurtle extends EuclideanTurtle {
+public abstract class OrthogonalPlanarTurtle extends EuclideanTurtle {
   protected Vector angles = new Vector ();
 
   public OrthogonalPlanarTurtle () {}

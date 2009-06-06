@@ -150,6 +150,13 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
     return this;
   }
 
+  public TurtleDrawingWindow pause (long milliseconds) {
+    enqueueGraphicsRefreshRequest (true);
+    try {Thread.sleep (milliseconds);}
+    catch (InterruptedException e) {}
+    return this;
+  }
+
   protected void renderLine (final BufferedImage target, final Color c, final int x1, final int y1, final int x2, final int y2) {
     // This method renders a single line sloppily onto an image.
     // Basically, it keeps filling in points until no two points
@@ -249,6 +256,13 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
       while (totalLines-- > 0) {
         int maximumIndex = 0;
 
+        // Establish an initial nonzero index for the sake of comparison.
+        for (int i = 0; i < providers.size (); ++i)
+          if (maximumIndices[i] >= 0) {
+            maximumIndex = i;
+            break;
+          }
+
         // The initial loop index must remain 0 because we need to mark the /finished/
         // flag as being false if even the first index is nonnegative.
         for (int i = 0; i < providers.size (); ++i)
@@ -261,10 +275,11 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
         renderLine (immediate, g, turtleOutput, true);
       }
     } else {
-      final int lineSkip = totalLines / INTERMEDIATE_RENDER_CUTOFF + 1;
-      for (LineProvider p : providers)
-        for (int i = 0; ! graphicsRequestCancelFlag && i < p.size (); i += lineSkip)
-          renderLine (p.get ((i * ((p.size () >> 1) - 1)) % p.size ()), g, turtleLayer, false);
+      final int lineSkip = (totalLines / INTERMEDIATE_RENDER_CUTOFF) | 1;
+      for (int i = 0; ! graphicsRequestCancelFlag && i < totalLines; i += lineSkip) {
+        final LineProvider p = providers.get (i % providers.size ());
+        renderLine (p.get (i % p.size ()), g, turtleLayer, false);
+      }
     }
   }
 }

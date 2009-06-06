@@ -1,7 +1,7 @@
 import cheloniidae.*;
 import java.awt.*;
 
-public class cube {
+public class cubes {
   public static void main (String [] args) {
     TurtleDrawingWindow w = new TurtleDrawingWindow ();
     RotationalCartesianTurtle t = new RotationalCartesianTurtle ();
@@ -12,7 +12,7 @@ public class cube {
     for (int x = -4; x < 4; x++)
       for (int y = -2; y < 2; y++)
         for (int z = 3; z < 15; z++) {
-          t.turn (0.5).bank (0.5).position (new Vector (x * 100, y * 100, z * 100));
+          t.turn (0.5).pitch (0.5).position (new Vector (x * 100, y * 100, z * 100));
           cube (t, 50);
         }
 

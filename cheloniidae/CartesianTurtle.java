@@ -3,7 +3,7 @@
 
 package cheloniidae;
 
-public abstract class CartesianTurtle extends EuclideanTurtle {
+public abstract class CartesianTurtle extends EuclideanTurtle implements CartesianDriver {
   protected Vector direction = new Vector (0, 1, 0);
 
   public Vector          direction ()                  {return new Vector (direction);}
