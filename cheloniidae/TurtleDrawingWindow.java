@@ -67,7 +67,6 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
                                                               public void componentShown    (ComponentEvent e) {}});
 
     super.addMouseListener       (new MouseListener       () {public void mouseReleased     (MouseEvent e)     {mouseDown = false;
-                                                                                                                for (LineProvider p : providers) p.sort (virtualPOV);
                                                                                                                 enqueueGraphicsRefreshRequest (true);}
                                                               public void mousePressed      (MouseEvent e)     {mouseDown = true;
                                                                                                                 mouseDownX = e.getX ();
@@ -123,6 +122,7 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
     if (turtleOutput != null && turtleLayer != null) {
       if (graphicsRequestRunner != null && graphicsRequestRunner.isAlive ()) {
         graphicsRequestCancelFlag = true;
+        for (LineProvider p : providers) p.cancelSort ();
         try {graphicsRequestRunner.join ();}
         catch (InterruptedException e) {}
       }
@@ -130,6 +130,7 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
       graphicsRequestCancelFlag = false;
       (graphicsRequestRunner = new Thread (new Runnable () {
         public void run () {
+          if (antialiased) for (LineProvider p : providers) p.sort (virtualPOV);
           drawLines (antialiased);
           drawTurtles (antialiased);
           repaint ();
@@ -138,10 +139,10 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
     }
   }
 
-  public synchronized Vector transformPoint (final Vector v)
+  public Vector transformPoint (final Vector v)
     {return new Vector (v).subtract (virtualPOV).toCoordinateSpace (virtualPOVUp.cross (virtualPOVForward), virtualPOVUp, virtualPOVForward);}
 
-  public synchronized Vector projectPoint (final Vector v)
+  public Vector projectPoint (final Vector v)
     {return (fisheye3D ? new Vector (v).normalize () : new Vector (v).divide (v.z)).multiply (super.getHeight ()).add (new Vector (super.getWidth () >> 1, super.getHeight () >> 1, 0));}
 
   public TurtleDrawingWindow add (final Turtle t) {
@@ -253,7 +254,7 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
       maximumExtent.center ();
       minimumExtent.center ();
 
-      while (totalLines-- > 0) {
+      while (--totalLines > 0 && ! graphicsRequestCancelFlag) {
         int maximumIndex = 0;
 
         // Establish an initial nonzero index for the sake of comparison.
@@ -266,7 +267,8 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
         // The initial loop index must remain 0 because we need to mark the /finished/
         // flag as being false if even the first index is nonnegative.
         for (int i = 0; i < providers.size (); ++i)
-          if (maximumIndices[i] >= 0 && providers.get (i).get (maximumIndices[i]).cachedDistance >= providers.get (maximumIndex).get (maximumIndices[maximumIndex]).cachedDistance)
+          if (maximumIndices[i] >= 0 && providers.get (i).get (maximumIndices[i]).cachedDistance >=
+                                        providers.get (maximumIndex).get (maximumIndices[maximumIndex]).cachedDistance)
             maximumIndex = i;
 
         final Line immediate = providers.get (maximumIndex).get (maximumIndices[maximumIndex]--);

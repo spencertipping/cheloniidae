@@ -4,7 +4,8 @@
 package cheloniidae;
 
 public interface LineProvider {
-  public int  size ();
-  public Line get  (int    index);
-  public void sort (Vector center);
+  public int  size       ();
+  public Line get        (int    index);
+  public void sort       (Vector center);
+  public void cancelSort ();
 }
