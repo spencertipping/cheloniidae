@@ -244,16 +244,19 @@
 		<div class="section" id="getting">
 			<div class="title">Getting Cheloniidae</div>
 			<div class="content">
-				Cheloniidae is free software and is licensed under the terms of the LGPL.
-				The latest release (source code, binaries, documentation, and sample files)
-				can be downloaded here: <a href="cheloniidae-2.1.zip">cheloniidae-2.1.zip</a>. Cheloniidae
+				Cheloniidae is free software and is licensed under the terms of the MIT source code license.
+        The latest version is 3.0-pre1, a significant refactoring from the previous release. It's still
+        due for some changes, so I recommend using version 2.1 for anything serious. Changes include
+        a well-factored turtle interface, free-form turtle direction specification (that hopefully is
+        more intuitive than the old &theta;, &phi;, and &xi; system), and the option to create custom
+        turtles and drive them in parallel. It can be downloaded here:
+        <a href="cheloniidae-3.0-pre1.zip">cheloniidae-3.0-pre1.zip</a>. This version requires Java
+        1.5 or higher to compile, and documentation has not yet been updated.
+        <p></p>
+				The previous release (source code, binaries, documentation, and sample files)
+				is version 2.1, available here: <a href="cheloniidae-2.1.zip">cheloniidae-2.1.zip</a>. Cheloniidae
 				should work with the JRE 1.4.2 or higher on any platform, although
 				the GCJ JRE seems to have some trouble on Linux.
-				<p></p>
-				The previous version of Cheloniidae was version 2.0, available here: <a
-				href="cheloniidae-2.0.zip">cheloniidae-2.0.zip</a>. Changes since then include
-				more example scenes and a large performance increase for drawings that
-				contain hundreds of thousands of line segments.
 				<p></p>
 				<strong>Note:</strong> A few of the sample files used with Cheloniidae consume a lot
 				of memory when run. To be able to view the results, you will need to increase the
@@ -279,7 +282,7 @@
 		</div>
 
 		<div class="section" id="coding">
-			<div class="title">Coding in Cheloniidae</div>
+			<div class="title">Coding in Cheloniidae 2.1</div>
 			<div class="content">
 				Writing Cheloniidae programs is easy! Here's a square:
 				<img src="square.png" alt="Square in Cheloniidae">
@@ -293,13 +296,12 @@ public class Square {
 		Turtle t = new Turtle ();
 
 		w.add (t);
+    w.setVisible (true);
 
 		for (int i = 0; i &lt; 4; i++) {
 			t.move (100);
-			t.turn (90);	// Angles are CW from due east.
-		}
-
-		w.setVisible (true);
+      t.turn (90);
+    }
 	}
 }
 </pre>
