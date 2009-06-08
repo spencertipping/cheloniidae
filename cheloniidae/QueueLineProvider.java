@@ -32,11 +32,11 @@ public class QueueLineProvider extends ArrayList<Line> implements LineProvider {
     }
   }
 
-  public final void sort (Vector center) {
+  public void sort (Vector center) {
     cancelSort = false;
     for (int i = 0; i < super.size (); ++i) super.get (i).cachedDistance = super.get (i).midpoint ().distanceFrom (center);
     quicksort (0, super.size () - 1);
   }
 
-  public final void cancelSort () {cancelSort = true;}
+  public void cancelSort () {cancelSort = true;}
 }

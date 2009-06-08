@@ -1,6 +1,6 @@
 import cheloniidae.*;
 
-public class square {
+public class spiral {
   public static void main (String[] args) {
     TurtleDrawingWindow       w = new TurtleDrawingWindow ();
     RotationalCartesianTurtle t = new RotationalCartesianTurtle ();

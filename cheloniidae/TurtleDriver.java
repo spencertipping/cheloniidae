@@ -21,7 +21,7 @@ public interface TurtleDriver {
   public TurtleDriver           listener     (TurtleProgressListener _listener);
   public LineProvider           lineProvider ();
 
-  public Turtle render (Graphics2D g, TurtleViewport viewport);
+  public TurtleDriver render (Graphics2D g, TurtleViewport viewport);
 
   public TurtleState  serialize   ();
   public TurtleDriver deserialize (TurtleState t);
