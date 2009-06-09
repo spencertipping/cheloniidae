@@ -3,7 +3,6 @@
 
 package cheloniidae;
 
-public interface TurtleViewport {
-  public Vector transformPoint (Vector v);
-  public Vector projectPoint (Vector v);
-}
+import java.io.Serializable;
+
+public interface TurtleCommand extends Serializable {}

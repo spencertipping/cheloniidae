@@ -16,35 +16,32 @@ import java.awt.RenderingHints;
 import java.util.List;
 import java.util.ArrayList;
 
-public class TurtleDrawingWindow extends Frame implements TurtleViewport {
-  public static final int      DRAWING_REFRESH_PER_LINES   = 10000;
-  public static final int      INTERMEDIATE_RENDER_CUTOFF  = 10000;
-  public static final int      LINE_POINT_MAXIMUM_DISTANCE = 16;
+public class TurtleWindow extends Frame implements Viewport {
+  protected int           drawingRefreshInterval       = 10000;
+  protected int           maximumLinesPerPartialRedraw = 10000;
+  protected int           maximumFalseLineGranularity  = 16;
 
-  protected BufferedImage      turtleOutput                = null;
-  protected BufferedImage      turtleLayer                 = null;
-  protected List<LineProvider> providers                   = new ArrayList<LineProvider> ();
-  protected List<Turtle>       visibleTurtles              = new ArrayList<Turtle> ();
+  protected BufferedImage offscreen                    = null;
+  protected List<Turtle>  visibleTurtles               = new ArrayList<Turtle> ();
 
-  protected Vector             virtualPOV                  = new Vector (0, 0, -500.0);
-  protected Vector             virtualPOVUp                = new Vector (0, 1, 0);
-  protected Vector             virtualPOVForward           = new Vector (0, 0, 1);
+  protected Vector        virtualPOV                   = new Vector (0, 0, -500.0);
+  protected Vector        virtualPOVUp                 = new Vector (0, 1, 0);
+  protected Vector        virtualPOVForward            = new Vector (0, 0, 1);
 
-  protected Vector             minimumExtent               = new Vector (0, 0, 0);
-  protected Vector             maximumExtent               = new Vector (0, 0, 0);
+  protected Vector        minimumExtent                = new Vector (0, 0, 0);
+  protected Vector        maximumExtent                = new Vector (0, 0, 0);
 
-  protected int                mouseDownX                  = 0;
-  protected int                mouseDownY                  = 0;
-  protected boolean            mouseDown                   = false;
-  protected Thread             graphicsRequestRunner       = null;
-  protected boolean            graphicsRequestCancelFlag   = false;
-  protected boolean            fisheye3D                   = false;
+  protected int           mouseDownX                   = 0;
+  protected int           mouseDownY                   = 0;
+  protected boolean       mouseDown                    = false;
+  protected Thread        graphicsRequestRunner        = null;
+  protected boolean       graphicsRequestCancelFlag    = false;
+  protected boolean       fisheye3D                    = false;
   
-  public TurtleDrawingWindow () {initialize ();}
+  public TurtleWindow () {initialize ();}
 
   protected void regenerateImages () {
-    turtleOutput = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
-    turtleLayer  = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
+    offscreen = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
   }
 
   protected void handleResize () {
@@ -145,13 +142,13 @@ public class TurtleDrawingWindow extends Frame implements TurtleViewport {
   public Vector projectPoint (final Vector v)
     {return (fisheye3D ? new Vector (v).normalize () : new Vector (v).divide (v.z)).multiply (super.getHeight ()).add (new Vector (super.getWidth () >> 1, super.getHeight () >> 1, 0));}
 
-  public TurtleDrawingWindow add (final Turtle t) {
+  public TurtleWindow add (final Turtle t) {
     visibleTurtles.add (t);
     providers.add (t.lineProvider ());
     return this;
   }
 
-  public TurtleDrawingWindow pause (long milliseconds) {
+  public TurtleWindow pause (long milliseconds) {
     enqueueGraphicsRefreshRequest (true);
     try {Thread.sleep (milliseconds);}
     catch (InterruptedException e) {}

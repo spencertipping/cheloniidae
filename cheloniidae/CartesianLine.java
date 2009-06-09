@@ -5,7 +5,7 @@ package cheloniidae;
 
 import java.awt.Color;
 
-public final class Line {
+public class CartesianLine {
   public Vector v1    = null;
   public Vector v2    = null;
   public double width = 2.0;
@@ -14,8 +14,8 @@ public final class Line {
   // This is used in depth-sorting. (See LineProvider.java)
   double cachedDistance = 0.0;
 
-  public Line (Vector _v1, Vector _v2, double _width, Color _color)
+  public CartesianLine (Vector _v1, Vector _v2, double _width, Color _color)
     {v1 = new Vector (_v1); v2 = new Vector (_v2); width = _width; color = _color;}
 
-  public final Vector midpoint () {return new Vector (v1).multiply (0.5).addScaled (v2, 0.5);}
+  public Vector midpoint () {return new Vector (v1).multiply (0.5).addScaled (v2, 0.5);}
 }
