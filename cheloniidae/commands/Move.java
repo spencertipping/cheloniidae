@@ -3,4 +3,9 @@
 
 package cheloniidae.commands;
 
-public class Move extends UnaryCommand<Double> {}
+public final class Move extends UnaryCommand<Double> {
+  public Move applyTo (Turtle t) {
+    if (t instanceof Moveable) ((Moveable) t).move (value);
+    return this;
+  }
+}

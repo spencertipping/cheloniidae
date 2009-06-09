@@ -11,7 +11,7 @@ public class CartesianLine {
   public double width = 2.0;
   public Color  color = null;
 
-  // This is used in depth-sorting. (See LineProvider.java)
+  // This is used in depth-sorting.
   double cachedDistance = 0.0;
 
   public CartesianLine (Vector _v1, Vector _v2, double _width, Color _color)

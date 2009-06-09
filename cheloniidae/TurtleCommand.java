@@ -5,4 +5,6 @@ package cheloniidae;
 
 import java.io.Serializable;
 
-public interface TurtleCommand extends Serializable {}
+public interface TurtleCommand<T implements TurtleCommand> extends Serializable {
+  public T applyTo (Turtle t);
+}

@@ -5,9 +5,7 @@ package cheloniidae;
 
 import java.awt.Graphics2D;
 
-public interface Turtle<T implements Turtle> extends TurtleCommandReceiver<T> {
-  public T           render      (Graphics2D g, TurtleViewport viewport);
-
+public interface Turtle<T implements Turtle> extends Renderer<T> {
   public TurtleState serialize   ();
   public T           deserialize (TurtleState t);
 }

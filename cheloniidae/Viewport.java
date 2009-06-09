@@ -4,6 +4,7 @@
 package cheloniidae;
 
 public interface Viewport {
-  public Vector transformPoint (Vector v);
-  public Vector projectPoint   (Vector v);
+  public Graphics2D context        ();
+  public Vector     transformPoint (Vector v);
+  public Vector     projectPoint   (Vector v);
 }

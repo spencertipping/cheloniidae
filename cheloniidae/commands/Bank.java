@@ -3,4 +3,9 @@
 
 package cheloniidae.commands;
 
-public class Bank extends UnaryCommand<Double> {}
+public class Bank extends UnaryCommand<Bank, Double> {
+  public Bank applyTo (Turtle t) {
+    if (t instanceof SupportsBank) ((SupportsBank) t).bank (value);
+    return this;
+  }
+}
