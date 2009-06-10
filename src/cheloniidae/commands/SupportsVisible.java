@@ -1,5 +1,7 @@
 package cheloniidae.commands;
 
-public interface SupportsVisible<T implements Turtle> {
+import cheloniidae.Turtle;
+
+public interface SupportsVisible<T extends Turtle> {
   public T visible (boolean _visible);
 }

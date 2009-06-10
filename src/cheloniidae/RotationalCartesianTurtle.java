@@ -3,6 +3,10 @@
 
 package cheloniidae;
 
+import cheloniidae.commands.*;
+
+import java.awt.Color;
+
 public class RotationalCartesianTurtle<T extends RotationalCartesianTurtle> extends CartesianTurtle<T>
 implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, SupportsTurn<T> {
 
@@ -23,13 +27,13 @@ implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, Su
 
   protected Vector directionComplement = new Vector (0, 0, -1);
 
-  public Vector                    directionComplement ()                            {return directionComplement;}
-  public RotationalCartesianTurtle directionComplement (Vector _directionComplement) {directionComplement = _directionComplement; return this;}
+  public Vector directionComplement ()                            {return directionComplement;}
+  public T      directionComplement (Vector _directionComplement) {directionComplement = _directionComplement; return (T) this;}
 
-  public RotationalCartesianTurtle pitch (double angle) {Vector axis         = direction.cross (directionComplement);
-                                                         direction           = direction.rotateAbout           (axis, angle);
-                                                         directionComplement = directionComplement.rotateAbout (axis, angle); return this;}
+  public T pitch (double angle) {Vector axis         = direction.cross (directionComplement);
+                                 direction           = direction.rotateAbout           (axis, angle);
+                                 directionComplement = directionComplement.rotateAbout (axis, angle); return (T) this;}
 
-  public RotationalCartesianTurtle bank (double angle) {directionComplement = directionComplement.rotateAbout (direction, angle); return this;}
-  public RotationalCartesianTurtle turn (double angle) {direction = direction.rotateAbout (directionComplement, angle); return this;}
+  public T bank (double angle) {directionComplement = directionComplement.rotateAbout (direction, angle); return (T) this;}
+  public T turn (double angle) {direction = direction.rotateAbout (directionComplement, angle); return (T) this;}
 }

@@ -3,6 +3,8 @@
 
 package cheloniidae;
 
+import java.awt.Graphics2D;
+
 public interface Viewport {
   public Graphics2D context        ();
   public double     scaleFactor    ();

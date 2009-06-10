@@ -15,8 +15,8 @@ public abstract class EuclideanTurtle<T extends EuclideanTurtle>
 implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, SupportsLineColor<T>, TurtleCommand {
 
   public static class View extends ViewportCaching implements RenderAction {
-    public final EuclideanTurtle<T> turtle;
-    public View (EuclideanTurtle<T> _turtle) {turtle = _turtle;}
+    public final EuclideanTurtle turtle;
+    public View (EuclideanTurtle _turtle) {turtle = _turtle;}
 
     public double computeDepth (Viewport v) {return v.transformPoint (turtle.position ()).length ();}
 
@@ -24,11 +24,10 @@ implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, Sup
       Vector pp = v.transformPoint (turtle.position ());
       Vector pd = v.transformPoint (new Vector (turtle.position ()).add (turtle.direction ()));
       if (pp.z > 0 && pd.z > 0) {
-        final double z = pp.z;
+        final double scale = 4.0 * v.scaleFactor () / pp.z;
+
         pp = v.projectPoint (pp);
         pd = v.projectPoint (pd);
-
-        final double scale = 4.0 * v.scaleFactor () / z;
 
         Graphics2D g = v.context ();
         g.setStroke (new BasicStroke ((float) (scale / 16.0)));

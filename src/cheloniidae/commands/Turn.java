@@ -5,7 +5,8 @@ package cheloniidae.commands;
 
 import cheloniidae.Turtle;
 
-public class Turn extends UnaryCommand<Turn, Double> {
+public class Turn extends UnaryCommand<Double> {
+  public Turn (double value) {super (value);}
   public Turn applyTo (Turtle t) {
     if (t instanceof SupportsTurn) ((SupportsTurn) t).turn (value);
     return this;

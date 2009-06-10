@@ -4,6 +4,6 @@ import cheloniidae.Turtle;
 
 import java.awt.Color;
 
-public interface SupportsLineColor<T implements Turtle> {
+public interface SupportsLineColor<T extends Turtle> {
   public T lineColor (Color c);
 }

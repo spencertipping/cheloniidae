@@ -11,13 +11,12 @@ import java.util.TreeSet;
 public class TurtleGroup<T extends Turtle> implements Turtle<TurtleGroup<T>> {
   public static class State implements TurtleState {
     public final Map<Turtle, TurtleState> states = new HashMap<Turtle, TurtleState> ();
-    public State (TurtleGroup<T> group) {
-      for (Turtle t : group.turtles ()) states.put (t, t.serialize ());
+    public State (TurtleGroup group) {
+      for (Turtle t : (List<Turtle>) group.turtles ()) states.put (t, t.serialize ());
     }
   }
 
   public TurtleGroup (T ...         _turtles) {for (T t : _turtles) turtles.add (t);}
-  public TurtleGroup (T[]           _turtles) {for (T t : _turtles) turtles.add (t);}
   public TurtleGroup (Collection<T> _turtles) {turtles.addAll (_turtles);}
 
   protected List<T> turtles = new ArrayList<T> ();

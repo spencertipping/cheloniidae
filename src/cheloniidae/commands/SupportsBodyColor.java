@@ -4,6 +4,6 @@ import cheloniidae.Turtle;
 
 import java.awt.Color;
 
-public interface SupportsBodyColor<T implements Turtle> {
+public interface SupportsBodyColor<T extends Turtle> {
   public T bodyColor (Color c);
 }
