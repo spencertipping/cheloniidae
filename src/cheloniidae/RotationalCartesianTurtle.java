@@ -3,13 +3,22 @@
 
 package cheloniidae;
 
-public class RotationalCartesianTurtle extends CartesianTurtle implements RotationalCartesianDriver {
-  public static class State implements TurtleState {
-    public final Vector position;
-    public final Vector direction;
+public class RotationalCartesianTurtle<T extends RotationalCartesianTurtle> extends CartesianTurtle<T>
+implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, SupportsTurn<T> {
+
+  public static class State extends CartesianTurtle.State {
     public final Vector directionComplement;
-    public State (Vector _position, Vector _direction, Vector _directionComplement)
-      {position = _position; direction = _direction; directionComplement = _directionComplement;}
+
+    public State (Vector _position, double _size, Color _color, Vector _direction, Vector _directionComplement) {
+      super (_position, _size, _color, _direction);
+      directionComplement = _directionComplement;
+    }
+
+    public State applyTo (Turtle t) {
+      new DirectionComplement (directionComplement).applyTo (t);
+      super.applyTo (t);
+      return this;
+    }
   }
 
   protected Vector directionComplement = new Vector (0, 0, -1);
@@ -23,14 +32,4 @@ public class RotationalCartesianTurtle extends CartesianTurtle implements Rotati
 
   public RotationalCartesianTurtle bank (double angle) {directionComplement = directionComplement.rotateAbout (direction, angle); return this;}
   public RotationalCartesianTurtle turn (double angle) {direction = direction.rotateAbout (directionComplement, angle); return this;}
-  public RotationalCartesianTurtle move (double distance) {super.move (distance); return this;}
-  public RotationalCartesianTurtle jump (double distance) {super.jump (distance); return this;}
-
-  public State                     serialize   ()              {return new State (position, direction, directionComplement);}
-  public RotationalCartesianTurtle deserialize (TurtleState s) {if (s instanceof State) {
-                                                                  position            = ((State) s).position;
-                                                                  direction           = ((State) s).direction;
-                                                                  directionComplement = ((State) s).directionComplement;
-                                                                }
-                                                                return this;}
 }

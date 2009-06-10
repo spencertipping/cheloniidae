@@ -4,12 +4,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
-public class TurtleGroup<T implements Turtle> implements Turtle<TurtleGroup<T>> {
+public class TurtleGroup<T extends Turtle> implements Turtle<TurtleGroup<T>> {
   public static class State implements TurtleState {
     public final Map<Turtle, TurtleState> states = new HashMap<Turtle, TurtleState> ();
     public State (TurtleGroup<T> group) {
-      for (T t : group.turtles ()) states.put (t, t.serialize ());
+      for (Turtle t : group.turtles ()) states.put (t, t.serialize ());
     }
   }
 
@@ -38,7 +41,7 @@ public class TurtleGroup<T implements Turtle> implements Turtle<TurtleGroup<T>> 
   }
 
   public TurtleGroup<T> run (TurtleCommand c) {
-    for (T t : turtles) t.run (c);
+    for (Turtle t : turtles) t.run (c);
     return this;
   }
 }

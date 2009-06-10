@@ -3,6 +3,8 @@
 
 package cheloniidae.commands;
 
+import cheloniidae.Turtle;
+
 public class Pitch extends UnaryCommand<Pitch, Double> {
   public Pitch applyTo (Turtle t) {
     if (t instanceof SupportsPitch) ((SupportsPitch) t).pitch (value);

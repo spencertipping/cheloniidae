@@ -1,5 +1,7 @@
 package cheloniidae.commands;
 
+import cheloniidae.Turtle;
+
 import java.awt.Color;
 
 public class LineColor extends UnaryCommand<LineColor, Color> {

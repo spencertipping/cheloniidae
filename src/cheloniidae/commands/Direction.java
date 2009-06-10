@@ -3,9 +3,9 @@ package cheloniidae.commands;
 import cheloniidae.Turtle;
 import cheloniidae.Vector;
 
-public class Position extends UnaryCommand<Position, Vector> {
+public class Direction extends UnaryCommand<Direction, Vector> {
   public Position applyTo (Turtle t) {
-    if (t instanceof SupportsPosition) ((SupportsPosition) t).position (value);
+    if (t instanceof SupportsDirection) ((SupportsDirection) t).direction (value);
     return this;
   }
 }

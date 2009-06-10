@@ -3,6 +3,8 @@
 
 package cheloniidae.commands;
 
+import cheloniidae.Turtle;
+
 public final class Move extends UnaryCommand<Double> {
   public Move applyTo (Turtle t) {
     if (t instanceof SupportsMove) ((SupportsMove) t).move (value);

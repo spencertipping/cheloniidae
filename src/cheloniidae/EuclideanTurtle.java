@@ -1,10 +1,8 @@
-// Cheloniidae Turtle Graphics
-// Created by Spencer Tipping and licensed under the terms of the MIT source code license
-
 package cheloniidae;
 
 import cheloniidae.commands.*;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
@@ -65,7 +63,7 @@ implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, Sup
 
   public Vector                  position  ()                 {return position;}
   public T                       position  (Vector _position) {position.assign (_position); return (T) this;}
-  public double                  size      ()                 {return lineSize;}
+  public double                  size      ()                 {return size;}
   public T                       size      (double _size)     {size = _size; return (T) this;}
   public T                       lineSize  (double _size)     {return size (_size);}
   public Color                   color     ()                 {return color;}
@@ -92,6 +90,11 @@ implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, Sup
 
   public T applyTo (Turtle t) {
     serialize ().applyTo (t);
+    return (T) this;
+  }
+
+  public T run (TurtleCommand c) {
+    c.applyTo (this);
     return (T) this;
   }
 }

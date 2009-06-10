@@ -8,6 +8,6 @@ public final class PerspectiveComparator implements Comparator<HasPerspectivePro
   public PerspectiveComparator (Viewport _v) {v = _v;}
 
   public final int compare (HasPerspectiveProjection p1, HasPerspectiveProjection p2) {
-    return Double.compare (p1.depth (v), p2.depth (v));
+    return Double.compare (p2.depth (v), p1.depth (v));
   }
 }

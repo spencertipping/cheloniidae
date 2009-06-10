@@ -3,7 +3,9 @@
 
 package cheloniidae;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Graphics2D;
 
 public class CartesianLine extends ViewportCaching implements HasPerspectiveProjection, RenderAction {
   public final Vector v1;

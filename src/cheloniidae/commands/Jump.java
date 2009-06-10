@@ -3,6 +3,8 @@
 
 package cheloniidae.commands;
 
+import cheloniidae.Turtle;
+
 public class Jump implements UnaryCommand<Jump, Double> {
   public Jump applyTo (Turtle t) {
     if (t instanceof SupportsJump) ((SupportsJump) t).jump (value);

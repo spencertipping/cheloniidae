@@ -6,43 +6,73 @@ package cheloniidae;
 import java.awt.image.BufferedImage;
 import java.awt.event.*;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.SortedSet;
+import java.util.Iterator;
 
-public class TurtleWindow extends Frame implements Viewport {
-  protected int           drawingRefreshInterval       = 10000;
-  protected int           maximumLinesPerPartialRedraw = 10000;
-  protected int           maximumFalseLineGranularity  = 16;
+public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
+  public class RenderOperation extends Thread {
+    protected Turtle   turtle;
+    protected Viewport viewport;
+    protected boolean  cancelFlag;
 
-  protected BufferedImage offscreen                    = null;
-  protected List<Turtle>  visibleTurtles               = new ArrayList<Turtle> ();
+    public RenderOperation (Turtle _turtle, Viewport _viewport)
+      {turtle = _turtle; viewport = _viewport;}
 
-  protected Vector        virtualPOV                   = new Vector (0, 0, -500.0);
-  protected Vector        virtualPOVUp                 = new Vector (0, 1, 0);
-  protected Vector        virtualPOVForward            = new Vector (0, 0, 1);
+    public void cancel () {cancelFlag = true;}
 
-  protected Vector        minimumExtent                = new Vector (0, 0, 0);
-  protected Vector        maximumExtent                = new Vector (0, 0, 0);
+    public void run () {
+      cancelFlag = false;
 
-  protected int           mouseDownX                   = 0;
-  protected int           mouseDownY                   = 0;
-  protected boolean       mouseDown                    = false;
-  protected Thread        graphicsRequestRunner        = null;
-  protected boolean       graphicsRequestCancelFlag    = false;
-  protected boolean       fisheye3D                    = false;
+      int linesDrawnSoFar = 0;
+
+      Graphics2D c = viewport.context ();
+      c.setColor (getBackground ());
+      c.fillRect (0, 0, getWidth (), getHeight ());
+
+      SortedSet<RenderAction> actions        = turtle.actions (viewport);
+      Iterator<RenderAction>  actionIterator = actions.iterator ();
+
+      while (! cancelFlag && actionIterator.hasNext ()) {
+        actionIterator.next ().render (viewport);
+        if (++linesDrawnSoFar % drawingRefreshInterval == 0) repaint ();
+      }
+
+      repaint ();
+    }
+  }
+
+  protected int             drawingRefreshInterval       = 10000;
+
+  protected BufferedImage   offscreen                    = null;
+  protected Graphics2D      cachedContext                = null;
+  protected TurtleGroup<T>  turtles                      = new TurtleGroup<T> ();
+
+  protected Vector          virtualPOV                   = new Vector (0, 0, -500.0);
+  protected Vector          virtualPOVUp                 = new Vector (0, 1, 0);
+  protected Vector          virtualPOVForward            = new Vector (0, 0, 1);
+
+  protected Vector          minimumExtent                = new Vector (0, 0, 0);
+  protected Vector          maximumExtent                = new Vector (0, 0, 0);
+
+  protected int             mouseDownX                   = 0;
+  protected int             mouseDownY                   = 0;
+  protected boolean         mouseDown                    = false;
+  protected RenderOperation graphicsRequestRunner        = null;
+  protected boolean         graphicsRequestCancelFlag    = false;
+  protected boolean         fisheye3D                    = false;
   
   public TurtleWindow () {initialize ();}
 
   protected void handleResize () {
     offscreen = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
-    enqueueGraphicsRefreshRequest (true);
+    cachedContext = null;
+    enqueueGraphicsRefreshRequest ();
   }
 
   protected void initialize () {
@@ -60,7 +90,7 @@ public class TurtleWindow extends Frame implements Viewport {
                                                               public void componentShown    (ComponentEvent e) {}});
 
     super.addMouseListener       (new MouseListener       () {public void mouseReleased     (MouseEvent e)     {mouseDown = false;
-                                                                                                                enqueueGraphicsRefreshRequest (true);}
+                                                                                                                enqueueGraphicsRefreshRequest ();}
                                                               public void mousePressed      (MouseEvent e)     {mouseDown = true;
                                                                                                                 mouseDownX = e.getX ();
                                                                                                                 mouseDownY = e.getY ();}
@@ -80,6 +110,7 @@ public class TurtleWindow extends Frame implements Viewport {
                                     else {
                                       final double pitchAngle = (e.getY () - mouseDownY) * factor;
                                       final double turnAngle  = (e.getX () - mouseDownX) * factor;
+
                                       virtualPOV = virtualPOV.subtract (center).rotateAbout (virtualPOVUp,    turnAngle).
                                                                                 rotateAbout (virtualPOVRight, pitchAngle).add (center);
 
@@ -90,14 +121,14 @@ public class TurtleWindow extends Frame implements Viewport {
 
                                     mouseDownX = e.getX ();
                                     mouseDownY = e.getY ();
-                                    enqueueGraphicsRefreshRequest (false);
+                                    enqueueGraphicsRefreshRequest ();
                                   }
                                                               }
                                                               public void mouseMoved (MouseEvent e) {}});
 
     super.addMouseWheelListener  (new MouseWheelListener  () {public void mouseWheelMoved (MouseWheelEvent e) {
                                                                 virtualPOV.addScaled (virtualPOVForward, (e.isControlDown () ? -1 : -10) * e.getWheelRotation ());
-                                                                enqueueGraphicsRefreshRequest (false);
+                                                                enqueueGraphicsRefreshRequest ();
                                                               }});
 
     super.setSize       (600, 372);
@@ -109,24 +140,27 @@ public class TurtleWindow extends Frame implements Viewport {
   }
 
   public void update (Graphics g) {paint (g);}
-  public void paint  (Graphics g) {g.drawImage (turtleLayer, 0, 0, null);}
+  public void paint  (Graphics g) {g.drawImage (offscreen, 0, 0, null);}
 
-  public void enqueueGraphicsRefreshRequest (final boolean antialiased) {
-    if (turtleOutput != null && turtleLayer != null) {
+  public TurtleWindow add (final T t) {turtles.turtles ().add (t); return this;}
+
+  public void enqueueGraphicsRefreshRequest () {
+    if (offscreen != null) {
       if (graphicsRequestRunner != null && graphicsRequestRunner.isAlive ()) {
-        graphicsRequestCancelFlag = true;
+        graphicsRequestRunner.cancel ();
         try {graphicsRequestRunner.join ();}
         catch (InterruptedException e) {}
       }
 
-      graphicsRequestCancelFlag = false;
-      (graphicsRequestRunner = new Thread (new Runnable () {
-        public void run () {
-          
-          repaint ();
-        }
-      })).start ();
+      (graphicsRequestRunner = new RenderOperation (turtles, this)).start ();
     }
+  }
+
+  public TurtleWindow pause (long milliseconds) {
+    enqueueGraphicsRefreshRequest ();
+    try {Thread.sleep (milliseconds);}
+    catch (InterruptedException e) {}
+    return this;
   }
 
   public Vector transformPoint (final Vector v)
@@ -135,23 +169,14 @@ public class TurtleWindow extends Frame implements Viewport {
   public Vector projectPoint (final Vector v)
     {return (fisheye3D ? new Vector (v).normalize () : new Vector (v).divide (v.z)).multiply (super.getHeight ()).add (new Vector (super.getWidth () >> 1, super.getHeight () >> 1, 0));}
 
-  public TurtleWindow add (final Turtle t) {
-    visibleTurtles.add (t);
-    return this;
-  }
-
-  public TurtleWindow pause (long milliseconds) {
-    enqueueGraphicsRefreshRequest (true);
-    try {Thread.sleep (milliseconds);}
-    catch (InterruptedException e) {}
-    return this;
-  }
-
-  protected Graphics2D context () {
-    final Graphics2D     g  = offscreen.getGraphics ();
-    final RenderingHints rh = g.getRenderingHints ();
-    rh.put (rh.KEY_ANTIALIASING, rh.VALUE_ANTIALIAS_ON);
-    g.setRenderingHints (rh);
-    return g;
+  public Graphics2D context () {
+    if (cachedContext != null) return cachedContext;
+    else {
+      final Graphics2D     g  = (Graphics2D) offscreen.getGraphics ();
+      final RenderingHints rh = g.getRenderingHints ();
+      rh.put (rh.KEY_ANTIALIASING, rh.VALUE_ANTIALIAS_ON);
+      g.setRenderingHints (rh);
+      return g;
+    }
   }
 }
