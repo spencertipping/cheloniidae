@@ -25,8 +25,8 @@ public class TurtleGroup<T extends Turtle> implements Turtle<TurtleGroup<T>> {
   public TurtleGroup<T> turtles (List<T> _turtles) {turtles = _turtles; return this;}
 
   public SortedSet<RenderAction> actions (Viewport v) {
-    final SortedSet<RenderAction> result = new TreeSet<RenderAction> ();
-    for (T t : turtles) result.addAll (t.actions (v));
+    final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
+    for (T t : turtles) if (! v.shouldCancel ()) result.addAll (t.actions (v));
     return result;
   }
 

@@ -57,8 +57,8 @@ implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, Sup
   protected final List<CartesianLine> lines    = new ArrayList<CartesianLine> ();
   protected final View                view     = new View (this);
   protected final Vector              position = new Vector ();
-  protected       double              size     = 0.5;
-  protected       Color               color    = new Color (0.5f, 0.65f, 0.55f);
+  protected       double              size     = 1;
+  protected       Color               color    = new Color (0.5f, 0.65f, 0.55f, 0.9f);
 
   public Vector                  position  ()                 {return position;}
   public T                       position  (Vector _position) {position.assign (_position); return (T) this;}
@@ -74,8 +74,7 @@ implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, Sup
   public T line (Vector p1, Vector p2) {lines.add (new CartesianLine (p1, p2, size, color)); return (T) this;}
   public T jump (double distance)      {position.addScaled (this.direction (), distance); return (T) this;}
   public T move (double distance)      {Vector oldPosition = new Vector (position);
-                                        line (oldPosition, position.addScaled (this.direction (), distance));
-                                        return (T) this;}
+                                        return line (oldPosition, position.addScaled (this.direction (), distance));}
 
   public SortedSet<RenderAction> actions (Viewport v) {
     final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));

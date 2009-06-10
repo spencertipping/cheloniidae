@@ -31,18 +31,18 @@ public class CartesianLine extends ViewportCaching implements HasPerspectiveProj
     // If either point is behind the POV, then solve for z = 1.0. If both points are behind,
     // then the line does not get rendered.
     if (pv1.z > 0 || pv2.z > 0) {
-      if (pv1.z < 0) {
+      if (pv1.z <= 0) {
         final double factor = (1.0 - pv1.z) / (pv2.z - pv1.z);
         pv1.multiply (1.0 - factor).addScaled (pv2, factor);
-      } else if (pv2.z < 0) {
+      } else if (pv2.z <= 0) {
         final double factor = (1.0 - pv2.z) / (pv1.z - pv2.z);
         pv2.multiply (1.0 - factor).addScaled (pv1, factor);
       }
 
       final double thickness = 2.0 * v.scaleFactor () / (pv1.z + pv2.z);
 
-      pv1 = v.transformPoint (pv1);
-      pv2 = v.transformPoint (pv2);
+      pv1 = v.projectPoint (pv1);
+      pv2 = v.projectPoint (pv2);
 
       Graphics2D g = v.context ();
       g.setStroke (new BasicStroke ((float) Math.abs (thickness * width)));

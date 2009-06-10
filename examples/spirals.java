@@ -4,12 +4,14 @@ import cheloniidae.*;
 import java.awt.*;
 
 public class spirals {
+  public static class RTurtle extends RotationalCartesianTurtle<RTurtle> {}
+
 	public static void main (String [] args) {
-		RotationalCartesianTurtle t1 = new RotationalCartesianTurtle ();
-		RotationalCartesianTurtle t2 = new RotationalCartesianTurtle ();
-		RotationalCartesianTurtle t3 = new RotationalCartesianTurtle ();
-    RotationalCartesianTurtle t4 = new RotationalCartesianTurtle ();
-		TurtleDrawingWindow w = new TurtleDrawingWindow ();
+		RTurtle t1 = new RTurtle ();
+		RTurtle t2 = new RTurtle ();
+		RTurtle t3 = new RTurtle ();
+    RTurtle t4 = new RTurtle ();
+		TurtleWindow w = new TurtleWindow ();
 
 		w.add (t1).add (t2).add (t3).add (t4).setVisible (true);
 
@@ -17,7 +19,7 @@ public class spirals {
 		t2.lineSize (0.125).lineColor (new Color (0.4f, 0.3f, 0.15f, 0.5f)).position (new Vector (-141, 0, 0));
 		t3.lineSize (0.125).lineColor (new Color (0.2f, 0.3f, 0.60f, 0.5f)).position (new Vector (0, 141, 0));
     t4.lineSize (0.125).lineColor (new Color (0.5f, 0.4f, 0.15f, 0.5f)).position (new Vector (0, -141, 0));
-		
+
 		for (int i = 0; i < 2000; i++) {
 			t1.move (Math.sqrt (i) * 1.5).pitch (60.1);
 			t2.move (Math.sqrt (i) * 1.9).pitch (120.1);

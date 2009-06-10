@@ -14,31 +14,24 @@ import java.awt.RenderingHints;
 
 import java.util.SortedSet;
 import java.util.Iterator;
+import java.util.Random;
 
 public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
   public class RenderOperation extends Thread {
-    protected Turtle   turtle;
-    protected Viewport viewport;
-    protected boolean  cancelFlag;
-
-    public RenderOperation (Turtle _turtle, Viewport _viewport)
-      {turtle = _turtle; viewport = _viewport;}
-
-    public void cancel () {cancelFlag = true;}
+    protected final Viewport viewport;
+    public RenderOperation (Viewport v) {viewport = v;}
 
     public void run () {
-      cancelFlag = false;
-
       int linesDrawnSoFar = 0;
 
-      Graphics2D c = viewport.context ();
+      final Graphics2D c = context ();
       c.setColor (getBackground ());
       c.fillRect (0, 0, getWidth (), getHeight ());
 
-      SortedSet<RenderAction> actions        = turtle.actions (viewport);
+      SortedSet<RenderAction> actions        = turtles.actions (viewport);
       Iterator<RenderAction>  actionIterator = actions.iterator ();
 
-      while (! cancelFlag && actionIterator.hasNext ()) {
+      while (! shouldCancel () && actionIterator.hasNext ()) {
         actionIterator.next ().render (viewport);
         if (++linesDrawnSoFar % drawingRefreshInterval == 0) repaint ();
       }
@@ -47,35 +40,63 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
     }
   }
 
-  protected int             drawingRefreshInterval       = 10000;
+  public class IntermediateRenderOperation extends Thread {
+    public void run () {
+      final Graphics2D c = context ();
+      c.setColor (getBackground ());
+      c.fillRect (0, 0, getWidth (), getHeight ());
 
-  protected BufferedImage   offscreen                    = null;
-  protected Graphics2D      cachedContext                = null;
-  protected TurtleGroup<T>  turtles                      = new TurtleGroup<T> ();
+      for (int i = 0; ! shouldCancel && i < intermediatePointCloud.length; ++i)
+        if (intermediatePointCloud[i] != null) {
+          Vector vprime = projectPoint (transformPoint (intermediatePointCloud[i]));
+          if (vprime.x >= 0.0 && vprime.x < getWidth () && vprime.y >= 0.0 && vprime.y < getHeight ())
+            offscreen.setRGB ((int) vprime.x, (int) vprime.y, 0);
+        }
 
-  protected Vector          virtualPOV                   = new Vector (0, 0, -500.0);
-  protected Vector          virtualPOVUp                 = new Vector (0, 1, 0);
-  protected Vector          virtualPOVForward            = new Vector (0, 0, 1);
+      repaint ();
+    }
+  }
 
-  protected Vector          minimumExtent                = new Vector (0, 0, 0);
-  protected Vector          maximumExtent                = new Vector (0, 0, 0);
+  protected int            drawingRefreshInterval     = 10000;
 
-  protected int             mouseDownX                   = 0;
-  protected int             mouseDownY                   = 0;
-  protected boolean         mouseDown                    = false;
-  protected RenderOperation graphicsRequestRunner        = null;
-  protected boolean         graphicsRequestCancelFlag    = false;
-  protected boolean         fisheye3D                    = false;
+  protected BufferedImage  offscreen                  = null;
+  protected Graphics2D     cachedContext              = null;
+  protected TurtleGroup<T> turtles                    = new TurtleGroup<T> ();
+
+  protected Vector         virtualPOV                 = new Vector (0, 0, -500.0);
+  protected Vector         virtualPOVUp               = new Vector (0, 1, 0);
+  protected Vector         virtualPOVForward          = new Vector (0, 0, 1);
+
+  protected Vector         minimumExtent              = new Vector (0, 0, 0);
+  protected Vector         maximumExtent              = new Vector (0, 0, 0);
+
+  protected Vector[]       intermediatePointCloud     = new Vector[5000];
+
+  protected int            mouseDownX                 = 0;
+  protected int            mouseDownY                 = 0;
+  protected boolean        mouseDown                  = false;
+  protected Thread         graphicsRequestRunner      = null;
+  protected boolean        graphicsRequestCancelFlag  = false;
+  protected boolean        fisheye3D                  = false;
+  protected long           lastChange                 = 0;
+  protected boolean        shouldCancel               = false;
   
   public TurtleWindow () {initialize ();}
+
+  public int          drawingRefreshInterval     ()                                {return drawingRefreshInterval;}
+  public TurtleWindow drawingRefreshInterval     (int _drawingRefreshInterval)     {drawingRefreshInterval = _drawingRefreshInterval; return this;}
+  public int          intermediatePointCloudSize ()                                {return intermediatePointCloud.length;}
+  public TurtleWindow intermediatePointCloudSize (int _intermediatePointCloudSize) {intermediatePointCloud = new Vector[_intermediatePointCloudSize]; return this;}
 
   protected void handleResize () {
     offscreen = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
     cachedContext = null;
-    enqueueGraphicsRefreshRequest ();
+    enqueueGraphicsRefreshRequest (new RenderOperation (this));
   }
 
   protected void initialize () {
+    final TurtleWindow t = this;
+
     super.addWindowListener      (new WindowListener      () {public void windowClosing     (WindowEvent e)    {dispose ();}
                                                               public void windowActivated   (WindowEvent e)    {}
                                                               public void windowClosed      (WindowEvent e)    {}
@@ -90,7 +111,8 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
                                                               public void componentShown    (ComponentEvent e) {}});
 
     super.addMouseListener       (new MouseListener       () {public void mouseReleased     (MouseEvent e)     {mouseDown = false;
-                                                                                                                enqueueGraphicsRefreshRequest ();}
+                                                                                                                lastChange = System.currentTimeMillis ();
+                                                                                                                enqueueGraphicsRefreshRequest (new RenderOperation (t));}
                                                               public void mousePressed      (MouseEvent e)     {mouseDown = true;
                                                                                                                 mouseDownX = e.getX ();
                                                                                                                 mouseDownY = e.getY ();}
@@ -119,16 +141,19 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
                                       virtualPOVUp      = virtualPOVUp.rotateAbout      (virtualPOVRight, pitchAngle).normalize ();
                                     }
 
+                                    lastChange = System.currentTimeMillis ();
+
                                     mouseDownX = e.getX ();
                                     mouseDownY = e.getY ();
-                                    enqueueGraphicsRefreshRequest ();
+                                    enqueueGraphicsRefreshRequest (new IntermediateRenderOperation ());
                                   }
                                                               }
                                                               public void mouseMoved (MouseEvent e) {}});
 
     super.addMouseWheelListener  (new MouseWheelListener  () {public void mouseWheelMoved (MouseWheelEvent e) {
                                                                 virtualPOV.addScaled (virtualPOVForward, (e.isControlDown () ? -1 : -10) * e.getWheelRotation ());
-                                                                enqueueGraphicsRefreshRequest ();
+                                                                lastChange = System.currentTimeMillis ();
+                                                                enqueueGraphicsRefreshRequest (new IntermediateRenderOperation ());
                                                               }});
 
     super.setSize       (600, 372);
@@ -144,27 +169,38 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
 
   public TurtleWindow add (final T t) {turtles.turtles ().add (t); return this;}
 
-  public void enqueueGraphicsRefreshRequest () {
+  public void enqueueGraphicsRefreshRequest (Thread t) {
     if (offscreen != null) {
       if (graphicsRequestRunner != null && graphicsRequestRunner.isAlive ()) {
-        graphicsRequestRunner.cancel ();
+        cancel ();
         try {graphicsRequestRunner.join ();}
         catch (InterruptedException e) {}
       }
 
-      (graphicsRequestRunner = new RenderOperation (turtles, this)).start ();
+      shouldCancel = false;
+      (graphicsRequestRunner = t).start ();
     }
   }
 
   public TurtleWindow pause (long milliseconds) {
-    enqueueGraphicsRefreshRequest ();
+    enqueueGraphicsRefreshRequest (new RenderOperation (this));
     try {Thread.sleep (milliseconds);}
     catch (InterruptedException e) {}
     return this;
   }
 
+  public TurtleWindow cancel () {shouldCancel = true; return this;}
+
+  public boolean shouldCancel () {return shouldCancel;}
+  public long    lastChange   () {return lastChange;}
+  public double  scaleFactor  () {return getHeight ();}
+
   public Vector transformPoint (final Vector v)
-    {return new Vector (v).subtract (virtualPOV).toCoordinateSpace (virtualPOVUp.cross (virtualPOVForward), virtualPOVUp, virtualPOVForward);}
+    {minimumExtent.componentwiseMinimum (v);
+     maximumExtent.componentwiseMaximum (v);
+     final int index = Math.abs (new Random ().nextInt ()) % intermediatePointCloud.length;
+     if (intermediatePointCloud[index] == null) intermediatePointCloud[index] = v;
+     return new Vector (v).subtract (virtualPOV).toCoordinateSpace (virtualPOVUp.cross (virtualPOVForward), virtualPOVUp, virtualPOVForward);}
 
   public Vector projectPoint (final Vector v)
     {return (fisheye3D ? new Vector (v).normalize () : new Vector (v).divide (v.z)).multiply (super.getHeight ()).add (new Vector (super.getWidth () >> 1, super.getHeight () >> 1, 0));}
