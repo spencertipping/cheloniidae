@@ -48,9 +48,12 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
 
       for (int i = 0; ! shouldCancel && i < intermediatePointCloud.length; ++i)
         if (intermediatePointCloud[i] != null) {
-          Vector vprime = projectPoint (transformPoint (intermediatePointCloud[i]));
-          if (vprime.x >= 0.0 && vprime.x < getWidth () && vprime.y >= 0.0 && vprime.y < getHeight ())
-            offscreen.setRGB ((int) vprime.x, (int) vprime.y, 0);
+          Vector vprime = transformPoint (intermediatePointCloud[i]);
+          if (vprime.z > 0.0) {
+            vprime = projectPoint (vprime);
+            if (vprime.x >= 0.0 && vprime.x < getWidth () && vprime.y >= 0.0 && vprime.y < getHeight ())
+              offscreen.setRGB ((int) vprime.x, (int) vprime.y, 0);
+          }
         }
 
       repaint ();
@@ -195,11 +198,14 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
   public long    lastChange   () {return lastChange;}
   public double  scaleFactor  () {return getHeight ();}
 
+  public void representativePoint (final Vector v) {
+    final int index = Math.abs (new Random ().nextInt ()) % intermediatePointCloud.length;
+    if (intermediatePointCloud[index] == null || new Random ().nextDouble () > 0.9) intermediatePointCloud[index] = v;
+  }
+
   public Vector transformPoint (final Vector v)
     {minimumExtent.componentwiseMinimum (v);
      maximumExtent.componentwiseMaximum (v);
-     final int index = Math.abs (new Random ().nextInt ()) % intermediatePointCloud.length;
-     if (intermediatePointCloud[index] == null) intermediatePointCloud[index] = v;
      return new Vector (v).subtract (virtualPOV).toCoordinateSpace (virtualPOVUp.cross (virtualPOVForward), virtualPOVUp, virtualPOVForward);}
 
   public Vector projectPoint (final Vector v)

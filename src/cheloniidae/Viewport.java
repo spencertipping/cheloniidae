@@ -6,10 +6,11 @@ package cheloniidae;
 import java.awt.Graphics2D;
 
 public interface Viewport {
-  public boolean    shouldCancel   ();
-  public Graphics2D context        ();
-  public double     scaleFactor    ();
-  public Vector     transformPoint (Vector v);
-  public Vector     projectPoint   (Vector v);
-  public long       lastChange     ();
+  public boolean    shouldCancel        ();
+  public Graphics2D context             ();
+  public double     scaleFactor         ();
+  public Vector     transformPoint      (Vector v);
+  public Vector     projectPoint        (Vector v);
+  public void       representativePoint (Vector v);
+  public long       lastChange          ();
 }

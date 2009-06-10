@@ -9,15 +9,13 @@ public class circles {
     RotationalCartesianTurtle t = new RotationalCartesianTurtle ();
 
     w.add (t).setVisible (true);
-    t.run (section (500, 3));
+    t.run (section (50, 4));
   }
 
   public static TurtleCommand section (double scale, int recursionLevel) {
-    return new Repeat (15,
-      new CommandSequence (
-        new Move (scale),
-        new Turn ((recursionLevel & 1) == 0 ? 36 : -36),
-        new Pitch (1),
-        (recursionLevel > 0) ? section (scale / 3.0, recursionLevel - 1) : new NullCommand ()));
+    return new Repeat (14, new Move (scale),
+                           new Turn ((recursionLevel & 1) == 0 ? 36 : -36),
+                           new Pitch (1),
+                           (recursionLevel > 0) ? section (scale / 3.0, recursionLevel - 1) : new NullCommand ());
   }
 }

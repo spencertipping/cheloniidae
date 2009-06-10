@@ -28,6 +28,8 @@ public class CartesianLine extends ViewportCaching implements HasPerspectiveProj
     Vector pv1 = v.transformPoint (v1);
     Vector pv2 = v.transformPoint (v2);
 
+    v.representativePoint (midpoint);
+
     // If either point is behind the POV, then solve for z = 1.0. If both points are behind,
     // then the line does not get rendered.
     if (pv1.z > 0 || pv2.z > 0) {
