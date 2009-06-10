@@ -4,7 +4,7 @@ import java.awt.Color;
 
 public class BodyColor extends UnaryCommand<BodyColor, Color> {
   public BodyColor applyTo (Turtle t) {
-    if (t instanceof HasBodyColor) ((HasBodyColor) t).bodyColor (value);
+    if (t instanceof SupportsBodyColor) ((SupportsBodyColor) t).bodyColor (value);
     return this;
   }
 }

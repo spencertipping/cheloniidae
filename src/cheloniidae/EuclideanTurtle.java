@@ -3,40 +3,95 @@
 
 package cheloniidae;
 
+import cheloniidae.commands.*;
+
+import java.awt.Color;
 import java.awt.Graphics2D;
 
-public abstract class EuclideanTurtle extends Turtle implements EuclideanDriver {
-  public EuclideanTurtle () {lineProvider = new QueueLineProvider ();}
+import java.util.List;
+import java.util.ArrayList;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+public abstract class EuclideanTurtle<T extends EuclideanTurtle>
+implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, SupportsLineColor<T>, TurtleCommand {
+
+  public static class View extends ViewportCaching implements RenderAction {
+    public final EuclideanTurtle<T> turtle;
+    public View (EuclideanTurtle<T> _turtle) {turtle = _turtle;}
+
+    public double computeDepth (Viewport v) {return v.transformPoint (turtle.position ()).length ();}
+
+    public void render (Viewport v) {
+      Vector pp = v.transformPoint (turtle.position ());
+      Vector pd = v.transformPoint (new Vector (turtle.position ()).add (turtle.direction ()));
+      if (pp.z > 0 && pd.z > 0) {
+        final double z = pp.z;
+        pp = v.projectPoint (pp);
+        pd = v.projectPoint (pd);
+
+        final double scale = 4.0 * v.scaleFactor () / z;
+
+        Graphics2D g = v.context ();
+        g.setStroke (new BasicStroke ((float) (scale / 16.0)));
+        g.setColor  (turtle.color ());
+        g.drawOval  ((int) (pp.x - scale), (int) (pp.y - scale), (int) (scale * 2.0), (int) (scale * 2.0));
+        g.drawLine  ((int) pp.x,           (int) pp.y,           (int) pd.x,          (int) pd.y);
+      }
+    }
+  }
+
+  public static class State implements TurtleState, TurtleCommand {
+    public final Vector position;
+    public final double size;
+    public final Color  color;
+
+    public State (Vector _position, double _size, Color _color)
+      {position = _position; size = _size; color = _color;}
+
+    public State applyTo (Turtle t) {
+      new CommandSequence (new Position  (position),
+                           new LineSize  (size),
+                           new LineColor (color)).applyTo (t);
+      return this;
+    }
+  }
+
+  protected final List<CartesianLine> lines    = new ArrayList<CartesianLine> ();
+  protected final View                view     = new View (this);
+  protected final Vector              position = new Vector ();
+  protected       double              size     = 0.5;
+  protected       Color               color    = new Color (0.5f, 0.65f, 0.55f);
+
+  public Vector                  position  ()                 {return position;}
+  public T                       position  (Vector _position) {position.assign (_position); return (T) this;}
+  public double                  size      ()                 {return lineSize;}
+  public T                       size      (double _size)     {size = _size; return (T) this;}
+  public T                       lineSize  (double _size)     {return size (_size);}
+  public Color                   color     ()                 {return color;}
+  public T                       color     (Color _color)     {color = _color; return (T) this;}
+  public T                       lineColor (Color _color)     {return color (_color);}
 
   public abstract Vector direction ();
 
-  public EuclideanTurtle line (Vector p1, Vector p2) {
-    if (lineProvider != null) ((QueueLineProvider) lineProvider).add (new Line (p1, p2, lineSize, lineColor));
-    if (listener     != null) listener.turtleProgress (this);
-    return this;
+  public T line (Vector p1, Vector p2) {lines.add (new CartesianLine (p1, p2, size, color)); return (T) this;}
+  public T jump (double distance)      {position.addScaled (this.direction (), distance); return (T) this;}
+  public T move (double distance)      {Vector oldPosition = new Vector (position);
+                                        line (oldPosition, position.addScaled (this.direction (), distance));
+                                        return (T) this;}
+
+  public SortedSet<RenderAction> actions (Viewport v) {
+    final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
+    result.add (view);
+    result.addAll (lines);
+    return result;
   }
 
-  public EuclideanTurtle move (double d) {
-    Vector oldPosition = new Vector (position);
-    this.line (oldPosition, position.addScaled (this.direction (), d));
-    return this;
-  }
+  public State serialize   ()              {return new State (position.clone (), size, color);}
+  public T     deserialize (TurtleState t) {if (t instanceof State) ((State) t).applyTo (this); return (T) this;}
 
-  public EuclideanTurtle jump (double d) {
-    position.addScaled (this.direction (), d);
-    return this;
-  }
-
-  public EuclideanTurtle render (Graphics2D g, TurtleViewport viewport) {
-    if (viewport != null) {
-      Vector projectedPosition  = viewport.projectPoint (viewport.transformPoint (position));
-      Vector projectedDirection = viewport.projectPoint (viewport.transformPoint (new Vector (position).addScaled (direction (), 10.0)));
-
-      g.setColor (bodyColor ());
-      g.drawOval ((int) projectedPosition.x - 2, (int) projectedPosition.y - 2, 4, 4);
-      g.drawLine ((int) projectedPosition.x, (int) projectedPosition.y, (int) projectedDirection.x, (int) projectedDirection.y);
-    }
-
-    return this;
+  public T applyTo (Turtle t) {
+    serialize ().applyTo (t);
+    return (T) this;
   }
 }

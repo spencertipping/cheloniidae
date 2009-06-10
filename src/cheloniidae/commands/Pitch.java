@@ -3,4 +3,9 @@
 
 package cheloniidae.commands;
 
-public class Pitch extends UnaryCommand<Double> {}
+public class Pitch extends UnaryCommand<Pitch, Double> {
+  public Pitch applyTo (Turtle t) {
+    if (t instanceof SupportsPitch) ((SupportsPitch) t).pitch (value);
+    return this;
+  }
+}

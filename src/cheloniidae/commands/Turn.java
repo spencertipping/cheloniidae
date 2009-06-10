@@ -3,4 +3,9 @@
 
 package cheloniidae.commands;
 
-public class Turn extends UnaryCommand<Double> {}
+public class Turn extends UnaryCommand<Turn, Double> {
+  public Turn applyTo (Turtle t) {
+    if (t instanceof SupportsTurn) ((SupportsTurn) t).turn (value);
+    return this;
+  }
+}

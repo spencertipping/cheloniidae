@@ -40,12 +40,8 @@ public class TurtleWindow extends Frame implements Viewport {
   
   public TurtleWindow () {initialize ();}
 
-  protected void regenerateImages () {
-    offscreen = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
-  }
-
   protected void handleResize () {
-    regenerateImages ();
+    offscreen = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
     enqueueGraphicsRefreshRequest (true);
   }
 
@@ -119,7 +115,6 @@ public class TurtleWindow extends Frame implements Viewport {
     if (turtleOutput != null && turtleLayer != null) {
       if (graphicsRequestRunner != null && graphicsRequestRunner.isAlive ()) {
         graphicsRequestCancelFlag = true;
-        for (LineProvider p : providers) p.cancelSort ();
         try {graphicsRequestRunner.join ();}
         catch (InterruptedException e) {}
       }
@@ -127,9 +122,7 @@ public class TurtleWindow extends Frame implements Viewport {
       graphicsRequestCancelFlag = false;
       (graphicsRequestRunner = new Thread (new Runnable () {
         public void run () {
-          if (antialiased) for (LineProvider p : providers) p.sort (virtualPOV);
-          drawLines (antialiased);
-          drawTurtles (antialiased);
+          
           repaint ();
         }
       })).start ();
@@ -144,7 +137,6 @@ public class TurtleWindow extends Frame implements Viewport {
 
   public TurtleWindow add (final Turtle t) {
     visibleTurtles.add (t);
-    providers.add (t.lineProvider ());
     return this;
   }
 
@@ -155,130 +147,11 @@ public class TurtleWindow extends Frame implements Viewport {
     return this;
   }
 
-  protected void renderLine (final BufferedImage target, final Color c, final int x1, final int y1, final int x2, final int y2) {
-    // This method renders a single line sloppily onto an image.
-    // Basically, it keeps filling in points until no two points
-    // are more than 4 pixels apart. It uses binary splitting.
-
-    if ((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) > LINE_POINT_MAXIMUM_DISTANCE) {
-      renderLine (target, c, x1, y1, (x1 + x2) >> 1, (y1 + y2) >> 1);
-      renderLine (target, c, (x1 + x2) >> 1, (y1 + y2) >> 1, x2, y2);
-    } else
-      target.setRGB ((x1 + x2) >> 1, (y1 + y2) >> 1, c.getRGB ());
-  }
-
-  protected void renderLine (final Line l, final Graphics2D g, BufferedImage target, final boolean antialiasing) {
-    // This method renders a single line onto the screen.
-    // I'm assuming that the graphics context has already been
-    // initialized as far as antialiasing is concerned.
-
-    Vector v1 = transformPoint (l.v1);
-    Vector v2 = transformPoint (l.v2);
-
-    // If either point is behind the camera (but not both), then solve
-    // for the point at Z = 1. We then use that point for the end of the
-    // line.
-    if (v1.z < 0.0 && v2.z < 0.0) return;
-    else if (v1.z < 0.0 || v2.z < 0.0) {
-      final double difference_in_z = v1.z - v2.z;             // Will always be nonzero.
-      if (v1.z < 0.0) {
-        final double factor = Math.abs ((1.0 - v1.z) / difference_in_z);
-        v1.multiply (1.0 - factor).addScaled (v2, factor);
-      } else {
-        final double factor = Math.abs ((1.0 - v2.z) / difference_in_z);
-        v2.multiply (1.0 - factor).addScaled (v1, factor);
-      }
-    }
-
-    final double thickness = 2.0 * super.getHeight () / (v1.z + v2.z);
-
-    v1 = projectPoint (v1);
-    v2 = projectPoint (v2);
-
-    if (antialiasing) {
-      // Do nice rendering with strokes and such.
-      g.setStroke (new BasicStroke ((float) Math.abs (l.width * thickness)));
-      g.setColor  (l.color);
-      g.drawLine  ((int) v1.x, (int) v1.y, (int) v2.x, (int) v2.y);
-    } else
-      // Do a sloppy line.
-      //
-      // The check for in-boundedness is here for optimization reasons. If
-      // we put it at the lowest level pixel-render, then every pixel would
-      // have potentially four comparisons added to it. But here, we can get
-      // away with eight for an entire line.
-
-      if (v1.x > 0.0 && v1.x < target.getWidth () && v1.y > 0.0 && v1.y < target.getHeight () &&
-          v2.x > 0.0 && v2.x < target.getWidth () && v2.y > 0.0 && v2.y < target.getHeight ())
-        renderLine (target, l.color, (int) v1.x, (int) v1.y, (int) v2.x, (int) v2.y);
-  }
-
-  protected final void initializeAntialiasing (final Graphics2D g) {
-    // Due to the architecture of rendering hints, we must first
-    // load them into a variable, then change them, and finally
-    // put them back into the graphics context in order to commit
-    // changes. Otherwise, this would be a one-liner.
-
+  protected Graphics2D context () {
+    final Graphics2D     g  = offscreen.getGraphics ();
     final RenderingHints rh = g.getRenderingHints ();
     rh.put (rh.KEY_ANTIALIASING, rh.VALUE_ANTIALIAS_ON);
     g.setRenderingHints (rh);
-  }
-
-  protected void drawTurtles (final boolean antialiased) {
-    final Graphics2D g = (Graphics2D) turtleLayer.getGraphics ();
-    if (antialiased) {
-      initializeAntialiasing (g);
-      g.drawImage (turtleOutput, 0, 0, null);
-    }
-    for (Turtle t : visibleTurtles) t.render (g, this);
-  }
-
-  protected void drawLines (final boolean antialiased) {
-    final Graphics2D g = (Graphics2D) (antialiased ? turtleOutput : turtleLayer).getGraphics ();
-    if (antialiased) initializeAntialiasing (g);
-
-    g.setColor (super.getBackground ());
-    g.fillRect (0, 0, super.getWidth (), super.getHeight ());
-
-    int totalLines = 0;
-    for (LineProvider p : providers) totalLines += p.size ();
-
-    if (antialiased) {
-      // Line ordering matters. Merge the arrays as they're rendered.
-      int[] maximumIndices = new int[providers.size ()];
-      for (int i = 0; i < providers.size (); ++i) maximumIndices[i] = providers.get (i).size () - 1;
-
-      maximumExtent.center ();
-      minimumExtent.center ();
-
-      while (--totalLines > 0 && ! graphicsRequestCancelFlag) {
-        int maximumIndex = 0;
-
-        // Establish an initial nonzero index for the sake of comparison.
-        for (int i = 0; i < providers.size (); ++i)
-          if (maximumIndices[i] >= 0) {
-            maximumIndex = i;
-            break;
-          }
-
-        // The initial loop index must remain 0 because we need to mark the /finished/
-        // flag as being false if even the first index is nonnegative.
-        for (int i = 0; i < providers.size (); ++i)
-          if (maximumIndices[i] >= 0 && providers.get (i).get (maximumIndices[i]).cachedDistance >=
-                                        providers.get (maximumIndex).get (maximumIndices[maximumIndex]).cachedDistance)
-            maximumIndex = i;
-
-        final Line immediate = providers.get (maximumIndex).get (maximumIndices[maximumIndex]--);
-        minimumExtent.componentwiseMinimum (immediate.v1).componentwiseMinimum (immediate.v2);
-        maximumExtent.componentwiseMaximum (immediate.v1).componentwiseMaximum (immediate.v2);
-        renderLine (immediate, g, turtleOutput, true);
-      }
-    } else {
-      final int lineSkip = (totalLines / INTERMEDIATE_RENDER_CUTOFF) | 1;
-      for (int i = 0; ! graphicsRequestCancelFlag && i < totalLines; i += lineSkip) {
-        final LineProvider p = providers.get (i % providers.size ());
-        renderLine (p.get (i % p.size ()), g, turtleLayer, false);
-      }
-    }
+    return g;
   }
 }

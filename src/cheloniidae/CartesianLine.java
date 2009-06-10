@@ -5,15 +5,12 @@ package cheloniidae;
 
 import java.awt.Color;
 
-public class CartesianLine implements HasPerspectiveProjection {
+public class CartesianLine extends ViewportCaching implements HasPerspectiveProjection, RenderAction {
   public final Vector v1;
   public final Vector v2;
   public final double width;
   public final Color  color;
   public final Vector midpoint;
-
-  private double   cachedDistance;
-  private Viewport cachedViewport;
 
   public CartesianLine (Vector _v1, Vector _v2, double _width, Color _color) {
     v1 = new Vector (_v1);
@@ -23,9 +20,32 @@ public class CartesianLine implements HasPerspectiveProjection {
     midpoint = new Vector (v1).add (v2).multiply (0.5);
   }
 
-  public double depth (Viewport v) {
-    double result = (cachedViewport == v || cachedViewport.equals (v)) ? cachedDistance : (cachedDistance = v.transformPoint (midpoint).length ());
-    cachedViewport = v;
-    return result;
+  public double computeDepth (Viewport v) {return v.transformPoint (midpoint).length ();}
+
+  public void render (Viewport v) {
+    Vector pv1 = v.transformPoint (v1);
+    Vector pv2 = v.transformPoint (v2);
+
+    // If either point is behind the POV, then solve for z = 1.0. If both points are behind,
+    // then the line does not get rendered.
+    if (pv1.z > 0 || pv2.z > 0) {
+      if (pv1.z < 0) {
+        final double factor = (1.0 - pv1.z) / (pv2.z - pv1.z);
+        pv1.multiply (1.0 - factor).addScaled (pv2, factor);
+      } else if (pv2.z < 0) {
+        final double factor = (1.0 - pv2.z) / (pv1.z - pv2.z);
+        pv2.multiply (1.0 - factor).addScaled (pv1, factor);
+      }
+
+      final double thickness = 2.0 * v.scaleFactor () / (pv1.z + pv2.z);
+
+      pv1 = v.transformPoint (pv1);
+      pv2 = v.transformPoint (pv2);
+
+      Graphics2D g = v.context ();
+      g.setStroke (new BasicStroke ((float) Math.abs (thickness * width)));
+      g.setColor  (color);
+      g.drawLine  ((int) pv1.x, (int) pv1.y, (int) pv2.x, (int) pv2.y);
+    }
   }
 }
