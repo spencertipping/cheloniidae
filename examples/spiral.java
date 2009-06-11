@@ -1,15 +1,15 @@
 import cheloniidae.*;
-import cheloniidae.commands.*;
+import cheloniidae.frames.*;
 
-public class spiral {
+public class spiral extends SingleTurtleScene {
   public static void main (String[] args) {
-    TurtleWindow              w = new TurtleWindow ();
-    RotationalCartesianTurtle t = new RotationalCartesianTurtle ();
+    new spiral ();
+  }
 
-    t.lineSize (0.5);
-    w.add (t).setVisible (true);
-
-    TurtleCommand spiral = new Repeat (5760, new Pitch (0.25), new Move (10.0), new Pitch (-0.25), new Turn (4.0));
-    t.run (spiral);
+  public TurtleCommand run () {
+    return repeat (5760, pitch (0.25),
+                         move (10.0),
+                         pitch (-0.25),
+                         turn (4.0));
   }
 }

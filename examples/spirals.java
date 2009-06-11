@@ -1,5 +1,3 @@
-// vim: set ts=2 sw=2 :
-
 import cheloniidae.*;
 import java.awt.*;
 
