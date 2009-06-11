@@ -1,20 +1,19 @@
 import cheloniidae.*;
+import cheloniidae.frames.*;
 import java.awt.*;
 
-public class donut {
+public class donut extends SingleTurtleScene {
   public static void main (String[] args) {
-    TurtleDrawingWindow       w = new TurtleDrawingWindow ();
-    RotationalCartesianTurtle t = new RotationalCartesianTurtle ();
+    new donut ();
+  }
 
-    w.add (t);
-    w.setVisible (true);
-
-    t.lineSize (0.5).lineColor (new Color (0.5f, 0.65f, 0.55f, 0.5f));
-
-    for (int i = 0; i < 36; i++) {
-      t.jump (100);
-      for (int j = 0; j < 90; j++) t.move (2.0).pitch (4.0);
-      t.jump (-100).turn (10);
-    }
+  public TurtleCommand run () {
+    return sequence (size (0.5), color (new Color (0.5f, 0.65f, 0.55f, 0.5f)),
+                     repeat (36,
+                       jump (100),
+                       repeat (90,
+                         move (2), pitch (4)),
+                       jump (-100),
+                       turn (10)));
   }
 }

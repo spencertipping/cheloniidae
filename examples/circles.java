@@ -1,21 +1,21 @@
 import cheloniidae.*;
-import cheloniidae.commands.*;
+import cheloniidae.frames.*;
 
 import java.awt.Color;
 
-public class circles {
+public class circles extends SingleTurtleScene {
   public static void main (String[] args) {
-    TurtleWindow              w = new TurtleWindow ();
-    RotationalCartesianTurtle t = new RotationalCartesianTurtle ();
-
-    w.add (t).setVisible (true);
-    t.run (section (50, 4));
+    new circles ();
   }
 
-  public static TurtleCommand section (double scale, int recursionLevel) {
-    return new Repeat (14, new Move (scale),
-                           new Turn ((recursionLevel & 1) == 0 ? 36 : -36),
-                           new Pitch (1),
-                           (recursionLevel > 0) ? section (scale / 3.0, recursionLevel - 1) : new NullCommand ());
+  public TurtleCommand run () {
+    return section (50, 3);
+  }
+
+  public TurtleCommand section (double scale, int recursionLevel) {
+    return repeat (15, move (scale),
+                       turn ((recursionLevel & 1) == 0 ? 36 : -36),
+                       pitch (1),
+                       (recursionLevel > 0) ? section (scale / 3.0, recursionLevel - 1) : pass ());
   }
 }
