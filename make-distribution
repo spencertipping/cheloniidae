@@ -21,13 +21,13 @@ pushd doc
 latex cheloniidae.tex && pdflatex cheloniidae.tex
 popd
 
-cp cheloniidae/*.java $basedir/cheloniidae/
+cp -r src/cheloniidae/* $basedir/cheloniidae/
 cp examples/*.java $basedir/
 cp doc/{cheloniidae.tex,cheloniidae.pdf,CHANGELOG,README} $basedir/
 
 # Now compile all of the Java files and documentation.
 cd $basedir
-javac *.java cheloniidae/*.java
+javac *.java cheloniidae/*.java cheloniidae/*/*.java
 
 # Package the whole thing up into a zip file and delete the temporary
 # directory.

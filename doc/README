@@ -1,7 +1,7 @@
 All of the class files in this directory are examples and tests. You should be
 able to type
 
-	java spheres
+  java spheres
 
 for example, and Cheloniidae should draw two spheres. The view angle can be
 changed by dragging the mouse with various combinations of control and shift
@@ -9,6 +9,6 @@ pressed (see the "Mouse Operations" section of the API docs in cheloniidae.pdf).
 
 To recompile the Cheloniidae core classes, just run:
 
-	javac cheloniidae/*.java
+  javac cheloniidae/*.java cheloniidae/*/*.java
 
 This may be necessary depending on your Java environment.
