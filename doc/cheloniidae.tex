@@ -63,22 +63,21 @@
       more trees spaced at some angle apart. Here is some simple code to
       implement this idea:
 
-      \lstset{gobble=8}
       \begin{java}
-	public static void tree (Turtle t, int recursionLevel) {
-	  t.move (10);
+public static void tree (Turtle t, int recursionLevel) {
+  t.move (10);
 
-	  if (recursionLevel > 0) {
-	    t.pushTurtleState ();
-	    t.turn (-5);
-	    tree (t, recursionLevel - 1);
-	    t.popTurtleState ();
-	    t.pushTurtleState ();
-	    t.turn (5);
-	    tree (t, recursionLevel - 1);
-	    t.popTurtleState ();
-	  }
-	}
+  if (recursionLevel > 0) {
+    t.pushTurtleState ();
+    t.turn (-5);
+    tree (t, recursionLevel - 1);
+    t.popTurtleState ();
+    t.pushTurtleState ();
+    t.turn (5);
+    tree (t, recursionLevel - 1);
+    t.popTurtleState ();
+  }
+}
       \end{java}
       
       The state stack works very well with recursive algorithms, as demonstrated
