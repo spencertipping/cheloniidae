@@ -9,16 +9,35 @@ public class tree extends SingleTurtleScene {
   }
 
   public TurtleCommand run () {
-    return tree (3, 10);
+    return tree (4, 20);
   }
 
   public TurtleCommand tree (int recursionLevel, double scale) {
-    return repeat (2,
+    return sequence (
       stack.push (),
-      bank (new Random ().nextDouble () * 360.0),
-      turn (new Random ().nextDouble () * 20.0 - 10.0),
+      new TurtleCommand () {
+        public TurtleCommand applyTo (Turtle t) {
+          System.out.println (((EuclideanTurtle) t).position ().toString ());
+          return this;
+        }
+      },
+      bank (random () * 360.0),
+      stack.push (),
+      turn (random () * 20.0),
       move (scale),
-      (recursionLevel > 0) ? tree (recursionLevel - 1, scale * new Random ().nextDouble () * 0.9) : pass (),
+      (recursionLevel > 0) ? tree (recursionLevel - 1, scale * (random () * 0.4 + 0.5)) : pass (),
+      stack.pop (),
+      new TurtleCommand () {
+        public TurtleCommand applyTo (Turtle t) {
+          System.out.println (((EuclideanTurtle) t).position ().toString ());
+          return this;
+        }
+      },
+      stack.push (),
+      turn (-random () * 40.0),
+      move (scale),
+      (recursionLevel > 0) ? tree (recursionLevel - 1, scale * (random () * 0.4 + 0.5)) : pass (),
+      stack.pop (),
       stack.pop ());
   }
 }
