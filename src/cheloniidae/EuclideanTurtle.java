@@ -44,7 +44,7 @@ implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, Sup
     public final Color  color;
 
     public State (Vector _position, double _size, Color _color)
-      {position = _position; size = _size; color = _color;}
+      {position = _position.clone (); size = _size; color = _color;}
 
     public State applyTo (Turtle t) {
       new CommandSequence (new Position  (position),
@@ -73,7 +73,7 @@ implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, Sup
 
   public T line (Vector p1, Vector p2) {lines.add (new CartesianLine (p1, p2, size, color)); return (T) this;}
   public T jump (double distance)      {position.addScaled (this.direction (), distance); return (T) this;}
-  public T move (double distance)      {Vector oldPosition = new Vector (position);
+  public T move (double distance)      {Vector oldPosition = position.clone ();
                                         return line (oldPosition, position.addScaled (this.direction (), distance));}
 
   public SortedSet<RenderAction> actions (Viewport v) {
@@ -83,8 +83,9 @@ implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, Sup
     return result;
   }
 
-  public State serialize   ()              {return new State (position.clone (), size, color);}
-  public T     deserialize (TurtleState t) {if (t instanceof State) ((State) t).applyTo (this); return (T) this;}
+  public State serialize   ()              {return new State (position, size, color);}
+  public T     deserialize (TurtleState t) {if (t instanceof TurtleCommand) ((TurtleCommand) t).applyTo (this);
+                                            else System.err.println ("Class of type " + t.getClass ().getName () + " received."); return (T) this;}
 
   public T applyTo (Turtle t) {
     serialize ().applyTo (t);

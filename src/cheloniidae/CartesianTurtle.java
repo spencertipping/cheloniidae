@@ -15,7 +15,7 @@ implements SupportsDirection<T> {
     
     public State (Vector _position, double _size, Color _color, Vector _direction) {
       super (_position, _size, _color);
-      direction = _direction;
+      direction = _direction.clone ();
     }
 
     public State applyTo (Turtle t) {
@@ -28,5 +28,7 @@ implements SupportsDirection<T> {
   protected Vector direction = new Vector (0, 1, 0);
 
   public Vector direction ()                  {return new Vector (direction);}
-  public T      direction (Vector _direction) {direction = _direction; return (T) this;}
+  public T      direction (Vector _direction) {direction.assign (_direction); return (T) this;}
+
+  public State serialize () {return new State (position, size, color, direction);}
 }

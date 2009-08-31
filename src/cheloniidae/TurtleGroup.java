@@ -40,7 +40,8 @@ public class TurtleGroup<T extends Turtle> implements Turtle<TurtleGroup<T>> {
   }
 
   public TurtleGroup<T> run (TurtleCommand c) {
-    for (Turtle t : turtles) t.run (c);
+    if (c instanceof NonDistributiveTurtleCommand) c.applyTo (this);
+    else for (Turtle t : turtles) t.run (c);
     return this;
   }
 }

@@ -15,7 +15,7 @@ implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, Su
 
     public State (Vector _position, double _size, Color _color, Vector _direction, Vector _directionComplement) {
       super (_position, _size, _color, _direction);
-      directionComplement = _directionComplement;
+      directionComplement = _directionComplement.clone ();
     }
 
     public State applyTo (Turtle t) {
@@ -35,5 +35,7 @@ implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, Su
                                  directionComplement = directionComplement.rotateAbout (axis, angle); return (T) this;}
 
   public T bank (double angle) {directionComplement = directionComplement.rotateAbout (direction, angle); return (T) this;}
-  public T turn (double angle) {direction = direction.rotateAbout (directionComplement, angle); return (T) this;}
+  public T turn (double angle) {direction           = direction.rotateAbout (directionComplement, angle); return (T) this;}
+
+  public State serialize () {return new State (position, size, color, direction, directionComplement);}
 }
