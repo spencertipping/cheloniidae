@@ -5,7 +5,11 @@ import cheloniidae.commands.*;
 
 import java.awt.Color;
 
+import java.util.Random;
+
 public class CoreCommands {
+  protected Random rng = new Random ();
+
   public static TurtleCommand move (double distance) {return new Move (distance);}
   public static TurtleCommand jump (double distance) {return new Jump (distance);}
 
@@ -24,4 +28,6 @@ public class CoreCommands {
 
   public static TurtleCommand repeat   (int repetitions, TurtleCommand ... commands) {return new Repeat (repetitions, commands);}
   public static TurtleCommand sequence (TurtleCommand ... commands)                  {return new CommandSequence (commands);}
+
+  public double               random () {return rng.nextDouble ();}
 }
