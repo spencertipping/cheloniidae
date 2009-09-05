@@ -12,7 +12,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public abstract class EuclideanTurtle<T extends EuclideanTurtle> extends Replicable<T>
-implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, SupportsLineColor<T>, TurtleCommand {
+implements Turtle<T>, SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, SupportsLineColor<T>, TurtleCommand {
 
   public static class View extends ViewportCaching implements RenderAction {
     public final EuclideanTurtle turtle;
