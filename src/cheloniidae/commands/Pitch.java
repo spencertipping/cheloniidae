@@ -6,9 +6,10 @@ package cheloniidae.commands;
 import cheloniidae.Turtle;
 
 public class Pitch extends UnaryCommand<Double> {
-  public Pitch (double value) {super (value);}
+  public Pitch (double value)        {super (value);}
+  public Pitch (Proxy<Double> value) {super (value);}
   public Pitch applyTo (Turtle t) {
-    if (t instanceof SupportsPitch) ((SupportsPitch) t).pitch (value);
+    if (t instanceof SupportsPitch) ((SupportsPitch) t).pitch (super.value ());
     return this;
   }
 }

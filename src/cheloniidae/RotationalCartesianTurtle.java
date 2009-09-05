@@ -7,7 +7,7 @@ import cheloniidae.commands.*;
 
 import java.awt.Color;
 
-public class RotationalCartesianTurtle<T extends RotationalCartesianTurtle> extends CartesianTurtle<T>
+public abstract class RotationalCartesianTurtle<T extends RotationalCartesianTurtle> extends CartesianTurtle<T>
 implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, SupportsTurn<T> {
 
   public static class State extends CartesianTurtle.State {

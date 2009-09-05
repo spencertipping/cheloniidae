@@ -6,9 +6,10 @@ package cheloniidae.commands;
 import cheloniidae.Turtle;
 
 public final class Move extends UnaryCommand<Double> {
-  public Move (double value) {super (value);}
+  public Move (double value)        {super (value);}
+  public Move (Proxy<Double> value) {super (value);}
   public Move applyTo (Turtle t) {
-    if (t instanceof SupportsMove) ((SupportsMove) t).move (value);
+    if (t instanceof SupportsMove) ((SupportsMove) t).move (super.value ());
     return this;
   }
 }

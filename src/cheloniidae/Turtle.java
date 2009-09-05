@@ -3,11 +3,10 @@
 
 package cheloniidae;
 
-import java.awt.Graphics2D;
-
-public interface Turtle<T> extends Renderable {
+public interface Turtle<T> extends Renderable, Cloneable {
   public TurtleState serialize   ();
   public T           deserialize (TurtleState t);
 
-  public T run (TurtleCommand c);
+  public T run   (TurtleCommand c);
+  public T clone ();
 }

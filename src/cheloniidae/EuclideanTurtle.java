@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public abstract class EuclideanTurtle<T extends EuclideanTurtle>
+public abstract class EuclideanTurtle<T extends EuclideanTurtle> extends Replicable<T>
 implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, SupportsLineColor<T>, TurtleCommand {
 
   public static class View extends ViewportCaching implements RenderAction {
@@ -21,6 +21,7 @@ implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, Sup
     public double computeDepth (Viewport v) {return v.transformPoint (turtle.position ()).length ();}
 
     public void render (Viewport v) {
+      // pp = perceived position, pd = perceived direction. These are the position and direction as seen by the user.
       Vector pp = v.transformPoint (turtle.position ());
       Vector pd = v.transformPoint (new Vector (turtle.position ()).add (turtle.direction ()));
       if (pp.z > 0 && pd.z > 0) {
@@ -85,7 +86,8 @@ implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, Sup
 
   public State serialize   ()              {return new State (position, size, color);}
   public T     deserialize (TurtleState t) {if (t instanceof TurtleCommand) ((TurtleCommand) t).applyTo (this);
-                                            else System.err.println ("Class of type " + t.getClass ().getName () + " received."); return (T) this;}
+                                            else System.err.println ("EuclideanTurtle::deserialize: TurtleCommand expected, " + t.getClass ().getName () + " received.");
+                                            return (T) this;}
 
   public T applyTo (Turtle t) {
     serialize ().applyTo (t);
@@ -96,4 +98,6 @@ implements Turtle<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, Sup
     c.applyTo (this);
     return (T) this;
   }
+
+  public String toString () {return "Euclidean turtle: location = " + position ().toString () + ", direction = " + direction ().toString ();}
 }

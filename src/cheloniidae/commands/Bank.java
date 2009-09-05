@@ -6,9 +6,10 @@ package cheloniidae.commands;
 import cheloniidae.Turtle;
 
 public class Bank extends UnaryCommand<Double> {
-  public Bank (double value) {super (value);}
+  public Bank (double value)        {super (value);}
+  public Bank (Proxy<Double> value) {super (value);}
   public Bank applyTo (Turtle t) {
-    if (t instanceof SupportsBank) ((SupportsBank) t).bank (value);
+    if (t instanceof SupportsBank) ((SupportsBank) t).bank (super.value ());
     return this;
   }
 }
