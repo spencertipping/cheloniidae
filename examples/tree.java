@@ -25,6 +25,6 @@ public class tree extends SingleTurtleScene {
       move (scale),
       (recursionLevel > 0) ? tree (recursionLevel - 1, scale * (randomNumber (0.4) + 0.5)) : pass (),
       stack.pop (),
-      stack.pop ()).interspersing (debug (Integer.toString (recursionLevel)));
+      stack.pop ());
   }
 }
