@@ -38,4 +38,6 @@ implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, Su
   public T turn (double angle) {direction           = direction.rotateAbout (directionComplement, angle); return (T) this;}
 
   public State serialize () {return new State (position, size, color, direction, directionComplement);}
+
+  public String toString () {return super.toString () + ", direction complement = " + directionComplement ().toString ();}
 }
