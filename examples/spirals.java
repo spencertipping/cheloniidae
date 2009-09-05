@@ -2,13 +2,11 @@ import cheloniidae.*;
 import java.awt.*;
 
 public class spirals {
-  public static class RTurtle extends RotationalCartesianTurtle<RTurtle> {}
-
   public static void main (String [] args) {
-    RTurtle t1 = new RTurtle ();
-    RTurtle t2 = new RTurtle ();
-    RTurtle t3 = new RTurtle ();
-    RTurtle t4 = new RTurtle ();
+    StandardRotationalTurtle t1 = new StandardRotationalTurtle ();
+    StandardRotationalTurtle t2 = new StandardRotationalTurtle ();
+    StandardRotationalTurtle t3 = new StandardRotationalTurtle ();
+    StandardRotationalTurtle t4 = new StandardRotationalTurtle ();
     TurtleWindow w = new TurtleWindow ();
 
     w.add (t1).add (t2).add (t3).add (t4).setVisible (true);

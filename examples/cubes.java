@@ -4,7 +4,7 @@ import java.awt.*;
 public class cubes {
   public static void main (String [] args) {
     TurtleWindow w = new TurtleWindow ();
-    RotationalCartesianTurtle<RotationalCartesianTurtle> t = new RotationalCartesianTurtle<RotationalCartesianTurtle> ();
+    StandardRotationalTurtle t = new StandardRotationalTurtle ();
 
     w.add (t);
     t.lineColor (new Color (0.3f, 0.5f, 1.0f));
@@ -19,14 +19,14 @@ public class cubes {
     w.setVisible (true);
   }
 
-  public static void cube (RotationalCartesianTurtle<RotationalCartesianTurtle> t, double distance) {
+  public static void cube (StandardRotationalTurtle t, double distance) {
     for (int i = 0; i < 4; i++) {
       square3 (t, distance);
       t.jump (distance).turn (90);
     }
   }
 
-  public static void square3 (RotationalCartesianTurtle<RotationalCartesianTurtle> t, double distance) {
+  public static void square3 (StandardRotationalTurtle t, double distance) {
     for (int i = 0; i < 3; i++) t.move (distance).pitch (90);
     t.jump (distance).pitch (90);
   }
