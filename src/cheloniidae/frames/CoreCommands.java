@@ -23,7 +23,7 @@ public class CoreCommands {
   public static Pitch pitch (Proxy<Double> angle) {return new Pitch (angle);}
 
   public static LineSize  size  (double size)        {return new LineSize (size);}
-  public static LineSize  size (Proxy<Double> size)  {return new LineSize (size);}
+  public static LineSize  size  (Proxy<Double> size) {return new LineSize (size);}
   public static LineColor color (Color color)        {return new LineColor (color);}
   public static LineColor color (Proxy<Color> color) {return new LineColor (color);}
 
