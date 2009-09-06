@@ -5,7 +5,7 @@ import cheloniidae.frames.*;
 public class replicator extends SingleTurtleScene {
   public static void main (String[] args) {new replicator ();}
 
-  public TurtleCommand run () {
+  public TurtleCommand commands () {
     return new InductiveReplicator<StandardRotationalTurtle>
                                   (360,
                                    sequence (turn (31), move (60), pitch (10)),

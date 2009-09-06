@@ -42,7 +42,8 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
 
   public class IntermediateRenderOperation extends Thread {
     public void run () {
-      final Graphics2D c = context ();
+      final Graphics2D c          = context ();
+      final int        pointColor = (~ getBackground ().getRGB ()) & 0xffffff;
       c.setColor (getBackground ());
       c.fillRect (0, 0, getWidth (), getHeight ());
 
@@ -52,7 +53,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
           if (vprime.z > 0.0) {
             vprime = projectPoint (vprime);
             if (vprime.x >= 0.0 && vprime.x < getWidth () && vprime.y >= 0.0 && vprime.y < getHeight ())
-              offscreen.setRGB ((int) vprime.x, (int) vprime.y, 0);
+              offscreen.setRGB ((int) vprime.x, (int) vprime.y, pointColor);
           }
         }
 
@@ -60,7 +61,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
     }
   }
 
-  protected int            drawingRefreshInterval     = 10000;
+  protected int            drawingRefreshInterval     = 1000;
 
   protected BufferedImage  offscreen                  = null;
   protected Graphics2D     cachedContext              = null;

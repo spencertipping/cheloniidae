@@ -59,7 +59,7 @@ implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSi
   protected final View                view     = new View (this);
   protected final Vector              position = new Vector ();
   protected       double              size     = 0.25;
-  protected       Color               color    = new Color (0.5f, 0.65f, 0.55f, 0.5f);
+  protected       Color               color    = new Color (0.2f, 0.3f, 0.3f, 0.5f);
 
   public Vector                  position  ()                 {return position;}
   public T                       position  (Vector _position) {position.assign (_position); return (T) this;}

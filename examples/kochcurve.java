@@ -8,7 +8,7 @@ public class kochcurve extends SingleTurtleScene {
     new kochcurve ();
   }
 
-  public TurtleCommand run () {
+  public TurtleCommand commands () {
     return repeat (3, curve (400, 5),
                       turn (120));
   }

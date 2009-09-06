@@ -8,7 +8,7 @@ public class circles extends SingleTurtleScene {
     new circles ();
   }
 
-  public TurtleCommand run () {
+  public TurtleCommand commands () {
     return section (50, 3);
   }
 

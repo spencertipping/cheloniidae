@@ -6,7 +6,7 @@ public class spiral extends SingleTurtleScene {
     new spiral ();
   }
 
-  public TurtleCommand run () {
+  public TurtleCommand commands () {
     return repeat (5760, pitch (0.25),
                          move (10.0),
                          pitch (-0.25),

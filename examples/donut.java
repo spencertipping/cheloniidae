@@ -7,7 +7,7 @@ public class donut extends SingleTurtleScene {
     new donut ();
   }
 
-  public TurtleCommand run () {
+  public TurtleCommand commands () {
     return sequence (size (0.5), color (new Color (0.5f, 0.65f, 0.55f, 0.5f)),
                      repeat (36,
                        jump (100),
