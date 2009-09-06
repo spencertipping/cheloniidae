@@ -8,22 +8,23 @@ public class tree extends SingleTurtleScene {
   }
 
   public TurtleCommand run () {
-    return tree (4, 20);
+    return sequence (turn (180), tree (14, 100));
   }
 
   public CommandSequence tree (final int recursionLevel, final double scale) {
     return sequence (
+      size (4),
       stack.push (),
       bank (random (360.0)),
       stack.push (),
       turn (random (20.0)),
       move (scale),
-      (recursionLevel > 0) ? tree (recursionLevel - 1, scale * (randomNumber (0.4) + 0.5)) : pass (),
+      (recursionLevel > 0) ? tree (recursionLevel - 1, scale * (randomNumber (0.2) + 0.8)) : pass (),
       stack.pop (),
       stack.push (),
       turn (random (-40.0)),
       move (scale),
-      (recursionLevel > 0) ? tree (recursionLevel - 1, scale * (randomNumber (0.4) + 0.5)) : pass (),
+      (recursionLevel > 0) ? tree (recursionLevel - 1, scale * (randomNumber (0.2) + 0.8)) : pass (),
       stack.pop (),
       stack.pop ());
   }
