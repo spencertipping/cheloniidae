@@ -8,7 +8,7 @@ import cheloniidae.Turtle;
 public class Debug extends UnaryCommand<String> {
   public Debug (String value) {super (value);}
   public Debug applyTo (Turtle t) {
-    System.err.println (super.value () + " " + t.toString ());
+    System.err.println (value + " " + t.toString ());
     return this;
   }
 }

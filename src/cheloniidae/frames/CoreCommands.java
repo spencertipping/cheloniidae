@@ -17,8 +17,8 @@ public class CoreCommands {
   public static Bank  bank  (double angle) {return new Bank (angle);}
   public static Pitch pitch (double angle) {return new Pitch (angle);}
 
-  public static Size  size  (double size) {return new LineSize (size);}
-  public static Color color (Color color) {return new LineColor (color);}
+  public static LineSize  size  (double size) {return new LineSize (size);}
+  public static LineColor color (Color color) {return new LineColor (color);}
 
   public static Position            position            (Vector position)            {return new Position (position);}
   public static Direction           direction           (Vector direction)           {return new Direction (direction);}
