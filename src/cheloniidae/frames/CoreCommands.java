@@ -2,12 +2,13 @@ package cheloniidae.frames;
 
 import cheloniidae.*;
 import cheloniidae.commands.*;
+import cheloniidae.replicators.*;
 
 import java.awt.Color;
 
 import java.util.Random;
 
-public class CoreCommands {
+public abstract class CoreCommands {
   protected Random rng = new Random ();
 
   public static Move move (double distance) {return new Move (distance);}
@@ -29,6 +30,11 @@ public class CoreCommands {
 
   public static Repeat          repeat   (int repetitions, TurtleCommand ... commands) {return new Repeat (repetitions, commands);}
   public static CommandSequence sequence (TurtleCommand ... commands)                  {return new CommandSequence (commands);}
+
+  public static InductiveReplicator<StandardRotationalTurtle> inductiveReplicator (int copies, TurtleCommand inductiveStep,
+                                                                                   TurtleCommand ... replicatedActions) {
+    return new InductiveReplicator<StandardRotationalTurtle> (copies, inductiveStep, replicatedActions);
+  }
 
   public double random ()             {return rng.nextDouble ();}
   public double random (double scale) {return rng.nextDouble () * scale;}

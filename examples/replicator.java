@@ -6,9 +6,7 @@ public class replicator extends SingleTurtleScene {
   public static void main (String[] args) {new replicator ();}
 
   public TurtleCommand commands () {
-    return new InductiveReplicator<StandardRotationalTurtle>
-                                  (360,
-                                   sequence (turn (31), move (60), pitch (10)),
-                                   jump (10), repeat (60, move (50), turn (73), pitch (0.5)));
+    return inductiveReplicator (120, sequence (turn (61), move (50), pitch (10)),
+                                jump (10), repeat (60, move (50), turn (72.2), pitch (0.5)));
   }
 }
