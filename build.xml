@@ -10,8 +10,8 @@
   <target name="clean">   <delete dir="${builddir}" /></target>
   <target name="builddir"><mkdir  dir="${builddir}" /></target>
 
-  <target name="compile"  depends="builddir">        <javac srcdir="${srcdir}"      destdir="${builddir}" /></target>
-  <target name="examples" depends="builddir,compile"><javac srcdir="${examplesdir}" destdir="${builddir}" /></target>
+  <target name="compile"  depends="builddir">        <javac srcdir="${srcdir}"      destdir="${builddir}" target="1.6" /></target>
+  <target name="examples" depends="builddir,compile"><javac srcdir="${examplesdir}" destdir="${builddir}" target="1.6" /></target>
 
   <target name="doc">
     <exec executable="${tex}"    dir="${docdir}"><arg value="cheloniidae.tex" /></exec>
