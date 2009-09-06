@@ -8,7 +8,7 @@ public class tree extends SingleTurtleScene {
   }
 
   public TurtleCommand run () {
-    return sequence (turn (180), tree (14, 100));
+    return sequence (turn (180), tree (16, 100));
   }
 
   public CommandSequence tree (final int recursionLevel, final double scale) {
