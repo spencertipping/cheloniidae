@@ -1,15 +1,23 @@
 <project>
-  <target name="clean">
-    <delete dir="build" />
+  <property name="builddir"    value="build" />
+  <property name="srcdir"      value="src" />
+  <property name="examplesdir" value="examples" />
+  <property name="docdir"      value="doc" />
+
+  <property name="tex"    value="latex" />
+  <property name="pdftex" value="pdflatex" />
+
+  <target name="clean">   <delete dir="${builddir}" /></target>
+  <target name="builddir"><mkdir  dir="${builddir}" /></target>
+
+  <target name="compile"  depends="builddir">        <javac srcdir="${srcdir}"      destdir="${builddir}" /></target>
+  <target name="examples" depends="builddir,compile"><javac srcdir="${examplesdir}" destdir="${builddir}" /></target>
+
+  <target name="doc">
+    <exec executable="${tex}"    dir="${docdir}"><arg value="cheloniidae.tex" /></exec>
+    <exec executable="${pdftex}" dir="${docdir}"><arg value="cheloniidae.tex" /></exec>
+    <copy file="${docdir}/cheloniidae.tex" todir="${builddir}" />
   </target>
 
-  <target name="compile">
-    <mkdir dir="build" />
-    <javac srcdir="src" destdir="build" />
-  </target>
-
-  <target name="examples">
-    <mkdir dir="build" />
-    <javac srcdir="examples" destdir="build" />
-  </target>
+  <target name="all" depends="clean,compile,examples,doc" />
 </project>
