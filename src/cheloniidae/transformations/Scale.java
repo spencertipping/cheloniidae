@@ -3,7 +3,7 @@ package cheloniidae.transformations;
 import cheloniidae.*;
 import cheloniidae.commands.*;
 
-public class Scale implements Transformation<TurtleCommmand> {
+public class Scale implements Transformation<TurtleCommand> {
   public final double factor;
   public Scale (double _factor) {factor = _factor;}
 

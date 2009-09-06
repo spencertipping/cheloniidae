@@ -3,7 +3,7 @@ import cheloniidae.replicators.*;
 import cheloniidae.frames.*;
 
 public class replicatedtube extends SingleTurtleScene {
-  public static void main (String[] args) {new replicator ();}
+  public static void main (String[] args) {new replicatedtube ();}
 
   public TurtleCommand commands () {
     return inductiveReplicator (120, sequence (turn (61), move (50), pitch (10)),
