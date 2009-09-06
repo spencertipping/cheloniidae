@@ -170,7 +170,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
   public void update (Graphics g) {paint (g);}
   public void paint  (Graphics g) {g.drawImage (offscreen, 0, 0, null);}
 
-  public TurtleWindow add (final T t) {turtles.turtles ().add (t); return this;}
+  public TurtleWindow add (final T t) {turtles.turtles ().add (t); t.window (this); return this;}
 
   public void enqueueGraphicsRefreshRequest (Thread t) {
     if (offscreen != null) {

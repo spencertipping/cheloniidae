@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class TurtleGroup<T extends Turtle> extends Replicable<TurtleGroup<T>> implements Turtle<TurtleGroup<T>>, TurtleCommand {
+public class TurtleGroup<T extends Turtle> extends BasicTurtle<TurtleGroup<T>> implements Turtle<TurtleGroup<T>>, TurtleCommand {
   public static class State implements TurtleState, NonDistributiveTurtleCommand {
     // Turtle states are stored positionally instead of by some form of map because of replication. We need to be able to produce a turtle state object that can
     // apply itself to a cloned group, and the cloned group won't share object identity with the original.

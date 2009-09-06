@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public abstract class EuclideanTurtle<T extends EuclideanTurtle> extends Replicable<T>
-implements Turtle<T>, SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, SupportsLineColor<T>, TurtleCommand {
+public abstract class EuclideanTurtle<T extends EuclideanTurtle> extends BasicTurtle<T>
+implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, SupportsLineColor<T>, TurtleCommand {
 
   public static class View extends ViewportCaching implements RenderAction {
     public final EuclideanTurtle turtle;
@@ -91,11 +91,6 @@ implements Turtle<T>, SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, Sup
 
   public T applyTo (Turtle t) {
     serialize ().applyTo (t);
-    return (T) this;
-  }
-
-  public T run (TurtleCommand c) {
-    c.applyTo (this);
     return (T) this;
   }
 

@@ -30,6 +30,8 @@ public class CoreCommands {
   public static Repeat          repeat   (int repetitions, TurtleCommand ... commands) {return new Repeat (repetitions, commands);}
   public static CommandSequence sequence (TurtleCommand ... commands)                  {return new CommandSequence (commands);}
 
+  public static Replicate replicate (Replicator replicator, TurtleCommand ... commands) {return new Replicate (replicator, commands);}
+
   public double random ()             {return rng.nextDouble ();}
   public double random (double scale) {return rng.nextDouble () * scale;}
 }
