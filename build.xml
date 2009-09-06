@@ -4,16 +4,21 @@
   <property name="examplesdir" value="examples" />
   <property name="docdir"      value="doc" />
 
-  <property name="tex"    value="latex" />
-  <property name="pdftex" value="pdflatex" />
+  <property name="tex"         value="latex" />
+  <property name="pdftex"      value="pdflatex" />
 
   <target name="clean">   <delete dir="${builddir}" /></target>
   <target name="builddir"><mkdir  dir="${builddir}" /></target>
 
-  <target name="compile"  depends="builddir">        <javac srcdir="${srcdir}"      destdir="${builddir}" target="1.6" /></target>
-  <target name="examples" depends="builddir,compile"><javac srcdir="${examplesdir}" destdir="${builddir}" target="1.6" /></target>
+  <target name="compile" depends="builddir">
+    <javac srcdir="${srcdir}" destdir="${builddir}" target="1.6" />
+  </target>
 
-  <target name="doc">
+  <target name="examples" depends="builddir,compile">
+    <javac srcdir="${examplesdir}" destdir="${builddir}" target="1.6" />
+  </target>
+
+  <target name="doc" depends="builddir">
     <exec executable="${tex}"    dir="${docdir}"><arg value="cheloniidae.tex" /></exec>
     <exec executable="${pdftex}" dir="${docdir}"><arg value="cheloniidae.tex" /></exec>
     <copy file="${docdir}/cheloniidae.tex" todir="${builddir}" />

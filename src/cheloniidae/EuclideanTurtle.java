@@ -39,7 +39,7 @@ implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSi
     }
   }
 
-  public static class State implements TurtleState, TurtleCommand {
+  public static class State extends ImmutableTurtleState implements TurtleState, TurtleCommand {
     public final Vector position;
     public final double size;
     public final Color  color;

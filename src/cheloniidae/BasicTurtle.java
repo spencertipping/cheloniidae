@@ -10,4 +10,10 @@ public abstract class BasicTurtle<T extends BasicTurtle> extends Replicable<T> i
     c.applyTo (this);
     return (T) this;
   }
+
+  public TurtleCommand map (Transformation<TurtleCommand> t) {
+    TurtleState serialized = this.serialize ();
+    if (serialized instanceof TurtleCommand) return ((TurtleCommand) serialized).map (t);
+    else                                     return null;
+  }
 }

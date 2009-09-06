@@ -13,8 +13,4 @@ public abstract class Replicable<T extends Turtle> implements Turtle<T>, TurtleC
     this.applyTo (result);
     return result;
   }
-
-  public TurtleGroup<Replicable<T>> replicate (Replicator<Replicable<T>> r) {
-    return r.replicate (this);
-  }
 }

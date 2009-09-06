@@ -1,5 +1,5 @@
 package cheloniidae;
 
-public interface Replicator<T extends Turtle> {
-  public TurtleGroup<T> replicate (T turtle);
+public abstract class Replicator implements NonDistributiveTurtleCommand {
+  public abstract TurtleGroup<Turtle> replicate (Turtle base);
 }
