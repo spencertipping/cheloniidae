@@ -4,10 +4,12 @@
   </target>
 
   <target name="compile">
+    <mkdir dir="build" />
     <javac srcdir="src" destdir="build" />
   </target>
 
   <target name="examples">
+    <mkdir dir="build" />
     <javac srcdir="examples" destdir="build" />
   </target>
 </project>
