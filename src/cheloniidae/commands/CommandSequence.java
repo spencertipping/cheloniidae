@@ -5,7 +5,7 @@ import cheloniidae.TurtleCommand;
 import cheloniidae.Transformation;
 
 public class CommandSequence implements TurtleCommand {
-  protected    TurtleCommand   intersperse = null;
+  protected TurtleCommand intersperse = null;
 
   public final TurtleCommand[] commands;
   public CommandSequence (TurtleCommand ... _commands) {commands = _commands;}

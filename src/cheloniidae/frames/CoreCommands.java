@@ -3,6 +3,7 @@ package cheloniidae.frames;
 import cheloniidae.*;
 import cheloniidae.commands.*;
 import cheloniidae.replicators.*;
+import cheloniidae.transformations.*;
 
 import java.awt.Color;
 
@@ -35,6 +36,19 @@ public abstract class CoreCommands {
                                                                                    TurtleCommand ... replicatedActions) {
     return new InductiveReplicator<StandardRotationalTurtle> (copies, inductiveStep, replicatedActions);
   }
+
+  public static RecursiveExpansion recursiveBlock (String name, TurtleCommand ... body) {
+    return new RecursiveExpansion (name, sequence (body));
+  }
+
+  public static RecursiveExpansion.RecursiveMarker recurse (String name, int remainingExpansions,
+                                                            Transformation<TurtleCommand> inductiveTransformation, TurtleCommand base) {
+    return new RecursiveExpansion.RecursiveMarker (name, remainingExpansions, inductiveTransformation, base);
+  }
+
+  public static     Scale      scale    (double factor)                         {return new Scale (factor);}
+  public static     Identity   identity ()                                      {return new Identity ();}
+  public static <T> Compose<T> compose  (Transformation<T> ... transformations) {return new Compose<T> (transformations);}
 
   public double random ()             {return rng.nextDouble ();}
   public double random (double scale) {return rng.nextDouble () * scale;}
