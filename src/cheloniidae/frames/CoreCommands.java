@@ -41,9 +41,9 @@ public abstract class CoreCommands {
     return new RecursiveExpansion (name, sequence (body));
   }
 
-  public static RecursiveExpansion.RecursiveMarker recurse (String name, int remainingExpansions,
-                                                            Transformation<TurtleCommand> inductiveTransformation, TurtleCommand base) {
-    return new RecursiveExpansion.RecursiveMarker (name, remainingExpansions, inductiveTransformation, base);
+  public static RecursiveExpansion.Marker recurse (String name, int remainingExpansions,
+                                                   Transformation<TurtleCommand> inductiveTransformation, TurtleCommand base) {
+    return new RecursiveExpansion.Marker (name, remainingExpansions, inductiveTransformation, base);
   }
 
   public static     Scale      scale    (double factor)                         {return new Scale (factor);}

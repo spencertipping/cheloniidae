@@ -4,47 +4,55 @@ import cheloniidae.*;
 import cheloniidae.transformations.*;
 
 public class RecursiveExpansion implements NonDistributiveTurtleCommand {
-  public static class RecursiveMarker extends NullCommand {
+  public static class Marker extends AtomicCommand implements NonDistributiveTurtleCommand {
     public final String                        name;
     public final int                           remainingExpansions;
     public final Transformation<TurtleCommand> inductiveTransformation;
     public final TurtleCommand                 base;
+    public       TurtleCommand                 inductiveExpansion = null;
 
-    public RecursiveMarker (String _name, int _remainingExpansions, Transformation<TurtleCommand> _inductiveTransformation, TurtleCommand _base)
-      {name = _name; remainingExpansions = _remainingExpansions; inductiveTransformation = _inductiveTransformation; base = _base;}
+    public Marker (String _name, int _remainingExpansions, Transformation<TurtleCommand> _inductiveTransformation, TurtleCommand _base) {
+      name                    = _name;
+      remainingExpansions     = _remainingExpansions;
+      inductiveTransformation = _inductiveTransformation;
+      base                    = _base;
+    }
+
+    public Marker inductiveExpansion (TurtleCommand _inductiveExpansion) {
+      if (inductiveExpansion == null) inductiveExpansion = _inductiveExpansion;
+      return this;
+    }
+
+    public TurtleCommand applyTo (Turtle t) {
+      if (remainingExpansions <= 0) t.run (base);
+      else {
+        TurtleCommand transformedExpansion = inductiveExpansion.map (new Compose<TurtleCommand> (inductiveTransformation, new DecrementTransformation (name)));
+        t.run (transformedExpansion.map (new ExpansionPopulator (name, transformedExpansion)));
+      }
+      return this;
+    }
   }
 
-  public static class RecursiveExpansionDecrementTransformation implements Transformation<TurtleCommand> {
+  public static class DecrementTransformation implements Transformation<TurtleCommand> {
     public final String name;
-    public RecursiveExpansionDecrementTransformation (String _name) {name = _name;}
+    public DecrementTransformation (String _name) {name = _name;}
 
     public TurtleCommand transform (TurtleCommand c) {
-      if (c instanceof RecursiveMarker && ((RecursiveMarker) c).name.equals (name)) {
-        RecursiveMarker cprime = (RecursiveMarker) c;
-        return new RecursiveMarker (cprime.name, cprime.remainingExpansions - 1, cprime.inductiveTransformation, cprime.base);
+      if (c instanceof Marker && ((Marker) c).name.equals (name)) {
+        Marker cprime = (Marker) c;
+        return new Marker (cprime.name, cprime.remainingExpansions - 1, cprime.inductiveTransformation, cprime.base);
       } else return c;
     }
   }
 
-  public static class RecursiveExpansionTransformation implements Transformation<TurtleCommand> {
-    public final String                                    name;
-    public final TurtleCommand                             expansion;
-    public final RecursiveExpansionDecrementTransformation decrement;
-
-    public RecursiveExpansionTransformation (String _name, TurtleCommand _expansion) {
-      name      = _name;
-      expansion = _expansion;
-      decrement = new RecursiveExpansionDecrementTransformation (name);
-    }
+  public static class ExpansionPopulator implements Transformation<TurtleCommand> {
+    public final String        name;
+    public final TurtleCommand expansion;
+    public ExpansionPopulator (String _name, TurtleCommand _expansion) {name = _name; expansion = _expansion;}
 
     public TurtleCommand transform (TurtleCommand c) {
-      if (c instanceof RecursiveMarker && ((RecursiveMarker) c).name.equals (name)) {
-        RecursiveMarker cprime = (RecursiveMarker) c;
-        return (cprime.remainingExpansions > 0) ? expansion.map (new Compose<TurtleCommand> (cprime.inductiveTransformation, decrement)).map (this) :
-                                                  cprime.base;
-      } else if (c instanceof RecursiveExpansion && ((RecursiveExpansion) c).name.equals (name))
-        return ((RecursiveExpansion) c).body.map (this);
-      else return c;
+      if (c instanceof Marker && ((Marker) c).name.equals (name)) ((Marker) c).inductiveExpansion (expansion);
+      return c;
     }
   }
 
@@ -54,13 +62,13 @@ public class RecursiveExpansion implements NonDistributiveTurtleCommand {
   public RecursiveExpansion (String _name, TurtleCommand _body) {name = _name; body = _body;}
 
   public TurtleCommand applyTo (Turtle t) {
-    t.run (body.map (new RecursiveExpansionTransformation (name, this)));
+    t.run (body.map (new ExpansionPopulator (name, body)));
     return this;
   }
 
-  public TurtleCommand map (Transformation<TurtleCommand> c) {
-    TurtleCommand newExpansion = c.transform (this);
-    if (newExpansion == this) return new RecursiveExpansion (name, body.map (c));
-    else                      return newExpansion;
+  public TurtleCommand map (Transformation<TurtleCommand> t) {
+    TurtleCommand newCommand = t.transform (this);
+    if (newCommand == this) return new RecursiveExpansion (name, body.map (t));
+    else                    return newCommand;
   }
 }

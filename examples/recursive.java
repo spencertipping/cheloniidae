@@ -19,7 +19,7 @@ public class recursive extends SingleTurtleScene {
                                              stack.push (),
                                              turn (random (-40.0)),
                                              move (100),
-                                             recurse ("tree", 10, scale (0.7), pass ()),
+                                             recurse ("tree", 8, scale (0.7), pass ()),
                                              stack.pop (),
                                              stack.pop ()));
   }

@@ -11,11 +11,17 @@
   <target name="builddir"><mkdir  dir="${builddir}" /></target>
 
   <target name="compile" depends="builddir">
-    <javac srcdir="${srcdir}" destdir="${builddir}" target="1.6" />
+    <javac srcdir="${srcdir}" destdir="${builddir}" target="1.6" debug="true" />
+    <copy todir="${builddir}">
+      <fileset dir="${srcdir}" />
+    </copy>
   </target>
 
   <target name="examples" depends="builddir,compile">
-    <javac srcdir="${examplesdir}" destdir="${builddir}" target="1.6" />
+    <javac srcdir="${examplesdir}" destdir="${builddir}" target="1.6" debug="true" />
+    <copy todir="${builddir}">
+      <fileset dir="${examplesdir}" />
+    </copy>
   </target>
 
   <target name="doc" depends="builddir">
