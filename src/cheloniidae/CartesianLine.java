@@ -15,11 +15,11 @@ public class CartesianLine extends ViewportCaching implements HasPerspectiveProj
   public final Vector midpoint;
 
   public CartesianLine (Vector _v1, Vector _v2, double _width, Color _color) {
-    v1 = new Vector (_v1);
-    v2 = new Vector (_v2);
-    width = _width;
-    color = _color;
-    midpoint = new Vector (v1).add (v2).multiply (0.5);
+    v1       = new Vector (_v1);
+    v2       = new Vector (_v2);
+    width    = _width;
+    color    = _color;
+    midpoint = v1.clone ().multiply (0.5).addScaled (v2, 0.5);
   }
 
   public double computeDepth (Viewport v) {return v.transformPoint (midpoint).length ();}
