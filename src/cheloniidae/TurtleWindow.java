@@ -31,7 +31,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
       SortedSet<RenderAction> actions        = turtles.actions (viewport);
       Iterator<RenderAction>  actionIterator = actions.iterator ();
 
-      while (! shouldCancel () && actionIterator.hasNext ()) {
+      while (! shouldCancel && actionIterator.hasNext ()) {
         actionIterator.next ().render (viewport);
         if (++linesDrawnSoFar % drawingRefreshInterval == 0) repaint ();
       }
