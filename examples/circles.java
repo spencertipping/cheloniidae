@@ -4,9 +4,7 @@ import cheloniidae.frames.*;
 import java.awt.Color;
 
 public class circles extends SingleTurtleScene {
-  public static void main (String[] args) {
-    new circles ();
-  }
+  public static void main (String[] args) {new circles ();}
 
   public TurtleCommand commands () {
     return section (50, 3);

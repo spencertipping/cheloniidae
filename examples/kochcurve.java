@@ -11,8 +11,10 @@ public class kochcurve extends DarkSingleTurtleScene {
     return repeat (3,
                    recursiveBlock ("curve",
                                    copy (color (new Color (0.5f, 0.6f, 0.7f, 0.3f)),
-                                         turn (-30), move (400 * Math.sqrt (3)), turn (60), move (400 * Math.sqrt (3))),
-                                   copy (color (new Color (0.5f, 0.6f, 0.7f, 0.3f)), move (1200)),
+                                         turn (-30), move (400 * Math.sqrt (3)),
+                                         turn (60),  move (400 * Math.sqrt (3)), visible (false)),
+                                   copy (color (new Color (0.5f, 0.6f, 0.7f, 0.3f)), move (1200), visible (false)),
+
                                    recursiveInvocation, turn (-60),
                                    recursiveInvocation, turn (120),
                                    recursiveInvocation, turn (-60),
