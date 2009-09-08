@@ -12,7 +12,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public abstract class EuclideanTurtle<T extends EuclideanTurtle> extends BasicTurtle<T>
-implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, SupportsLineColor<T>, TurtleCommand {
+implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, SupportsLineColor<T>, SupportsVisible<T>, TurtleCommand {
 
   public static class View extends ViewportCaching implements RenderAction {
     public final EuclideanTurtle turtle;
@@ -60,6 +60,7 @@ implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSi
   protected final Vector              position = new Vector ();
   protected       double              size     = 0.25;
   protected       Color               color    = new Color (0.2f, 0.3f, 0.3f, 0.5f);
+  protected       boolean             visible  = true;
 
   public Vector                  position  ()                 {return position;}
   public T                       position  (Vector _position) {position.assign (_position); return (T) this;}
@@ -69,6 +70,8 @@ implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSi
   public Color                   color     ()                 {return color;}
   public T                       color     (Color _color)     {color = _color; return (T) this;}
   public T                       lineColor (Color _color)     {return color (_color);}
+  public boolean                 visible   ()                 {return visible;}
+  public T                       visible   (boolean _visible) {visible = _visible; return (T) this;}
 
   public abstract Vector direction ();
 
@@ -79,7 +82,7 @@ implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSi
 
   public SortedSet<RenderAction> actions (Viewport v) {
     final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
-    result.add (view);
+    if (visible) result.add (view);
     result.addAll (lines);
     return result;
   }
