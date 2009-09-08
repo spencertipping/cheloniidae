@@ -11,6 +11,6 @@ public interface Viewport {
   public double     scaleFactor         ();
   public Vector     transformPoint      (Vector v);
   public Vector     projectPoint        (Vector v);
-  public void       representativePoint (Vector v);
+  public Viewport   representativePoint (Vector v);
   public long       lastChange          ();
 }

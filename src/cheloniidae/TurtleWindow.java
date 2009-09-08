@@ -37,6 +37,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
       }
 
       repaint ();
+      if (shouldShowLineCount && ! shouldCancel) setTitle ("Cheloniidae (" + linesDrawnSoFar + " lines)");
     }
   }
 
@@ -62,6 +63,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
   }
 
   protected int            drawingRefreshInterval     = 1000;
+  protected boolean        shouldShowLineCount        = true;
 
   protected BufferedImage  offscreen                  = null;
   protected Graphics2D     cachedContext              = null;
@@ -89,6 +91,8 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
 
   public int          drawingRefreshInterval     ()                                {return drawingRefreshInterval;}
   public TurtleWindow drawingRefreshInterval     (int _drawingRefreshInterval)     {drawingRefreshInterval = _drawingRefreshInterval; return this;}
+  public boolean      shouldShowLineCount        ()                                {return shouldShowLineCount;}
+  public TurtleWindow shouldShowLineCount        (boolean _shouldShowLineCount)    {shouldShowLineCount = _shouldShowLineCount; return this;}
   public int          intermediatePointCloudSize ()                                {return intermediatePointCloud.length;}
   public TurtleWindow intermediatePointCloudSize (int _intermediatePointCloudSize) {intermediatePointCloud = new Vector[_intermediatePointCloudSize]; return this;}
 
@@ -199,9 +203,10 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
   public long    lastChange   () {return lastChange;}
   public double  scaleFactor  () {return getHeight ();}
 
-  public void representativePoint (final Vector v) {
+  public TurtleWindow representativePoint (final Vector v) {
     final int index = Math.abs (new Random ().nextInt ()) % intermediatePointCloud.length;
-    if (intermediatePointCloud[index] == null || new Random ().nextDouble () > 0.9) intermediatePointCloud[index] = v;
+    if (intermediatePointCloud[index] == null || new Random ().nextDouble () > 0.97) intermediatePointCloud[index] = v;
+    return this;
   }
 
   public Vector transformPoint (final Vector v)
