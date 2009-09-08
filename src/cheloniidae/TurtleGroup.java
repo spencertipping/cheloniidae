@@ -57,7 +57,7 @@ public class TurtleGroup<T extends Turtle> extends BasicTurtle<TurtleGroup<T>> i
 
   public TurtleGroup<T> run (TurtleCommand c) {
     if (c instanceof NonDistributiveTurtleCommand) c.applyTo (this);
-    else for (Turtle t : turtles) t.run (c);
+    else for (T t : turtles) t.run (c);
     return this;
   }
 }

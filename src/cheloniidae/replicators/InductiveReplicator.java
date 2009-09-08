@@ -26,7 +26,7 @@ public class InductiveReplicator<T extends Turtle> extends Replicator {
 
   public TurtleCommand map (Transformation<TurtleCommand> t) {
     TurtleCommand newCommand = t.transform (this);
-    if (newCommand == this) return new InductiveReplicator (copies, step.map (t));
+    if (newCommand == this) return new InductiveReplicator (copies, step.map (t), actions.map (t));
     else                    return newCommand;
   }
 }

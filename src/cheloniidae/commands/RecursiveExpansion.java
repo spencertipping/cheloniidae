@@ -4,32 +4,34 @@ import cheloniidae.*;
 import cheloniidae.transformations.*;
 
 public class RecursiveExpansion implements NonDistributiveTurtleCommand {
-  public static class Marker extends AtomicCommand implements NonDistributiveTurtleCommand {
+  public static class Marker implements NonDistributiveTurtleCommand {
     public final String                        name;
     public final int                           remainingExpansions;
     public final Transformation<TurtleCommand> inductiveTransformation;
     public final TurtleCommand                 base;
     public       TurtleCommand                 inductiveExpansion = null;
 
-    public Marker (String _name, int _remainingExpansions, Transformation<TurtleCommand> _inductiveTransformation, TurtleCommand _base) {
-      name                    = _name;
-      remainingExpansions     = _remainingExpansions;
-      inductiveTransformation = _inductiveTransformation;
-      base                    = _base;
-    }
+    public Marker (String _name, int _remainingExpansions, Transformation<TurtleCommand> _inductiveTransformation, TurtleCommand _base)
+      {name = _name; remainingExpansions = _remainingExpansions; inductiveTransformation = _inductiveTransformation; base = _base;}
 
     public Marker inductiveExpansion (TurtleCommand _inductiveExpansion) {
-      if (inductiveExpansion == null) inductiveExpansion = _inductiveExpansion;
+      inductiveExpansion = _inductiveExpansion;
       return this;
     }
 
     public TurtleCommand applyTo (Turtle t) {
       if (remainingExpansions <= 0) t.run (base);
       else {
-        TurtleCommand transformedExpansion = inductiveExpansion.map (new Compose<TurtleCommand> (inductiveTransformation, new DecrementTransformation (name)));
+        TurtleCommand transformedExpansion = inductiveExpansion.map (inductiveTransformation).map (new DecrementTransformation (name));
         t.run (transformedExpansion.map (new ExpansionPopulator (name, transformedExpansion)));
       }
       return this;
+    }
+
+    public TurtleCommand map (Transformation<TurtleCommand> t) {
+      TurtleCommand newCommand = t.transform (this);
+      if (newCommand == this) return new Marker (name, remainingExpansions, inductiveTransformation, base.map (t)).inductiveExpansion (inductiveExpansion);
+      else                    return newCommand;
     }
   }
 

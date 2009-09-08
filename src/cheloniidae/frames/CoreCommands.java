@@ -37,13 +37,17 @@ public abstract class CoreCommands {
     return new InductiveReplicator<StandardRotationalTurtle> (copies, inductiveStep, replicatedActions);
   }
 
+  public static InductiveReplicator<StandardRotationalTurtle> copy (TurtleCommand ... copiedActions) {
+    return inductiveReplicator (1, pass (), sequence (copiedActions));
+  }
+
   public static RecursiveExpansion recursiveBlock (String name, TurtleCommand ... body) {
     return new RecursiveExpansion (name, sequence (body));
   }
 
   public static RecursiveExpansion.Marker recurse (String name, int remainingExpansions,
-                                                   Transformation<TurtleCommand> inductiveTransformation, TurtleCommand base) {
-    return new RecursiveExpansion.Marker (name, remainingExpansions, inductiveTransformation, base);
+                                                   Transformation<TurtleCommand> inductiveTransformation, TurtleCommand ... baseCommands) {
+    return new RecursiveExpansion.Marker (name, remainingExpansions, inductiveTransformation, sequence (baseCommands));
   }
 
   public static     Scale      scale    (double factor)                         {return new Scale (factor);}
