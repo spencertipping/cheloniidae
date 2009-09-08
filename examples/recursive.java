@@ -8,18 +8,19 @@ public class recursive extends SingleTurtleScene {
   }
 
   public TurtleCommand commands () {
-    return sequence (turn (180), size (4),
+    return sequence (turn (180),
                      recursiveBlock ("tree", stack.push (),
+                                             size (4),
                                              bank (random (360.0)),
                                              stack.push (),
                                              turn (random (20.0)),
                                              move (100),
-                                             recurse ("tree", 10, scale (0.8), pass ()),
+                                             recurse ("tree", 16, scale (0.8, true), pass ()),
                                              stack.pop (),
                                              stack.push (),
                                              turn (random (-40.0)),
                                              move (100),
-                                             recurse ("tree", 8, scale (0.7), pass ()),
+                                             recurse ("tree", 16, scale (0.7, true), pass ()),
                                              stack.pop (),
                                              stack.pop ()));
   }

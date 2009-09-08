@@ -47,6 +47,7 @@ public abstract class CoreCommands {
   }
 
   public static     Scale      scale    (double factor)                         {return new Scale (factor);}
+  public static     Scale      scale    (double factor, boolean scaleLineSize)  {return new Scale (factor, scaleLineSize);}
   public static     Identity   identity ()                                      {return new Identity ();}
   public static <T> Compose<T> compose  (Transformation<T> ... transformations) {return new Compose<T> (transformations);}
 
