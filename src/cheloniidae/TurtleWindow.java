@@ -93,7 +93,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
   public TurtleWindow intermediatePointCloudSize (int _intermediatePointCloudSize) {intermediatePointCloud = new Vector[_intermediatePointCloudSize]; return this;}
 
   protected void handleResize () {
-    offscreen = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
+    offscreen     = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
     cachedContext = null;
     enqueueGraphicsRefreshRequest (new RenderOperation (this));
   }
