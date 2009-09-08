@@ -3,8 +3,8 @@ package cheloniidae.commands;
 import cheloniidae.*;
 import cheloniidae.transformations.*;
 
-public class RecursiveExpansion implements NonDistributiveTurtleCommand {
-  public static class Marker implements NonDistributiveTurtleCommand {
+public class RecursiveExpansion implements TurtleCommand {
+  public static class Marker implements TurtleCommand {
     public final String                        name;
     public final int                           remainingExpansions;
     public final Transformation<TurtleCommand> inductiveTransformation;
