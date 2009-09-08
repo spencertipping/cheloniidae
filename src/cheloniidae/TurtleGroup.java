@@ -32,8 +32,17 @@ public class TurtleGroup<T extends Turtle> extends BasicTurtle<TurtleGroup<T>> i
     return result;
   }
 
-  public List<T>        turtles ()                 {return turtles;}
-  public TurtleGroup<T> turtles (List<T> _turtles) {turtles = _turtles; return this;}
+  public List<T>        turtles ()                     {return turtles;}
+  public TurtleGroup<T> turtles (List<T> _turtles)     {turtles = _turtles; return this;}
+  public TurtleGroup<T> window  (TurtleWindow _window) {super.window (_window);
+                                                        for (T t : turtles) t.window (window);
+                                                        return this;}
+
+  public TurtleGroup<T> add (T turtle) {
+    turtles.add (turtle);
+    turtle.window (window ());
+    return this;
+  }
 
   public SortedSet<RenderAction> actions (Viewport v) {
     final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
