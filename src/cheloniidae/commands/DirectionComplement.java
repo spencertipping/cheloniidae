@@ -4,8 +4,8 @@ import cheloniidae.Turtle;
 import cheloniidae.Vector;
 
 public class DirectionComplement extends UnaryCommand<Vector> {
-  public DirectionComplement (Vector value) {super (value);}
-  public DirectionComplement applyTo (Turtle t) {
+  public DirectionComplement (final Vector value) {super (value);}
+  public DirectionComplement applyTo (final Turtle t) {
     if (t instanceof SupportsDirectionComplement) ((SupportsDirectionComplement) t).directionComplement (value);
     return this;
   }

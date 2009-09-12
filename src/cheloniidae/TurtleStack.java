@@ -6,7 +6,7 @@ import java.util.Stack;
 
 public class TurtleStack {
   public class Push extends ImmutableTurtleState implements NonDistributiveTurtleCommand {
-    public TurtleCommand applyTo (Turtle t) {
+    public TurtleCommand applyTo (final Turtle t) {
       if (! states.containsKey (t)) states.put (t, new Stack<TurtleState> ());
       states.get (t).push (t.serialize ());
       return this;
@@ -14,7 +14,7 @@ public class TurtleStack {
   }
 
   public class Pop extends ImmutableTurtleState implements NonDistributiveTurtleCommand {
-    public TurtleCommand applyTo (Turtle t) {
+    public TurtleCommand applyTo (final Turtle t) {
       t.deserialize (states.get (t).pop ());
       if (states.get (t).empty ()) states.remove (t);
       return this;

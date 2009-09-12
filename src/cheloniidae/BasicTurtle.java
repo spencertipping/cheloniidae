@@ -3,16 +3,16 @@ package cheloniidae;
 public abstract class BasicTurtle<T extends BasicTurtle> extends Replicable<T> implements Turtle<T> {
   protected TurtleWindow window = null;
 
-  public TurtleWindow window ()                     {return window;}
-  public T            window (TurtleWindow _window) {window = _window; return (T) this;}
+  public TurtleWindow window ()                           {return window;}
+  public T            window (final TurtleWindow _window) {window = _window; return (T) this;}
 
-  public T run (TurtleCommand c) {
+  public T run (final TurtleCommand c) {
     c.applyTo (this);
     return (T) this;
   }
 
-  public TurtleCommand map (Transformation<TurtleCommand> t) {
-    TurtleState serialized = this.serialize ();
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {
+    final TurtleState serialized = this.serialize ();
     if (serialized instanceof TurtleCommand) return ((TurtleCommand) serialized).map (t);
     else                                     return null;
   }

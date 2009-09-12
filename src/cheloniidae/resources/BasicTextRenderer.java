@@ -8,27 +8,27 @@ import java.util.*;
 public class BasicTextRenderer {
   public static final double diagonal = Math.sqrt (2);
 
-  public TurtleCommand line    (double length) {return new Move (length);}
-  public TurtleCommand jump    (double length) {return new Jump (length);}
-  public TurtleCommand lateral (double right)  {return new CommandSequence (new Turn (90), new Jump (right), new Turn (-90));}
-  public TurtleCommand right   ()              {return new CommandSequence (new Turn ( 45), new Move (diagonal), new Turn ( 45));}
-  public TurtleCommand left    ()              {return new CommandSequence (new Turn (-45), new Move (diagonal), new Turn (-45));}
-  public TurtleCommand turn    (int angle)     {return new Turn ((double) angle);}
+  public TurtleCommand line    (final double length) {return new Move (length);}
+  public TurtleCommand jump    (final double length) {return new Jump (length);}
+  public TurtleCommand lateral (final double right)  {return new CommandSequence (new Turn (90), new Jump (right), new Turn (-90));}
+  public TurtleCommand right   ()                    {return new CommandSequence (new Turn ( 45), new Move (diagonal), new Turn ( 45));}
+  public TurtleCommand left    ()                    {return new CommandSequence (new Turn (-45), new Move (diagonal), new Turn (-45));}
+  public TurtleCommand turn    (final int angle)     {return new Turn ((double) angle);}
 
-  public TurtleCommand wind    (int ... xs) {
+  public TurtleCommand wind    (final int ... xs) {
     // 0 = change direction. By default, the direction is clockwise, or right.
-    List<TurtleCommand> cs    = new LinkedList<TurtleCommand> ();
-    TurtleCommand       last  = null;
-    boolean             right = true;
+    final List<TurtleCommand> cs    = new LinkedList<TurtleCommand> ();
+    TurtleCommand             last  = null;
+    boolean                   right = true;
 
-    for (int x : xs) if (x == 0) right ^= true;
-                     else if (x > 0) {
-                       cs.add (line (x));
-                       cs.add (last = right ? right () : left ());
-                     } else {
-                       cs.add (jump (-x));
-                       cs.add (last = right ? right () : left ());
-                     }
+    for (final int x : xs) if (x == 0) right ^= true;
+                           else if (x > 0) {
+                             cs.add (line (x));
+                             cs.add (last = right ? right () : left ());
+                           } else {
+                             cs.add (jump (-x));
+                             cs.add (last = right ? right () : left ());
+                           }
 
     if (last != null) cs.remove (last);
     return seq (cs.toArray (new TurtleCommand[0]));
@@ -39,9 +39,9 @@ public class BasicTextRenderer {
   public TurtleCommand bottomLeft  () {return new NullCommand ();}
   public TurtleCommand bottomRight () {return new CommandSequence (new Turn (90), new Jump (6), new Turn (-90));}
 
-  public TurtleCommand seq (TurtleCommand ... commands) {return new CommandSequence (commands);}
+  public TurtleCommand seq (final TurtleCommand ... commands) {return new CommandSequence (commands);}
 
-  public TurtleCommand drawCharacter (char c) {
+  public TurtleCommand drawCharacter (final char c) {
     switch (c) {
       case 'a': return seq (wind (-5, 4, 4, 4, 1, 5), lateral (3), jump (1), turn (-90));
       case 'b': return seq (topLeft (), wind (0, 8, 4, 4, 5), lateral (-6), turn (180), jump (7), turn (-90));
@@ -74,8 +74,8 @@ public class BasicTextRenderer {
     }
   }
 
-  public CommandSequence drawText (String text) {
-    List<TurtleCommand> cs = new LinkedList<TurtleCommand> ();
+  public CommandSequence drawText (final String text) {
+    final List<TurtleCommand> cs = new LinkedList<TurtleCommand> ();
     for (int i = 0; i < text.length (); ++i) cs.add (drawCharacter (text.charAt (i)));
     return new CommandSequence (cs.toArray (new TurtleCommand[0]));
   }

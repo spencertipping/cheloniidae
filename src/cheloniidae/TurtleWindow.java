@@ -19,7 +19,7 @@ import java.util.Random;
 public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
   public class RenderOperation extends Thread {
     protected final Viewport viewport;
-    public RenderOperation (Viewport v) {viewport = v;}
+    public RenderOperation (final Viewport v) {viewport = v;}
 
     public void run () {
       int linesDrawnSoFar = 0;
@@ -28,8 +28,8 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
       c.setColor (getBackground ());
       c.fillRect (0, 0, getWidth (), getHeight ());
 
-      SortedSet<RenderAction> actions        = turtles.actions (viewport);
-      Iterator<RenderAction>  actionIterator = actions.iterator ();
+      final SortedSet<RenderAction> actions        = turtles.actions (viewport);
+      final Iterator<RenderAction>  actionIterator = actions.iterator ();
 
       while (! shouldCancel && actionIterator.hasNext ()) {
         actionIterator.next ().render (viewport);
@@ -50,11 +50,11 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
 
       for (int i = 0; ! shouldCancel && i < intermediatePointCloud.length; ++i)
         if (intermediatePointCloud[i] != null) {
-          Vector vprime = transformPoint (intermediatePointCloud[i]);
-          if (vprime.z > 0.0) {
-            vprime = projectPoint (vprime);
-            if (vprime.x >= 0.0 && vprime.x < getWidth () && vprime.y >= 0.0 && vprime.y < getHeight ())
-              offscreen.setRGB ((int) vprime.x, (int) vprime.y, pointColor);
+          final Vector tp = transformPoint (intermediatePointCloud[i]);
+          if (tp.z > 0.0) {
+            final Vector pp = projectPoint (tp);
+            if (pp.x >= 0.0 && pp.x < getWidth () && pp.y >= 0.0 && pp.y < getHeight ())
+              offscreen.setRGB ((int) pp.x, (int) pp.y, pointColor);
           }
         }
 
@@ -89,12 +89,12 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
   
   public TurtleWindow () {initialize ();}
 
-  public int          drawingRefreshInterval     ()                                {return drawingRefreshInterval;}
-  public TurtleWindow drawingRefreshInterval     (int _drawingRefreshInterval)     {drawingRefreshInterval = _drawingRefreshInterval; return this;}
-  public boolean      shouldShowLineCount        ()                                {return shouldShowLineCount;}
-  public TurtleWindow shouldShowLineCount        (boolean _shouldShowLineCount)    {shouldShowLineCount = _shouldShowLineCount; return this;}
-  public int          intermediatePointCloudSize ()                                {return intermediatePointCloud.length;}
-  public TurtleWindow intermediatePointCloudSize (int _intermediatePointCloudSize) {intermediatePointCloud = new Vector[_intermediatePointCloudSize]; return this;}
+  public int          drawingRefreshInterval     ()                                      {return drawingRefreshInterval;}
+  public TurtleWindow drawingRefreshInterval     (final int _drawingRefreshInterval)     {drawingRefreshInterval = _drawingRefreshInterval; return this;}
+  public boolean      shouldShowLineCount        ()                                      {return shouldShowLineCount;}
+  public TurtleWindow shouldShowLineCount        (final boolean _shouldShowLineCount)    {shouldShowLineCount = _shouldShowLineCount; return this;}
+  public int          intermediatePointCloudSize ()                                      {return intermediatePointCloud.length;}
+  public TurtleWindow intermediatePointCloudSize (final int _intermediatePointCloudSize) {intermediatePointCloud = new Vector[_intermediatePointCloudSize]; return this;}
 
   protected void handleResize () {
     offscreen     = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
@@ -105,30 +105,30 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
   protected void initialize () {
     final TurtleWindow t = this;
 
-    super.addWindowListener      (new WindowListener      () {public void windowClosing     (WindowEvent e)    {dispose ();}
-                                                              public void windowActivated   (WindowEvent e)    {}
-                                                              public void windowClosed      (WindowEvent e)    {}
-                                                              public void windowDeactivated (WindowEvent e)    {}
-                                                              public void windowDeiconified (WindowEvent e)    {}
-                                                              public void windowIconified   (WindowEvent e)    {}
-                                                              public void windowOpened      (WindowEvent e)    {}});
+    super.addWindowListener      (new WindowListener      () {public void windowClosing     (final WindowEvent e)    {dispose ();}
+                                                              public void windowActivated   (final WindowEvent e)    {}
+                                                              public void windowClosed      (final WindowEvent e)    {}
+                                                              public void windowDeactivated (final WindowEvent e)    {}
+                                                              public void windowDeiconified (final WindowEvent e)    {}
+                                                              public void windowIconified   (final WindowEvent e)    {}
+                                                              public void windowOpened      (final WindowEvent e)    {}});
 
-    super.addComponentListener   (new ComponentListener   () {public void componentResized  (ComponentEvent e) {handleResize ();}
-                                                              public void componentMoved    (ComponentEvent e) {}
-                                                              public void componentHidden   (ComponentEvent e) {}
-                                                              public void componentShown    (ComponentEvent e) {}});
+    super.addComponentListener   (new ComponentListener   () {public void componentResized  (final ComponentEvent e) {handleResize ();}
+                                                              public void componentMoved    (final ComponentEvent e) {}
+                                                              public void componentHidden   (final ComponentEvent e) {}
+                                                              public void componentShown    (final ComponentEvent e) {}});
 
-    super.addMouseListener       (new MouseListener       () {public void mouseReleased     (MouseEvent e)     {mouseDown = false;
-                                                                                                                lastChange = System.currentTimeMillis ();
-                                                                                                                enqueueGraphicsRefreshRequest (new RenderOperation (t));}
-                                                              public void mousePressed      (MouseEvent e)     {mouseDown = true;
-                                                                                                                mouseDownX = e.getX ();
-                                                                                                                mouseDownY = e.getY ();}
-                                                              public void mouseClicked      (MouseEvent e)     {}
-                                                              public void mouseEntered      (MouseEvent e)     {}
-                                                              public void mouseExited       (MouseEvent e)     {}});
+    super.addMouseListener       (new MouseListener       () {public void mouseReleased     (final MouseEvent e)     {mouseDown = false;
+                                                                                                                      lastChange = System.currentTimeMillis ();
+                                                                                                                      enqueueGraphicsRefreshRequest (new RenderOperation (t));}
+                                                              public void mousePressed      (final MouseEvent e)     {mouseDown = true;
+                                                                                                                      mouseDownX = e.getX ();
+                                                                                                                      mouseDownY = e.getY ();}
+                                                              public void mouseClicked      (final MouseEvent e)     {}
+                                                              public void mouseEntered      (final MouseEvent e)     {}
+                                                              public void mouseExited       (final MouseEvent e)     {}});
 
-    super.addMouseMotionListener (new MouseMotionListener () {public void mouseDragged (MouseEvent e) {
+    super.addMouseMotionListener (new MouseMotionListener () {public void mouseDragged (final MouseEvent e) {
                                   if (mouseDown) {
                                     final Vector virtualPOVRight = virtualPOVForward.cross (virtualPOVUp);
                                     final Vector center          = new Vector (maximumExtent).multiply (0.5).addScaled (minimumExtent, 0.5);
@@ -156,9 +156,9 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
                                     enqueueGraphicsRefreshRequest (new IntermediateRenderOperation ());
                                   }
                                                               }
-                                                              public void mouseMoved (MouseEvent e) {}});
+                                                              public void mouseMoved (final MouseEvent e) {}});
 
-    super.addMouseWheelListener  (new MouseWheelListener  () {public void mouseWheelMoved (MouseWheelEvent e) {
+    super.addMouseWheelListener  (new MouseWheelListener  () {public void mouseWheelMoved (final MouseWheelEvent e) {
                                                                 virtualPOV.addScaled (virtualPOVForward, (e.isControlDown () ? -1 : -10) * e.getWheelRotation ());
                                                                 lastChange = System.currentTimeMillis ();
                                                                 enqueueGraphicsRefreshRequest (new IntermediateRenderOperation ());
@@ -172,12 +172,12 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
     handleResize ();
   }
 
-  public void update (Graphics g) {paint (g);}
-  public void paint  (Graphics g) {g.drawImage (offscreen, 0, 0, null);}
+  public void update (final Graphics g) {paint (g);}
+  public void paint  (final Graphics g) {g.drawImage (offscreen, 0, 0, null);}
 
   public TurtleWindow add (final T t) {turtles.turtles ().add (t); t.window (this); return this;}
 
-  public void enqueueGraphicsRefreshRequest (Thread t) {
+  public void enqueueGraphicsRefreshRequest (final Thread t) {
     if (offscreen != null) {
       if (graphicsRequestRunner != null && graphicsRequestRunner.isAlive ()) {
         cancel ();
@@ -190,7 +190,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
     }
   }
 
-  public TurtleWindow pause (long milliseconds) {
+  public TurtleWindow pause (final long milliseconds) {
     enqueueGraphicsRefreshRequest (new RenderOperation (this));
     try {Thread.sleep (milliseconds);}
     catch (InterruptedException e) {}
@@ -215,7 +215,8 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
      return new Vector (v).subtract (virtualPOV).toCoordinateSpace (virtualPOVUp.cross (virtualPOVForward), virtualPOVUp, virtualPOVForward);}
 
   public Vector projectPoint (final Vector v)
-    {return (fisheye3D ? new Vector (v).normalize () : new Vector (v).divide (v.z)).multiply (super.getHeight ()).add (new Vector (super.getWidth () >> 1, super.getHeight () >> 1, 0));}
+    {return (fisheye3D ? new Vector (v).normalize () :
+                         new Vector (v).divide (v.z)).multiply (super.getHeight ()).add (new Vector (super.getWidth () >> 1, super.getHeight () >> 1, 0));}
 
   public Graphics2D context () {
     if (cachedContext != null) return cachedContext;

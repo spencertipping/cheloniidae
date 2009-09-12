@@ -5,8 +5,8 @@ import cheloniidae.Turtle;
 import java.awt.Color;
 
 public class LineColor extends UnaryCommand<Color> {
-  public LineColor (Color value) {super (value);}
-  public LineColor applyTo (Turtle t) {
+  public LineColor (final Color value) {super (value);}
+  public LineColor applyTo (final Turtle t) {
     if (t instanceof SupportsLineColor) ((SupportsLineColor) t).lineColor (value);
     return this;
   }

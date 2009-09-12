@@ -11,62 +11,63 @@ public class TurtleGroup<T extends Turtle> extends BasicTurtle<TurtleGroup<T>> i
     // Turtle states are stored positionally instead of by some form of map because of replication. We need to be able to produce a turtle state object that can
     // apply itself to a cloned group, and the cloned group won't share object identity with the original.
     public final List<TurtleState> states = new ArrayList<TurtleState> ();
-    public State (TurtleGroup group) {
-      for (Turtle t : (List<Turtle>) group.turtles ()) states.add (t.serialize ());
+    public State (final TurtleGroup group) {
+      for (final Turtle t : (List<Turtle>) group.turtles ()) states.add (t.serialize ());
     }
 
-    public State applyTo (Turtle t) {
+    public State applyTo (final Turtle t) {
       t.deserialize (this);
       return this;
     }
   }
 
-  public TurtleGroup (T ...         _turtles) {for (T t : _turtles) turtles.add (t);}
-  public TurtleGroup (Collection<T> _turtles) {turtles.addAll (_turtles);}
+  public TurtleGroup (final T ...         _turtles) {for (final T t : _turtles) turtles.add (t);}
+  public TurtleGroup (final Collection<T> _turtles) {turtles.addAll (_turtles);}
 
   protected List<T> turtles = new ArrayList<T> ();
 
   public TurtleGroup<T> create () {
-    TurtleGroup<T> result = new TurtleGroup<T> ();
-    for (Turtle t : turtles ()) result.turtles ().add ((T) t.clone ());
+    final TurtleGroup<T> result = new TurtleGroup<T> ();
+    for (final Turtle t : turtles ()) result.turtles ().add ((T) t.clone ());
     return result;
   }
 
-  public List<T>        turtles ()                     {return turtles;}
-  public TurtleGroup<T> turtles (List<T> _turtles)     {turtles = _turtles; return this;}
-  public TurtleGroup<T> window  (TurtleWindow _window) {super.window (_window);
-                                                        for (T t : turtles) t.window (window);
-                                                        return this;}
+  public List<T>        turtles ()                           {return turtles;}
+  public TurtleGroup<T> turtles (final List<T> _turtles)     {turtles = _turtles; return this;}
+  public TurtleGroup<T> window  (final TurtleWindow _window) {super.window (_window);
+                                                              for (final T t : turtles) t.window (window);
+                                                              return this;}
 
-  public TurtleGroup<T> add (T turtle) {
+  public TurtleGroup<T> add (final T turtle) {
     turtles.add (turtle);
     turtle.window (window ());
     return this;
   }
 
-  public SortedSet<RenderAction> actions (Viewport v) {
+  public SortedSet<RenderAction> actions (final Viewport v) {
     final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
-    for (T t : turtles) if (! v.shouldCancel ()) result.addAll (t.actions (v));
+    for (final T t : turtles) for (final RenderAction r : t.actions (v)) if (v.shouldCancel ()) break;
+                                                                         else                   result.add (r);
     return result;
   }
 
   public State          serialize   () {return new State (this);}
-  public TurtleGroup<T> deserialize (TurtleState state) {
+  public TurtleGroup<T> deserialize (final TurtleState state) {
     if (state instanceof State) {
-      List<TurtleState> stateList = ((State) state).states;
+      final List<TurtleState> stateList = ((State) state).states;
       for (int i = 0; i < stateList.size (); ++i) turtles ().get (i).deserialize (stateList.get (i));
     }
     return this;
   }
 
-  public TurtleGroup<T> applyTo (Turtle t) {
+  public TurtleGroup<T> applyTo (final Turtle t) {
     serialize ().applyTo (t);
     return this;
   }
 
-  public TurtleGroup<T> run (TurtleCommand c) {
+  public TurtleGroup<T> run (final TurtleCommand c) {
     if (c instanceof NonDistributiveTurtleCommand) c.applyTo (this);
-    else for (T t : turtles) t.run (c);
+    else for (final T t : turtles) t.run (c);
     return this;
   }
 }

@@ -9,7 +9,7 @@ public abstract class Replicable<T extends Turtle> implements Turtle<T>, TurtleC
   public abstract T create ();
 
   public T clone () {
-    T result = this.create ();
+    final T result = this.create ();
     this.applyTo (result);
     return result;
   }

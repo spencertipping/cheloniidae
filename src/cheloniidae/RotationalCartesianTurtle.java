@@ -13,7 +13,7 @@ implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, Su
   public static class State extends CartesianTurtle.State {
     public final Vector directionComplement;
 
-    public State (Vector _position, double _size, Color _color, Vector _direction, Vector _directionComplement) {
+    public State (final Vector _position, final double _size, final Color _color, final Vector _direction, final Vector _directionComplement) {
       super (_position, _size, _color, _direction);
       directionComplement = _directionComplement.clone ();
     }
@@ -27,15 +27,15 @@ implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, Su
 
   protected Vector directionComplement = new Vector (0, 0, -1);
 
-  public Vector directionComplement ()                            {return directionComplement;}
-  public T      directionComplement (Vector _directionComplement) {directionComplement = _directionComplement; return (T) this;}
+  public Vector directionComplement ()                                  {return directionComplement;}
+  public T      directionComplement (final Vector _directionComplement) {directionComplement = _directionComplement; return (T) this;}
 
-  public T pitch (double angle) {Vector axis         = direction.cross (directionComplement);
-                                 direction           = direction.rotateAbout           (axis, angle);
-                                 directionComplement = directionComplement.rotateAbout (axis, angle); return (T) this;}
+  public T pitch (final double angle) {final Vector axis   = direction.cross (directionComplement);
+                                       direction           = direction.rotateAbout           (axis, angle);
+                                       directionComplement = directionComplement.rotateAbout (axis, angle); return (T) this;}
 
-  public T bank (double angle) {directionComplement = directionComplement.rotateAbout (direction, angle); return (T) this;}
-  public T turn (double angle) {direction           = direction.rotateAbout (directionComplement, angle); return (T) this;}
+  public T bank (final double angle) {directionComplement = directionComplement.rotateAbout (direction, angle); return (T) this;}
+  public T turn (final double angle) {direction           = direction.rotateAbout (directionComplement, angle); return (T) this;}
 
   public State serialize () {return new State (position, size, color, direction, directionComplement);}
 

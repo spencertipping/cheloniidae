@@ -7,7 +7,7 @@ public abstract class ViewportCaching {
 
   public abstract double computeDepth (Viewport v);
 
-  public double depth (Viewport v) {
+  public double depth (final Viewport v) {
     final double result = (cachedViewport == v && v.lastChange () == cachedLastChange) ? cachedDepth : (cachedDepth = computeDepth (v));
     cachedViewport   = v;
     cachedLastChange = v.lastChange ();
