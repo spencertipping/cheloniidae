@@ -12,7 +12,7 @@ public class InductiveReplicator<T extends Turtle> extends Replicator {
 
   public TurtleGroup<Turtle> replicate (final Turtle turtle) {
     final TurtleGroup<Turtle> result   = new TurtleGroup<Turtle> ();
-    final Turtle              previous = turtle;
+    Turtle                    previous = turtle;
     for (int i = 0; i < copies; ++i) result.turtles ().add (previous = previous.clone ().run (step));
     return result;
   }

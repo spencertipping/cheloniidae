@@ -25,7 +25,7 @@ implements SupportsDirection<T> {
     }
   }
 
-  protected final Vector direction = new Vector (0, 1, 0);
+  protected Vector direction = new Vector (0, 1, 0);
 
   public Vector direction ()                        {return new Vector (direction);}
   public T      direction (final Vector _direction) {direction.assign (_direction); return (T) this;}
