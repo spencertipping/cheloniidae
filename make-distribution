@@ -18,14 +18,15 @@ mkdir $basedir/cheloniidae
 # Compile the documentation separately, since it makes a mess out of its working
 # directory.
 pushd doc
-latex cheloniidae.tex && pdflatex cheloniidae.tex
+latex cheloniidae.tex && latex cheloniidae.tex && pdflatex cheloniidae.tex
 popd
 
 cp -r src/cheloniidae/* $basedir/cheloniidae/
 cp examples/*.java $basedir/
-cp doc/{cheloniidae.tex,cheloniidae.pdf,CHANGELOG,README} $basedir/
+#cp doc/{cheloniidae.tex,cheloniidae.pdf,CHANGELOG,README} $basedir/
+cp doc/{CHANGELOG,README} $basedir/
 
-# Now compile all of the Java files and documentation.
+# Now compile all of the Java files and examples.
 cd $basedir
 javac *.java cheloniidae/*.java cheloniidae/*/*.java
 
