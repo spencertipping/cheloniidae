@@ -4,8 +4,8 @@ able to type
   java spheres
 
 for example, and Cheloniidae should draw two spheres. The view angle can be
-changed by dragging the mouse with various combinations of control and shift
-pressed (see the "Mouse Operations" section of the API docs in cheloniidae.pdf).
+changed by dragging the mouse (use shift for rotation and control to slow down
+movement), and you can zoom by using the mouse wheel.
 
 To recompile the Cheloniidae core classes, just run:
 
