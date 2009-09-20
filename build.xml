@@ -26,8 +26,10 @@
 
   <target name="doc" depends="builddir">
     <exec executable="${tex}"    dir="${docdir}"><arg value="cheloniidae.tex" /></exec>
+    <exec executable="${tex}"    dir="${docdir}"><arg value="cheloniidae.tex" /></exec>
     <exec executable="${pdftex}" dir="${docdir}"><arg value="cheloniidae.tex" /></exec>
     <copy file="${docdir}/cheloniidae.tex" todir="${builddir}" />
+    <copy file="${docdir}/cheloniidae.pdf" todir="${builddir}" />
   </target>
 
   <target name="all" depends="clean,compile,examples,doc" />
