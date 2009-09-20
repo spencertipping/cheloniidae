@@ -1,35 +1,37 @@
-Version 3.0-pre2:
+- Version 3.0:
+  - Improved responsiveness during a line-retrieval operation by making that step
+    interruptible.
 
-  * Cleaned up the API for turtle commands (another large reorganization) and wrote
+  - Added line-counting to the TurtleWindow class.
+  - Added a dark single-turtle scene.
+  - Added inductive replication and recursion to the turtle command framework.
+  - Added several new example files.
+
+- Version 3.0-pre2:
+  - Cleaned up the API for turtle commands (another large reorganization) and wrote
     a single-turtle frame.
 
-  * Converted some example files to the new setup.
+  - Converted some example files to the new setup.
 
-Version 3.0-pre1:
+- Version 3.0-pre1:
+  - Reorganized structure to allow for turtle commands.
+  - Deleted several old example files.
 
-  * Reorganized structure to allow for turtle commands.
-
-  * Deleted several old example files.
-
-Version 2.1:
-
-  * Reimplemented depth sorting with cached line distances and less memory
+- Version 2.1:
+  - Reimplemented depth sorting with cached line distances and less memory
     allocation. The user interface is correspondingly more responsive.
+  - Added several new example files.
 
-  * Added several new example files.
-
-Version 2.0:
-
-  * Changed the invocation of Java's built-in mergesort to a quicksort that
+- Version 2.0:
+  - Changed the invocation of Java's built-in mergesort to a quicksort that
     allows interruption during a depth-sort operation. This increased responsiveness
     of the user-interface during multiple drags.
-  
-  * Fixed perspective transformation for lines that extended into negative-Z
-    space. Now the renderer correctly solves for the intersection with the viewplane.
-  
-  * Added the ORTHOGONAL_PLANAR coordinate model.
 
-  * Moved the depth-sorting out of the event thread. This also increased responsiveness
+  - Fixed perspective transformation for lines that extended into negative-Z
+    space. Now the renderer correctly solves for the intersection with the viewplane.
+
+  - Added the ORTHOGONAL_PLANAR coordinate model.
+  - Moved the depth-sorting out of the event thread. This also increased responsiveness
     while dragging.
-  
-  * Converted several magic numbers in the source code to constants.
+
+  - Converted several magic numbers in the source code to constants.
