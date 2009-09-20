@@ -28,320 +28,114 @@
   \section{Introduction}
     \label{sec:introduction}
 
-    Cheloniidae turtle graphics is a capable, easy-to-use library for Java. It
-    provides many advanced features such as three-dimensional space support
-    under three different coordinate models, multiple turtles, antialiased and
-    depth-adjusted rendering, highly customizable axes and grids, and
-    perspective projection, all without losing the simplicity and elegance of
-    pure vector graphics.
+    Cheloniidae is a three-dimensional turtle graphics library for Java. It provides turtle replication, distributed commands, stable rendering, and an
+    extensible framework for using alternate coordinate models. In addition, it provides basic control flow constructs for iteration and recursion.
 
-    This library originated as a drop-in replacement for the Galapagos turtle
-    software, used primarily for educational purposes. As such, there are two
-    sets of commands: One set uses the same nomenclature and functionality as
-    the original Galapagos library, and the other uses my nomenclature and
-    supports the extensions listed previously. For more details, see section
-    \ref{sec:command-index}.
+    \subsection{Mouse and Keyboard Commands}
+      \label{sec:mouse-and-keyboard-commands}
 
-  \section{Extensions}
-    \label{sec:extensions}
+      These are the basic interactions that the turtle window supports:
 
-    As mentioned earlier, Cheloniidae provides several extensions to the
-    traditional turtle model.
+      \begin{enumerate}
+        \item[\bf Mouse drag]         Moves the camera in 3D space.
+        \item[\bf Shift + mouse drag] Rotates the camera about the center of the structure being drawn.
+        \item[\bf Mouse wheel]        Zooms the camera forwards or backwards. (After a zoom, a click is required to redraw the structure fully.)
+        \item[\bf Control]            Reduces the speed of any other action.
+      \end{enumerate}
 
-    \subsection{State Stack}
-      \label{sec:state-stack}
+      When dragging, the scene is redrawn using a point cloud representing only a subset of the total number of lines. This is to ensure that the interface
+      continues to respond quickly even for large scenes. To change the number of lines drawn, see the {\tt intermediatePointCloudSize} attribute of {\tt
+      cheloniidae.TurtleWindow}.
 
-      Each turtle maintains a stack of {\em states}. A state is simply a
-      turtle's location and heading. Under normal operation, a turtle has only
-      one state, which is modified with the normal movement and turn commands.
-      However, a turtle can also ``remember'' its old states and jump back to
-      them by pushing and popping states from its internal state stack.
+  \section{Turtle Commands}
+    \label{sec:turtle-commands}
 
-      This is useful for building a fractal tree, for instance. The included
-      example file \verb|tree.java| implements this concept using the turtle
-      stack. The premise is this: A tree consists of a line forwards and two
-      more trees spaced at some angle apart. Here is some simple code to
-      implement this idea:
+    Starting with Cheloniidae 3, there is a new interface for using turtles. Section \ref{sec:using-the-standard-rotational-turtle} gives a quick overview of
+    the new interface, and the following sections describe the underlying design decisions that led to it.
+
+    \subsection{Using the Standard Rotational Turtle}
+      \label{sec:using-the-standard-rotational-turtle}
+
+      Instead of driving turtles directly, turtle commands let you construct a series of actions for a turtle to perform. Cheloniidae will send the actions to
+      the turtle for you, which means that you don't have to create a turtle or a turtle window. Here is the basic setup code:
 
       \begin{java}
-public static void tree (Turtle t, int recursionLevel) {
-  t.move (10);
-
-  if (recursionLevel > 0) {
-    t.pushTurtleState ();
-    t.turn (-5);
-    tree (t, recursionLevel - 1);
-    t.popTurtleState ();
-    t.pushTurtleState ();
-    t.turn (5);
-    tree (t, recursionLevel - 1);
-    t.popTurtleState ();
+import cheloniidae.*;
+import cheloniidae.frames.*;
+public class MyClass {
+  public static void main (String[] args) {new MyClass ();}
+  public TurtleCommand commands () {
+    // Return a TurtleCommand object here.
   }
-}
-      \end{java}
-      
-      The state stack works very well with recursive algorithms, as demonstrated
-      here. The number of state entries that can be stored at a time is limited
-      only by Java's heap size, however it is an error to pop an empty stack.
+}     \end{java}
 
-    \subsection{Coordinate Models}
-      \label{sec:coordinate-models}
+      \subsubsection{Basic Commands}
+        \label{sec:basic-commands}
 
-      Cheloniidae seamlessly integrates two-dimensional and three-dimensional
-      drawing. By default, a turtle draws only on the plane and the model is for
-      all purposes two-dimensional. However, by changing the turtle's $\phi$
-      heading, the turtle begins to change its $z$ position.
+        Here are the simple commands understood by the standard rotational turtle:
 
-      Depending on the drawing, different coordinate models will make sense. For
-      example, drawing a sphere such as those in the included example {\tt
-      spheres.java} is most easily achieved using spherical coordinates. However,
-      spherical coordinates make it very difficult to draw a spiral. There are
-      similar tasks that are well-suited to other models, so three separate
-      coordinate models are provided. Others may be written for Cheloniidae without
-      very much work, especially by inheriting from the {\tt Turtle} class.
+        \begin{enumerate}
+          \command[move(x)]  Moves the turtle $x$ units in its {\tt direction}, creating a line.
+          \command[jump(x)]  Moves the turtle $x$ units in its {\tt direction} without creating a line.
+          \command[turn(x)]  Turns the turtle sideways by $x$ degrees.
+          \command[bank(x)]  Tilts the turtle around its {\tt direction} by $x$ degrees. Note that this doesn't actually change the turtle's direction, but it
+                             does affect future {\tt turn} and {\tt pitch} commands.
+          \command[pitch(x)] Pitches the turtle (vertical rotation) by $x$ degrees.
+          \command[pass()]   Does nothing.
+        \end{enumerate}
 
-      \subsubsection{Spherical Coordinates}
-	\label{sec:z-spherical}
-	\label{sec:spherical-coordinates}
+        In addition to actions, some basic combinations are provided as well. These commands can be used anywhere a normal turtle command is expected.
 
-	Spherical coordinates allow the turtle's default plane to be bent into a
-	cone whose depth angle is determined by $\phi$. By default, $\phi=0$, so
-	the plane is flat. Mathematically, the distance vector $\langle dx, dy,
-	dz\rangle$ moved by the turtle for a move of distance $d$ is computed
-	this way:
+        \begin{enumerate}
+          \command[sequence(c1, c2, c3, ...)] Performs each of its commands in sequence.
+          \command[repeat(n, c1, c2, ...)]    Repeats the sequence of commands $(c1, c2, \cdots)$ $n$ times.
+        \end{enumerate}
 
-	\begin{align*}
-	  dx & = d \cos \theta \cos \phi \\
-	  dy & = d \sin \theta \cos \phi \\
-	  dz & = d \sin \phi
-	\end{align*}
+    \subsection{History}
+      \label{sec:history}
 
-      \subsubsection{Cylindrical Coordinates}
-	\label{sec:y-cylindrical}
-	\label{sec:cylindrical-coordinates}
+      In Cheloniidae version 2.x, turtles were driven by direct commands, like this:
 
-	Cylindrical coordinates allow the turtle's drawing plane to be rotated
-	about the Y axis. The degree of rotation is determined by $\phi$, which is
-	zero by default. Mathematically, cylindrical coordinates are implemented
-	as follows (see section \ref{sec:z-spherical} for notation):
+      \begin{java}
+import cheloniidae.*;
+public class square {
+  public static void main (String[] args) {
+    StandardRotationalTurtle t = new StandardRotationalTurtle ();
+    TurtleWindow             w = new TurtleWindow ();
+    w.add (t);
+    for (int i = 0; i < 4; ++i) t.move (50).turn (90);
+    w.setVisible (true);
+  }
+}     \end{java}
 
-	\begin{align*}
-	  dx & = d \cos \theta \cos \phi \\
-	  dy & = d \sin \theta \\
-	  dz & = d \cos \theta \sin \phi
-	\end{align*}
+      Version 3 provides a more intuitive and powerful interface. {\tt square} should now be written this way:
 
-      \subsubsection{Orthogonal Planar Coordinates}
-	\label{sec:orthogonal-planar}
+      \begin{java}
+import cheloniidae.*;
+import cheloniidae.frames.*;
+public class square extends SingleTurtleScene {
+  public static void main (String[] args) {new square ();}
+  public TurtleCommand commands () {
+    return repeat (4, move (50), turn (90));
+  }
+}     \end{java}
 
-	The idea behing orthogonal planar coordinates is that the plane in which
-	the turtle's local $\theta$ coordinate operates can be rotated
-	arbitrarily. By default, its normal vector is oriented along the $z$ axis;
-	however, $\phi$ and $\xi$ provide $y$-axis rotation and relative $x$-axis
-	rotation, respectively, in a spherical setting. Mathematically, orthogonal
-	planar coordinates are implemented as follows (see section
-	\ref{sec:z-spherical} for notation):
+      This has two advantages. First, it does all of the window and turtle setup for you; and second, any command that is given to one turtle can be given to
+      multiple turtles simultaneously. (See the {\tt replicatedtube} example file, for instance.)
 
-	\begin{align*}
-	  dx & = d \cdot [\cos\theta \cos\phi + \sin\theta \sin\phi \sin\xi] \\
-	  dy & = d \sin\theta \cos\xi \\
-	  dz & = d \cdot [\cos\theta \sin\phi - \sin\theta \cos\phi \sin\xi]
-	\end{align*}
+    \subsection{Turtles and Geometry}
+      \label{sec:turtles-and-geometry}
 
-  \section{Command Index}
-    \label{sec:command-index}
+      \begin{quote}
+      {\em Note: This section is primarily of academic interest. To begin using Cheloniidae quickly, I recommend skipping to section
+      \ref{sec:using-the-standard-rotational-turtle}.}
+      \end{quote}
 
-    This section lists all of the commands supported by the Turtle class in
-    Cheloniidae. All of the examples assume the following definitions:
+      Cheloniidae makes few assumptions about geometric axioms. While currently only Euclidean geometry is used, it would not be difficult to add turtles that
+      exhibited non-Euclidean behavior. Thus each aspect of turtle behavior was built on a minimalistic foundation to allow maximum flexibility.
 
-    \lstset{gobble=6}
-    \begin{java}
-      import cheloniidae.*;
-
-      public class test {
-	public static void main (String[] args) {
-	  TurtleDrawingWindow w = new TurtleDrawingWindow ();
-	  Turtle t = new Turtle ();
-	  w.add (t);
-	  
-	  // Any example would be legal here.
-
-	  w.setVisible (true);
-	}
-      }
-    \end{java}
-
-    \subsection{Basic Commands}
-      \label{sec:basic-commands}
-
-      These commands allow the turtle to create basic shapes. If only these
-      commands are used, then the turtle will remain in a two-dimensional plane;
-      thus we postpone the three-dimensional details to section
-      \ref{sec:3d-commands}.
-
-      \begin{commandtable}
-	\command[move]
-	Moves the turtle a given distance along its heading, drawing a line if
-	the pen is down. If the distance is negative, then the turtle moves
-	backwards.
-	\example[t.move(100);]
-
-	\command[moveTo]
-	Moves the turtle to a specific location, drawing a line if the pen is
-	down. The turtle's heading is not taken into account and not changed by
-	this operation.
-	\example[t.moveTo(50, 10);]
-
-	\command[jump]
-	Moves the turtle a given distance along its heading without drawing a
-	line. If the distance is negative, then the turtle moves backwards.
-	\example[t.jump(100);]
-
-	\command[jumpTo]
-	Moves the turtle to a specific location without drawing a line. Like
-	{\tt moveTo}, the turtle's heading is not considered for this operation.
-	\example[t.jumpTo(10, 10);]
-
-	\command[turn]
-	Adds an angle to the turtle's heading. The turtle does not draw anything
-	when it is turned. All headings are measured in degrees.
-	\example[t.turn(90);]
-
-	\command[setPenColor]
-	Sets the color of future lines drawn by the turtle. The color may be
-	translucent, in which case the drawn lines will also be translucent.
-	\example[t.setPenColor(java.awt.Color.BLUE);]
-
-	\command[setPenIsDown]
-	Determines whether the turtle will draw lines when moved. By default,
-	this is true.
-	\example[t.setPenIsDown(true);]
-      \end{commandtable}
-
-    \subsection{3D Commands}
-      \label{sec:3d-commands}
-
-      These commands allow the turtle to travel anywhere in 3D space and change
-      coordinate models.
-
-      \begin{commandtable}
-	\command[moveTo]
-	In addition to the two-dimensional version, {\tt moveTo} may also take a
-	$z$ parameter.
-	\example[t.moveTo(0, 3, 10);]
-
-	\command[jumpTo]
-	The same is true of the {\tt jumpTo} command.
-	\example[t.jumpTo(10, 28, 1);]
-
-	\command[turnTheta]
-	Rotates the turtle within its immediate plane or cone. The exact
-	behavior of this command is determined by the coordinate model used.
-	(See section \ref{sec:coordinate-models}.) This command is an alias for
-	the {\tt turn} command. (See section \ref{sec:basic-commands}.)
-	\example[t.turnTheta(-90);]
-
-	\command[turnPhi]
-	Adjusts the turtle's $\phi$ heading. The exact behavior of the $\phi$
-	heading depends on the coordinate model. (See section
-	\ref{sec:coordinate-models}.)
-	\example[t.turnPhi(45);]
-
-	\command[turnXi]
-	Adjusts the turtle's $\xi$ heading. This is meaningful only if the
-	turtle is using the orthogonal-planar coordinate model. (See sections
-	\ref{sec:orthogonal-planar} and \ref{sec:coordinate-models}.)
-	\example[t.turnXi(30);]
-
-	\command[setPolarAxisModel]
-	Determines the roles of the turtle's 3D heading coordinates, $\theta$,
-	$\phi$, and $\xi$. See section \ref{sec:coordinate-models} for a
-	mathematical description of these roles. Valid settings are
-	\verb|Turtle.Z_SPHERICAL|, \verb|Turtle.Y_CYLINDRICAL|, and
-	\verb|Turtle.ORTHOGONAL_PLANAR|.
-	\example[t.setPolarAxisModel(Turtle.Z\_SPHERICAL);]
-      \end{commandtable}
-
-    \subsection{Accessors}
-      \label{sec:accessors}
-
-      The turtle provides accessors to its position, heading, and several other
-      fields. Accessors follow a standard naming convention; a field named {\tt
-      namingConvention}, for example, would have accessors {\tt
-      getNamingConvention} and {\tt setNamingConvention}.
-
-      \begin{itemize}
-	\item X, Y, Z: {\tt double}
-	\item headingTheta, headingPhi, headingXi: {\tt double}
-	\item bodyColor: {\tt java.awt.Color}
-	\item penColor: {\tt java.awt.Color}
-	\item penIsDown: {\tt boolean}
-	\item penSize: {\tt double}
-	\item delayPerMove: {\tt int}
-	\item visible: {\tt boolean}
-	\item polarAxisModel: {\tt int} -- see section \ref{sec:3d-commands} for
-	      a list of valid values.
-      \end{itemize}
-
-    \subsection{Advanced Turtle Commands}
-      \label{sec:advanced-commands}
-
-      These commands are not normally used for simple scenes. They are provided
-      for more complex scenes such as fractal formations. Others are simply more
-      esoteric commands that one doesn't normally use.
-
-      \begin{commandtable}
-	\command[pushTurtleState]
-	Each turtle maintains a stack of states (see section
-	\ref{sec:state-stack}). This command causes the turtle to push its
-	current state onto the stack for later recovery. Its current state is
-	not altered by this command.
-	\example[t.pushTurtleState();]
-
-	\command[popTurtleState]
-	This command causes the turtle to pop the last pushed state from the
-	stack and restore its state. Its current state is replaced by the state
-	from the top of the stack.
-	\example[t.popTurtleState();]
-
-	\command[replicate]
-	Returns a duplicate of the current turtle and adds it to the current
-	{\tt TurtleDrawingWindow}. The result is that code such as this:
-
-	\lstset{gobble=10}
-	\begin{java}
-	  Turtle t1 = t.replicate ();
-	  t1.move (100);
-	\end{java}
-
-	\noindent is not only legal but does what it seems like it should.
-
-	\command[setBodyColor]
-	Each turtle is drawn in its position on the screen. Setting the body
-	color determines what color it is drawn in. Translucency is enabled for
-	this color setting.
-	\example[t.setBodyColor(java.awt.Color.BLACK);]
-
-	\command[setPenSize]
-	Sets the width of the lines that the turtle draws. 0.5 is approximately
-	the minimum, and there is no maximum.
-	\example[t.setPenSize(0.5);]
-
-	\command[setVisible]
-	Determines whether the turtle itself is drawn. If this is false, then
-	only the lines drawn by the turtle are visible, but the turtle is
-	hidden. Setting this value to false may improve rendering speed if
-	rendering is performed while the {\tt TurtleDrawingWindow} is visible.
-	\example[t.setVisible(false);]
-
-	\command[setDelayPerMove]
-	Each turtle has a default delay amount per move. This is so that the
-	drawing process can be observed step-by-step. The number of milliseconds
-	to wait per move may be changed using this parameter. If set to zero,
-	then the turtle draws as fast as possible. Note that this parameter
-	doesn't make any difference if the turtle is drawing on a window before
-	the window is shown.
-	\example[t.setDelayPerMove(0);]
-      \end{commandtable}
+      The lowest-level turtle included with Cheloniidae is the Euclidean turtle, which has a position and direction each specified by a 3D vector. Specification
+      of the direction is left to the subclass, since there are several different models that could be used. The only direct subclass provided is the Cartesian
+      turtle, which stores its direction as a vector instance.
 
 \end{document}
