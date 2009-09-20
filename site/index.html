@@ -1,11 +1,11 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 'http://www.w3.org/TR/html4/loose.dtd'>
 
 <html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta http-equiv='Content-Type' content='text/html;charset=utf-8'>
     <title>Cheloniidae Turtle Graphics</title>
 
-    <style type="text/css">
+    <style type='text/css'>
       body {
         margin: 0;
         font-family: sans-serif;
@@ -24,7 +24,7 @@
 
       div#header span.title {
         display: inline;
-        font-family: "Andale Mono", "Inconsolata", "Monaco", "Liberation Mono", "Monospace", monospace;
+        font-family: 'Andale Mono', 'Inconsolata', 'Monaco', 'Liberation Mono', 'Monospace', monospace;
         font-size: 44pt;
         text-transform: lowercase;
         color: #eef;
@@ -35,7 +35,7 @@
         display: inline;
         color: #9ab;
         font-size: 60pt;
-        font-family: "Andale Mono", "Inconsolata", "Monaco", "Liberation Mono", "Monospace", monospace;
+        font-family: 'Andale Mono', 'Inconsolata', 'Monaco', 'Liberation Mono', 'Monospace', monospace;
         font-weight: bold;
       }
 
@@ -47,7 +47,7 @@
 
       div.section div.title {
         background: #234;
-        font-family: "Liberation Serif", "Luxi Serif", "URW Palladio L", "Palatino", "Garamond", serif;
+        font-family: 'Liberation Serif', 'Luxi Serif', 'URW Palladio L', 'Palatino', 'Garamond', serif;
         text-transform: lowercase;
         color: #eef;
         border-left: solid 36px #345;
@@ -56,12 +56,23 @@
       }
       
       div.section div.content {
-        font-family: "Liberation Serif", "Luxi Serif", "URW Palladio L", "Palatino", "Garamond", serif;
+        font-family: 'Liberation Serif', 'Luxi Serif', 'URW Palladio L', 'Palatino', 'Garamond', serif;
         font-size: 12pt;
         color: #223;
         margin-left: 12px;
         border-left: solid 24px #345;
         padding: 4px;
+      }
+
+      div.section div.content h2 {
+        font-family: 'Liberation Serif', 'Luxi Serif', 'URW Palladio L', 'Palatino', 'Garamond', serif;
+        font-size: 16pt;
+        font-weight: normal;
+        border-bottom: solid 2px #dde;
+      }
+
+      span.command {
+        font-weight: bold;
       }
 
       a {
@@ -70,44 +81,66 @@
     </style>
   </head>
   <body>
-    <div id="header">
-      <div id="subheader">
+    <div id='header'>
+      <div id='subheader'>
         <span class='title'>Cheloniidae</span>
         <span class='version'>3</span>
       </div>
     </div>
 
-    <div class="section" id="whatis">
-      <div class="title">What is Cheloniidae?</div>
-      <div class="content">
-        Cheloniidae (formerly Terrapin) is an advanced Java turtle graphics library written by <a href="http://www.spencertipping.com/">Spencer Tipping</a>. It
-        supports three-dimensional rendering, turtle replication, and other concepts not traditionally implemented in turtle systems.  All of the images on this
+    <div class='section' id='whatis'>
+      <div class='title'>What is Cheloniidae?</div>
+      <div class='content'>
+        Cheloniidae (formerly Terrapin) is an advanced Java turtle graphics library written by <a href='http://www.spencertipping.com/'>Spencer Tipping</a>. It
+        supports three-dimensional rendering, turtle replication, and other concepts not traditionally implemented in turtle systems. All of the images on this
         page were produced with Cheloniidae using the included example programs.
       </div>
     </div>
 
-    <div class="section" id="wheregoing">
-      <div class="title">Where's Cheloniidae Going?</div>
-      <div class="content">
-        <img src="3.0-screenshots/spheres2-small.png">
-        <img src="3.0-screenshots/cubes2-small.png">
-        <img src="3.0-screenshots/circles-small.png">
-        The Cheloniidae project is taking some exciting new directions. Check out the prereleases
-        of version 3.0 to see where things are moving.
-        <p></p>
-        <a href="cheloniidae-3.0-pre1.zip">cheloniidae-3.0-pre1.zip</a>
-        <p></p>
-        <a href="cheloniidae-3.0-pre2.zip">cheloniidae-3.0-pre2.zip</a>
-        <p style="clear: right"></p>
+    <div class='section' id='whatsnew'>
+      <div class='title'>What's New?</div>
+      <div class='content'>
+        <h2>Mouse and Keyboard Controls</h2>
+        <p>
+        Version 3 brings more consistency to moving throughout the space. Here are the commands:
+        <ul>
+          <li><span class='command'>Mouse drag:</span>         Shifts the camera's position.</li>
+          <li><span class='command'>Shift + mouse drag:</span> Rotates the camera about the center of the structure.</li>
+          <li><span class='command'>Mouse wheel:</span>        Zooms the camera forwards or backwards.</li>
+          <li><span class='command'>Control + anything:</span> Reduces the speed of any other action.</li>
+        </ul>
+        </p>
+
+        <h2>Turtle Command API</h2>
+        <p>
+        Turtle commands let you do more with less code. By constructing a series of commands to be run, you have the flexibility of transparently driving
+        multiple turtles simultaneously, using the built-in recursion and iteration constructs, and even driving turtles of different types.
+        </p>
+
+        <p>
+        In version 2.1, all commands were given directly to the turtle, like this:
+
+        <pre class='code'>
+for (int i = 0; i &lt; 4; ++i)
+  t.move (100).turn (90);</pre>
+
+        Starting with version 3, however, you can construct the equivalent turtle command instead:
+
+        <pre class='code'>
+repeat (4, move (100), turn (90));</pre>
+
+        While there are some cases that still require Java's control flow constructs, many common coding patterns have a pure turtle command representation.
+        (Check out the example files included with Cheloniidae for more details.)
+        </p>
       </div>
     </div>
 
-    <div class="section" id="getting">
-      <div class="title">Getting Cheloniidae</div>
-      <div class="content">
+    <div class='section' id='getting'>
+      <div class='title'>Getting Cheloniidae</div>
+      <div class='content'>
         Cheloniidae is free software and is licensed under the terms of the MIT source code license.
         The current release (source code, binaries, documentation, and sample files)
-        is version 2.1, available here: <a href="cheloniidae-2.1.zip">cheloniidae-2.1.zip</a>. Cheloniidae
+        is version 3.0, available here: <a href='cheloniidae-3.0.zip'>cheloniidae-3.0.zip</a>. Cheloniidae
         should work with the JRE 1.4.2 or higher on any platform, although
         the GCJ JRE seems to have some trouble on Linux.
         <p></p>
@@ -122,25 +155,25 @@
         If your classpath is not configured correctly (i.e. does not include the
         current directory), you may need to run this:
         <pre>java -Xmx512m -cp ./ blockcity</pre>
-        Documentation is maintained in <a href="http://www.methods.co.nz/asciidoc">AsciiDoc</a>
+        Documentation is maintained in <a href='http://www.methods.co.nz/asciidoc'>AsciiDoc</a>
         format (the <code>cheloniidae.html</code> file in the download), and the <code>README</code>
         file should contain instructions for rebuilding Cheloniidae. (This may be necessary depending
         on your version of the JRE). Future major releases will include
-        documentation in <a href="http://tug.org">TeX</a> format.
+        documentation in <a href='http://tug.org'>TeX</a> format.
         <p></p>
         If you like Cheloniidae, think it should be changed, have a cool image that you
         made with it, etc., send me an e-mail at
-        <a href="mailto:spencer@spencertipping.com">spencer@spencertipping.com</a>.
+        <a href='mailto:spencer@spencertipping.com'>spencer@spencertipping.com</a>.
       </div>
     </div>
 
-    <div class="section" id="coding">
-      <div class="title">Coding in Cheloniidae 2.1</div>
-      <div class="content">
+    <div class='section' id='coding'>
+      <div class='title'>Coding in Cheloniidae 2.1</div>
+      <div class='content'>
         Writing Cheloniidae programs is easy! Here's a square:
-        <img src="square.png" alt="Square in Cheloniidae">
+        <img src='square.png' alt='Square in Cheloniidae'>
 
-<pre id="listing1">
+<pre id='listing1'>
 import cheloniidae.*;
 
 public class Square {
@@ -158,14 +191,14 @@ public class Square {
   }
 }
 </pre>
-<script type="text/javascript">highlight ("listing1");</script>
+<script type='text/javascript'>highlight ('listing1');</script>
 
-        <img src="spiral.png" alt="Spiral in Cheloniidae">
+        <img src='spiral.png' alt='Spiral in Cheloniidae'>
         To break out of the plane, we use <code>turnPhi</code>. Depending on whether we're
         using spherical or cylindrical coordinates, this will either bend the plane into
         a cone away from the camera or rotate it about the Y axis, respectively.
 
-<pre id="listing2">
+<pre id='listing2'>
 import cheloniidae.*;
 
 public class Phi {
@@ -197,15 +230,15 @@ public class Phi {
   }
 }
 </pre>
-<script type="text/javascript">highlight ("listing2");</script>
+<script type='text/javascript'>highlight ('listing2');</script>
 
       </div>
     </div>
 
-    <div class="section" id="three">
-      <div class="title">3D Turtle Space</div>
-      <div class="content">
-        <img src="spirals.png" alt="Spirals with Multiple Turtles">
+    <div class='section' id='three'>
+      <div class='title'>3D Turtle Space</div>
+      <div class='content'>
+        <img src='spirals.png' alt='Spirals with Multiple Turtles'>
         Cheloniidae provides a 3D space for the turtle and three coordinate
         models (cylindrical, spherical, and orthogonal planar) that can
         govern the turtle's navigation of space. In the included spiral
@@ -228,51 +261,51 @@ public class Phi {
         angular coordinate &xi;, which provides pivoting around the transformed
         X axis of a cylindrical transformation of the plane. This mode is
         used to construct toroidal figures from a series of circles (see below).
-        <div style="clear: both"> </div>
+        <div style='clear: both'> </div>
       </div>
     </div>
 
-    <div class="section" id="axes">
-      <div class="title">Axes and Grids</div>
-      <div class="content">
-        <img src="spheres.png" alt="spheres">
+    <div class='section' id='axes'>
+      <div class='title'>Axes and Grids</div>
+      <div class='content'>
+        <img src='spheres.png' alt='spheres'>
         One helpful feature of Cheloniidae is its support for grids and axes.
         Grids and axes may be added independently of one another and along
         any of the three basic coordinate directions. Here is the code, for
         example, to add a grid:
 
-<pre id="listing3" style="clear: both">
+<pre id='listing3' style='clear: both'>
 // w is a TurtleDrawingWindow
 AxialGrid g = new AxialGrid (AxialGrid.XY_PLANE | AxialGrid.XZ_PLANE);
 w.add (g);
 </pre>
-<script type="text/javascript">highlight ("listing3");</script>
+<script type='text/javascript'>highlight ('listing3');</script>
       </div>
     </div>
 
-    <div class="section" id="capacity">
-      <div class="title">Stable Rendering</div>
-      <div class="content">
-        <img src="cubes.png" alt="Cubes example scene">
+    <div class='section' id='capacity'>
+      <div class='title'>Stable Rendering</div>
+      <div class='content'>
+        <img src='cubes.png' alt='Cubes example scene'>
         Cheloniidae supports results with many line segments very efficiently. During
         a redraw operation, lines are drawn using a custom recursive algorithm that
         accelerates intermediate rendering.
-        <img src="donut.png" alt="Donuts example scene">
-        <div style="clear: both"> </div>
+        <img src='donut.png' alt='Donuts example scene'>
+        <div style='clear: both'> </div>
       </div>
     </div>
 
-    <div class="section" id="fractals">
-      <div class="title">Fractals</div>
-      <div class="content">
-        <img src="tree.png" alt="tree">
+    <div class='section' id='fractals'>
+      <div class='title'>Fractals</div>
+      <div class='content'>
+        <img src='tree.png' alt='tree'>
         To facilitate fractal generation, each turtle has a stack so
         that its location and headings can be stored and loaded. That way,
         fractal algorithms become very easy to write, yielding complex
         results from under 100 lines of code. (The image on the right contains
         over 650,000 lines).
 
-<pre id="listing4">
+<pre id='listing4'>
 import cheloniidae.*;
 import java.awt.Color;
 import java.util.Random;
@@ -353,7 +386,7 @@ public class tree {
   }
 }
 </pre>
-<script type="text/javascript">highlight ("listing4");</script>
+<script type='text/javascript'>highlight ('listing4');</script>
 
       </div>
     </div>
