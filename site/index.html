@@ -76,7 +76,7 @@
         font-weight: bold;
       }
 
-      pre.code {
+      pre.code, code {
         font-family: 'Andale Mono', 'Inconsolata', 'Monaco', 'Liberation Mono', 'Monospace', monospace;
         font-size: 10pt;
       }
@@ -118,9 +118,6 @@
         <a href='3.0-screenshots/replicatedtube.png'><img class='screenshot' src='3.0-screenshots/replicatedtube-small.png' alt='Inductive Replication'></a>
         <a href='3.0-screenshots/morecircles2.png'><img class='screenshot' src='3.0-screenshots/morecircles2-small.png' alt='Inductive Replication and Recursion'></a>
         <a href='3.0-screenshots/recursivetree.png'><img class='screenshot' src='3.0-screenshots/recursivetree-small.png' alt='Turtle Command Recursion'></a>
-        <a href='3.0-screenshots/spirals.png'><img class='screenshot' src='3.0-screenshots/spirals-small.png' alt='Direct Control'></a>
-        <a href='3.0-screenshots/brokengasket.png'><img class='screenshot' src='3.0-screenshots/brokengasket-small.png' alt='Recursion'></a>
-        <a href='3.0-screenshots/morecircles.png'><img class='screenshot' src='3.0-screenshots/morecircles-small.png' alt='Inductive Replication and Recursion'></a>
       </div>
     </div>
 
@@ -139,6 +136,8 @@
         </p>
 
         <h2>Turtle Command API</h2>
+        <a href='3.0-screenshots/brokengasket.png'><img class='screenshot' src='3.0-screenshots/brokengasket-small.png' alt='Recursion'></a>
+
         <p>
         Turtle commands let you do more with less code. By constructing a series of commands to be run, you have the flexibility of transparently driving
         multiple turtles simultaneously, using the built-in recursion and iteration constructs, and even driving turtles of different types.
@@ -172,6 +171,8 @@ repeat (4, move (100), turn (90));</pre>
         higher on any platform.
         </p>
 
+        <a href='3.0-screenshots/morecircles.png'><img class='screenshot' src='3.0-screenshots/morecircles-small.png' alt='Inductive Replication and Recursion'></a>
+
         <h2>Previous Releases</h2>
         <p>
         The 3.0 prereleases and 2.x series are also available for download:<br/>
@@ -180,11 +181,12 @@ repeat (4, move (100), turn (90));</pre>
         <a href='cheloniidae-2.1.zip'>cheloniidae-2.1.zip</a><br/>
         <a href='cheloniidae-2.0.zip'>cheloniidae-2.0.zip</a><br/>
         </p>
+        <a href='3.0-screenshots/spirals.png'><img class='screenshot' src='3.0-screenshots/spirals-small.png' alt='Direct Control'></a>
 
         <h2>Common Problems</h2>
         <p>
         If your classpath is not configured correctly (i.e. does not include the current directory), you may need to run Cheloniidae programs this way:
-        <pre>java -cp ./ classname</pre>
+        <code>java -cp ./ classname</code>
         </p>
       </div>
     </div>
@@ -193,7 +195,7 @@ repeat (4, move (100), turn (90));</pre>
       <div class='title'>Coding in Cheloniidae 3</div>
       <div class='content'>
         <p>
-        Writing Cheloniidae programs is easier than ever!
+        With the new turtle command API, coding in Cheloniidae is now easier than ever.
         </p>
         
         <h2>Creating a Square</h2>
@@ -231,7 +233,7 @@ public class Spiral extends SingleTurtleScene {
         <h2>Further Reading</h2>
         <p>
         I haven't finished the documentation yet, but the examples are a great place to start. For the more adventurous, you can always look at the Cheloniidae
-        code itself, especially in <code>cheloniidae.commands.*</code> and <code>cheloniidae.RotationalCartesianTurtle</code>.
+        code itself, especially in <code>cheloniidae.frames.CoreCommands</code> and <code>cheloniidae.RotationalCartesianTurtle</code>.
         </p>
       </div>
     </div>
