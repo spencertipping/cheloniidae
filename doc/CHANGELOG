@@ -2,6 +2,7 @@
   - Improved responsiveness during a line-retrieval operation by making that step
     interruptible.
 
+  - Added text rendering via the cheloniidae.resources.BasicTextRenderer class.
   - Added line-counting to the TurtleWindow class.
   - Added a dark single-turtle scene.
   - Added inductive replication and recursion to the turtle command framework.
