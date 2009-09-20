@@ -37,6 +37,7 @@
         font-size: 60pt;
         font-family: 'Andale Mono', 'Inconsolata', 'Monaco', 'Liberation Mono', 'Monospace', monospace;
         font-weight: bold;
+        border-left: solid 8px #123;
       }
 
       div.section {
@@ -75,6 +76,18 @@
         font-weight: bold;
       }
 
+      pre.code {
+        font-family: 'Andale Mono', 'Inconsolata', 'Monaco', 'Liberation Mono', 'Monospace', monospace;
+        font-size: 10pt;
+      }
+
+      img {
+        border-left: none;
+        border-right: none;
+        border-top: none;
+        border-bottom: solid 4px #456;
+      }
+
       a {
         color: #3050a0;
       }
@@ -91,9 +104,23 @@
     <div class='section' id='whatis'>
       <div class='title'>What is Cheloniidae?</div>
       <div class='content'>
+        <p>
         Cheloniidae (formerly Terrapin) is an advanced Java turtle graphics library written by <a href='http://www.spencertipping.com/'>Spencer Tipping</a>. It
         supports three-dimensional rendering, turtle replication, and other concepts not traditionally implemented in turtle systems. All of the images on this
-        page were produced with Cheloniidae using the included example programs.
+        page were produced with Cheloniidae using the included example programs (or code next to the images).
+        </p>
+
+        <h2>Examples</h2>
+        <p>
+        Here are some of the examples included with Cheloniidae. Each of these images was produced with under 35 lines of Java.
+        </p>
+
+        <a href='3.0-screenshots/replicatedtube.png'><img class='screenshot' src='3.0-screenshots/replicatedtube-small.png' alt='Inductive Replication'></a>
+        <a href='3.0-screenshots/morecircles2.png'><img class='screenshot' src='3.0-screenshots/morecircles2-small.png' alt='Inductive Replication and Recursion'></a>
+        <a href='3.0-screenshots/recursivetree.png'><img class='screenshot' src='3.0-screenshots/recursivetree-small.png' alt='Turtle Command Recursion'></a>
+        <a href='3.0-screenshots/spirals.png'><img class='screenshot' src='3.0-screenshots/spirals-small.png' alt='Direct Control'></a>
+        <a href='3.0-screenshots/brokengasket.png'><img class='screenshot' src='3.0-screenshots/brokengasket-small.png' alt='Recursion'></a>
+        <a href='3.0-screenshots/morecircles.png'><img class='screenshot' src='3.0-screenshots/morecircles-small.png' alt='Inductive Replication and Recursion'></a>
       </div>
     </div>
 
@@ -138,256 +165,74 @@ repeat (4, move (100), turn (90));</pre>
     <div class='section' id='getting'>
       <div class='title'>Getting Cheloniidae</div>
       <div class='content'>
-        Cheloniidae is free software and is licensed under the terms of the MIT source code license.
-        The current release (source code, binaries, documentation, and sample files)
-        is version 3.0, available here: <a href='cheloniidae-3.0.zip'>cheloniidae-3.0.zip</a>. Cheloniidae
-        should work with the JRE 1.4.2 or higher on any platform, although
-        the GCJ JRE seems to have some trouble on Linux.
-        <p></p>
-        <strong>Note:</strong> A few of the sample files used with Cheloniidae consume a lot
-        of memory when run. To be able to view the results, you will need to increase the
-        Java heap limit. The option for doing this is <code>-Xmx512m</code>, where <code>512</code>
-        can be any number of megabytes. 512 megabytes should be enough to run any of the example
-        files without problems, though if you don't have 512 MB of memory then
-        you probably shouldn't let Java allocate that much. So, for example, you
-        might run Cheloniidae this way:
-        <pre>java -Xmx512m blockcity</pre>
-        If your classpath is not configured correctly (i.e. does not include the
-        current directory), you may need to run this:
-        <pre>java -Xmx512m -cp ./ blockcity</pre>
-        Documentation is maintained in <a href='http://www.methods.co.nz/asciidoc'>AsciiDoc</a>
-        format (the <code>cheloniidae.html</code> file in the download), and the <code>README</code>
-        file should contain instructions for rebuilding Cheloniidae. (This may be necessary depending
-        on your version of the JRE). Future major releases will include
-        documentation in <a href='http://tug.org'>TeX</a> format.
-        <p></p>
-        If you like Cheloniidae, think it should be changed, have a cool image that you
-        made with it, etc., send me an e-mail at
-        <a href='mailto:spencer@spencertipping.com'>spencer@spencertipping.com</a>.
+        <h2>Current Release</h2>
+        <p>
+        Cheloniidae is free software and is licensed under the terms of the MIT source code license. The current release (source code, binaries, documentation,
+        and sample files) is version 3.0, available here: <a href='cheloniidae-3.0.zip'>cheloniidae-3.0.zip</a>. Cheloniidae should work with the JRE 1.5 or
+        higher on any platform.
+        </p>
+
+        <h2>Previous Releases</h2>
+        <p>
+        The 3.0 prereleases and 2.x series are also available for download:<br/>
+        <a href='cheloniidae-3.0-pre2.zip'>cheloniidae-3.0-pre2.zip</a><br/>
+        <a href='cheloniidae-3.0-pre1.zip'>cheloniidae-3.0-pre1.zip</a><br/>
+        <a href='cheloniidae-2.1.zip'>cheloniidae-2.1.zip</a><br/>
+        <a href='cheloniidae-2.0.zip'>cheloniidae-2.0.zip</a><br/>
+        </p>
+
+        <h2>Common Problems</h2>
+        <p>
+        If your classpath is not configured correctly (i.e. does not include the current directory), you may need to run Cheloniidae programs this way:
+        <pre>java -cp ./ classname</pre>
+        </p>
       </div>
     </div>
 
     <div class='section' id='coding'>
-      <div class='title'>Coding in Cheloniidae 2.1</div>
+      <div class='title'>Coding in Cheloniidae 3</div>
       <div class='content'>
-        Writing Cheloniidae programs is easy! Here's a square:
+        <p>
+        Writing Cheloniidae programs is easier than ever!
+        </p>
+        
+        <h2>Creating a Square</h2>
         <img src='square.png' alt='Square in Cheloniidae'>
 
-<pre id='listing1'>
+        <pre class='code'>
 import cheloniidae.*;
-
-public class Square {
-  public static void main (String[] args) {
-    TurtleDrawingWindow w = new TurtleDrawingWindow ();
-    Turtle t = new Turtle ();
-
-    w.add (t);
-    w.setVisible (true);
-
-    for (int i = 0; i &lt; 4; i++) {
-      t.move (100);
-      t.turn (90);
-    }
+import cheloniidae.frames.*;
+public class Square extends SingleTurtleScene {
+  public static void main (String[] args) {new Square ();}
+  public TurtleCommand commands () {
+    return repeat (4, move (100), turn (90));
   }
-}
-</pre>
-<script type='text/javascript'>highlight ('listing1');</script>
+}</pre>
+
+        <h2>Adding Depth</h2>
+        <p>
+        Turtles support a <code>pitch</code> command that lets them turn up or down. We'll use this to create a spiral:
+        </p>
 
         <img src='spiral.png' alt='Spiral in Cheloniidae'>
-        To break out of the plane, we use <code>turnPhi</code>. Depending on whether we're
-        using spherical or cylindrical coordinates, this will either bend the plane into
-        a cone away from the camera or rotate it about the Y axis, respectively.
-
-<pre id='listing2'>
+        
+<pre class='code'>
 import cheloniidae.*;
-
-public class Phi {
-  public static void main (String[] args) {
-    TurtleDrawingWindow w = new TurtleDrawingWindow ();
-    Turtle t = new Turtle ();
-
-    w.add (t);
-
-    t.setPenSize (0.25);
-    t.setPenColor (new java.awt.Color (
-      0.2f, 0.5f, 0.4f, 0.5f));
-
-    /*
-     * Translucency is enabled on the colors (hence
-     * fourth channel above). Also, lines are depth-sorted
-     * in 3D view so that the overlap effects are correct
-     * for the view angle.
-     */
-
-    t.turnPhi (10);
-
-    for (int i = 0; i &lt; 1440; i++) {
-      t.move (1);
-      t.turn (1);
-    }
-
-    w.setVisible (true);
+import cheloniidae.frames.*;
+public class Spiral extends SingleTurtleScene {
+  public static void main (String[] args) {new Spiral ();}
+  public TurtleCommand commands () {
+    return sequence (size (0.25), color (new java.awt.Color (0.2f, 0.5f, 0.4f, 0.5f)),
+                     repeat (400, move (5), turn (5), pitch (5)));
   }
 }
 </pre>
-<script type='text/javascript'>highlight ('listing2');</script>
 
-      </div>
-    </div>
-
-    <div class='section' id='three'>
-      <div class='title'>3D Turtle Space</div>
-      <div class='content'>
-        <img src='spirals.png' alt='Spirals with Multiple Turtles'>
-        Cheloniidae provides a 3D space for the turtle and three coordinate
-        models (cylindrical, spherical, and orthogonal planar) that can
-        govern the turtle's navigation of space. In the included spiral
-        program, you can see this capability. In the cylindrical model, &phi;
-        governs the angle of the turtle's plane (in
-        which it still uses polar coordinates with respect to &theta;).
-        The plane is rotated about the turtle, so simply changing the
-        value of &phi; will never alter the turtle's location.
-        <p></p>
-        Using spherical coordinates (the default) results in the turtle's plane
-        being bent into a cone whose angle of intersection with the Y axis is
-        &phi;. As with cylindrical coordinates, alterations to &phi; do
-        not affect the turtle's location; rather, all transformation is
-        performed treating the turtle as the origin. This is the desired
-        functionality in most cases, since alterations of the turtle's heading
-        do not normally produce lines.
-        <p></p>
-        The third coordinate model, orthogonal planar coordinates, allows
-        full flexibility for the plane's orientation. It uses the auxiliary
-        angular coordinate &xi;, which provides pivoting around the transformed
-        X axis of a cylindrical transformation of the plane. This mode is
-        used to construct toroidal figures from a series of circles (see below).
-        <div style='clear: both'> </div>
-      </div>
-    </div>
-
-    <div class='section' id='axes'>
-      <div class='title'>Axes and Grids</div>
-      <div class='content'>
-        <img src='spheres.png' alt='spheres'>
-        One helpful feature of Cheloniidae is its support for grids and axes.
-        Grids and axes may be added independently of one another and along
-        any of the three basic coordinate directions. Here is the code, for
-        example, to add a grid:
-
-<pre id='listing3' style='clear: both'>
-// w is a TurtleDrawingWindow
-AxialGrid g = new AxialGrid (AxialGrid.XY_PLANE | AxialGrid.XZ_PLANE);
-w.add (g);
-</pre>
-<script type='text/javascript'>highlight ('listing3');</script>
-      </div>
-    </div>
-
-    <div class='section' id='capacity'>
-      <div class='title'>Stable Rendering</div>
-      <div class='content'>
-        <img src='cubes.png' alt='Cubes example scene'>
-        Cheloniidae supports results with many line segments very efficiently. During
-        a redraw operation, lines are drawn using a custom recursive algorithm that
-        accelerates intermediate rendering.
-        <img src='donut.png' alt='Donuts example scene'>
-        <div style='clear: both'> </div>
-      </div>
-    </div>
-
-    <div class='section' id='fractals'>
-      <div class='title'>Fractals</div>
-      <div class='content'>
-        <img src='tree.png' alt='tree'>
-        To facilitate fractal generation, each turtle has a stack so
-        that its location and headings can be stored and loaded. That way,
-        fractal algorithms become very easy to write, yielding complex
-        results from under 100 lines of code. (The image on the right contains
-        over 650,000 lines).
-
-<pre id='listing4'>
-import cheloniidae.*;
-import java.awt.Color;
-import java.util.Random;
-
-public class tree {
-  public static final Color branches =
-    new Color (0.4f, 0.35f, 0.2f, 0.8f);
-  public static final Color leaves =
-    new Color (0.0f, 0.2f, 0.0f, 0.5f);
-
-  public static void main (
-      String[] args) {
-
-    TurtleDrawingWindow w =
-      new TurtleDrawingWindow ();
-    Turtle t = new Turtle ();
-    w.add (t);
-
-    /*
-     * This turn and jump rotate the tree
-     * so that it points upwards and move
-     * 100 units down, respectively, the
-     * end result being that it is better
-     * centered in the viewport.
-     */
-
-    t.turn (-90);
-    t.jump (-100);
-
-    tree (t, 60, 16, new Random ());
-    w.setVisible (true);
-  }
-
-  public static void tree (
-      Turtle t, double distance,
-      int recursionLevel, Random r) {
-    t.setPenColor (branches);
-    t.setPenSize (distance * distance / 200.0);
-    t.move (distance * (0.3 + 0.7 * r.nextDouble ()));
-    t.turn (-15 * r.nextDouble () * 2.0);
-
-    t.turnPhi ((r.nextDouble () - 0.5) * 60.0);
-
-    if (recursionLevel &gt; 0) {
-      t.pushTurtleState ();
-
-      /*
-       * Before rendering a sub-tree, we remember the turtle's location
-       * with a stack push. When we pop the turtle state, its location,
-       * theta heading, and phi heading will all be restored.
-       */
-
-      tree (t, distance / 1.04 * (0.8 + 0.2 * r.nextDouble ()), recursionLevel - 1, r);
-      t.popTurtleState ();
-      t.turn (30 + r.nextDouble () * 4.0);
-      t.pushTurtleState ();
-      tree (t, distance / 1.04 * (0.8 + 0.2 * r.nextDouble ()), recursionLevel - 1, r);
-      t.popTurtleState ();
-    } else {
-      t.jump (distance * -0.3);
-      t.setPenSize (distance * distance / 300.0);
-      t.setPenColor (leaves);
-
-      t.turnPhi ((r.nextDouble () - 0.5) * 360.0);
-
-      for (int i = 0; i &lt; 4; i++) {
-        t.pushTurtleState ();
-        t.turn (-45 + (r.nextDouble () - 0.5) * 15.0);
-        t.move (distance * 0.2 * (4 - i));
-        t.popTurtleState ();
-        t.pushTurtleState ();
-        t.turn (45 + (r.nextDouble () - 0.5) * 15.0);
-        t.move (distance * 0.2 * (4 - i));
-        t.popTurtleState ();
-        t.jump (distance * 0.3);
-      }
-    }
-  }
-}
-</pre>
-<script type='text/javascript'>highlight ('listing4');</script>
-
+        <h2>Further Reading</h2>
+        <p>
+        I haven't finished the documentation yet, but the examples are a great place to start. For the more adventurous, you can always look at the Cheloniidae
+        code itself, especially in <code>cheloniidae.commands.*</code> and <code>cheloniidae.RotationalCartesianTurtle</code>.
+        </p>
       </div>
     </div>
   </body>
