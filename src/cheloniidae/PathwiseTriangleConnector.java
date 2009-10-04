@@ -1,5 +1,7 @@
 package cheloniidae;
 
+import cheloniidae.predicates.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -72,5 +74,10 @@ public class PathwiseTriangleConnector<T extends EuclideanTurtle> extends Turtle
 
       public TurtleCommand map (final Transformation<TurtleCommand> t) {return this;}
     };
+  }
+
+  public PathwiseTriangleConnector<T> run (final TurtleCommand c) {
+    super.run (new Parallelize ().transform (c));
+    return this;
   }
 }
