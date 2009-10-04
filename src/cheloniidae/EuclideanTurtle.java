@@ -48,9 +48,9 @@ implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSi
       {position = _position.clone (); size = _size; color = _color;}
 
     public State applyTo (final Turtle t) {
-      new CommandSequence (new Position  (position),
-                           new LineSize  (size),
-                           new LineColor (color)).applyTo (t);
+      new Sequence (new Position  (position),
+                    new LineSize  (size),
+                    new LineColor (color)).applyTo (t);
       return this;
     }
   }

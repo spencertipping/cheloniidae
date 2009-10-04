@@ -4,11 +4,11 @@ import cheloniidae.*;
 import cheloniidae.commands.*;
 
 public class InductiveReplicator<T extends Turtle> extends Replicator {
-  public final TurtleCommand   step;
-  public final int             copies;
-  public final CommandSequence actions;
+  public final TurtleCommand step;
+  public final int           copies;
+  public final Sequence      actions;
   public InductiveReplicator (final int _copies, final TurtleCommand _step, final TurtleCommand ... _actions)
-    {step = _step; copies = _copies; actions = new CommandSequence (_actions);}
+    {step = _step; copies = _copies; actions = new Sequence (_actions);}
 
   public TurtleGroup<Turtle> replicate (final Turtle turtle) {
     final TurtleGroup<Turtle> result   = new TurtleGroup<Turtle> ();

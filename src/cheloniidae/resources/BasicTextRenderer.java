@@ -10,9 +10,9 @@ public class BasicTextRenderer {
 
   public TurtleCommand line    (final double length) {return new Move (length);}
   public TurtleCommand jump    (final double length) {return new Jump (length);}
-  public TurtleCommand lateral (final double right)  {return new CommandSequence (new Turn (90), new Jump (right), new Turn (-90));}
-  public TurtleCommand right   ()                    {return new CommandSequence (new Turn ( 45), new Move (diagonal), new Turn ( 45));}
-  public TurtleCommand left    ()                    {return new CommandSequence (new Turn (-45), new Move (diagonal), new Turn (-45));}
+  public TurtleCommand lateral (final double right)  {return new Sequence (new Turn (90), new Jump (right), new Turn (-90));}
+  public TurtleCommand right   ()                    {return new Sequence (new Turn ( 45), new Move (diagonal), new Turn ( 45));}
+  public TurtleCommand left    ()                    {return new Sequence (new Turn (-45), new Move (diagonal), new Turn (-45));}
   public TurtleCommand turn    (final int angle)     {return new Turn ((double) angle);}
 
   public TurtleCommand wind    (final int ... xs) {
@@ -34,12 +34,12 @@ public class BasicTextRenderer {
     return seq (cs.toArray (new TurtleCommand[0]));
   }
 
-  public TurtleCommand topLeft     () {return new CommandSequence (new Jump (9), new Turn (180));}
-  public TurtleCommand topRight    () {return new CommandSequence (new Jump (9), new Turn (90), new Jump (6), new Turn (90));}
+  public TurtleCommand topLeft     () {return new Sequence (new Jump (9), new Turn (180));}
+  public TurtleCommand topRight    () {return new Sequence (new Jump (9), new Turn (90), new Jump (6), new Turn (90));}
   public TurtleCommand bottomLeft  () {return new NullCommand ();}
-  public TurtleCommand bottomRight () {return new CommandSequence (new Turn (90), new Jump (6), new Turn (-90));}
+  public TurtleCommand bottomRight () {return new Sequence (new Turn (90), new Jump (6), new Turn (-90));}
 
-  public TurtleCommand seq (final TurtleCommand ... commands) {return new CommandSequence (commands);}
+  public TurtleCommand seq (final TurtleCommand ... commands) {return new Sequence (commands);}
 
   public TurtleCommand drawCharacter (final char c) {
     switch (c) {
@@ -74,9 +74,9 @@ public class BasicTextRenderer {
     }
   }
 
-  public CommandSequence drawText (final String text) {
+  public Sequence drawText (final String text) {
     final List<TurtleCommand> cs = new LinkedList<TurtleCommand> ();
     for (int i = 0; i < text.length (); ++i) cs.add (drawCharacter (text.charAt (i)));
-    return new CommandSequence (cs.toArray (new TurtleCommand[0]));
+    return new Sequence (cs.toArray (new TurtleCommand[0]));
   }
 }

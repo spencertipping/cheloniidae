@@ -30,8 +30,8 @@ public abstract class CoreCommands {
   public static NullCommand pass  ()                  {return new NullCommand ();}
   public static Debug       debug (final String text) {return new Debug (text);}
 
-  public static Repeat          repeat   (final int repetitions, final TurtleCommand ... commands) {return new Repeat (repetitions, commands);}
-  public static CommandSequence sequence (final TurtleCommand ... commands)                        {return new CommandSequence (commands);}
+  public static Repeat   repeat   (final int repetitions, final TurtleCommand ... commands) {return new Repeat (repetitions, commands);}
+  public static Sequence sequence (final TurtleCommand ... commands)                        {return new Sequence (commands);}
 
   public static InductiveReplicator<StandardRotationalTurtle> inductiveReplicator (final int copies, final TurtleCommand inductiveStep,
                                                                                    final TurtleCommand ... replicatedActions) {
