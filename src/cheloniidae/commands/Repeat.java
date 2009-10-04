@@ -4,7 +4,7 @@ import cheloniidae.Turtle;
 import cheloniidae.TurtleCommand;
 import cheloniidae.Transformation;
 
-public class Repeat implements TurtleCommand {
+public class Repeat implements TurtleCommand, SerialTurtleCommandComposition {
   public final int             repetitions;
   public final CommandSequence body;
 
