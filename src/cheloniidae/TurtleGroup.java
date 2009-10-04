@@ -47,9 +47,11 @@ public class TurtleGroup<T extends Turtle> extends BasicTurtle<TurtleGroup<T>> i
   public TurtleCommand adder () {
     return new TurtleCommand () {
       public TurtleCommand applyTo (final Turtle t) {
-        if (t instanceof T) add ((T) t);
+        add ((T) t);
         return this;
       }
+
+      public TurtleCommand map (Transformation<TurtleCommand> t) {return this;}
     };
   }
 
