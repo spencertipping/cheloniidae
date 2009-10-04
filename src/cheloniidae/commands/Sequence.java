@@ -1,5 +1,6 @@
 package cheloniidae.commands;
 
+import cheloniidae.SerialTurtleCommandComposition;
 import cheloniidae.Turtle;
 import cheloniidae.TurtleCommand;
 import cheloniidae.Transformation;

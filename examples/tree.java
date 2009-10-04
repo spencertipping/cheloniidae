@@ -11,7 +11,7 @@ public class tree extends SingleTurtleScene {
     return sequence (turn (180), tree (16, 100));
   }
 
-  public CommandSequence tree (final int recursionLevel, final double scale) {
+  public Sequence tree (final int recursionLevel, final double scale) {
     return sequence (
       size (4),
       stack.push (),

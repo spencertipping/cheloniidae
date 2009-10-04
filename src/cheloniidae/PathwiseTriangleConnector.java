@@ -1,6 +1,6 @@
 package cheloniidae;
 
-import cheloniidae.predicates.*;
+import cheloniidae.transformations.Parallelize;
 
 import java.util.ArrayList;
 import java.util.Collection;

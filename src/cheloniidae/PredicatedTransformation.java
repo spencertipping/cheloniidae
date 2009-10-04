@@ -1,6 +1,6 @@
 package cheloniidae;
 
-public class PredicatedTransformation<T> implements Transformation<T>, Predicate<T> {
+public class PredicatedTransformation<T> implements Transformation<T> {
   public final Predicate<T>      predicate;
   public final Transformation<T> transformation;
 
@@ -10,9 +10,5 @@ public class PredicatedTransformation<T> implements Transformation<T>, Predicate
   public T transform (final T input) {
     if (predicate.matches (input)) return transformation.transform (input);
     else                           return input;
-  }
-
-  public boolean matches (final T value) {
-    return predicate.matches (value);
   }
 }
