@@ -1,31 +1,29 @@
 package cheloniidae;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class PathwiseTriangleConnector extends Renderable {
-  public final List<EuclideanTurtle>   turtles   = new ArrayList<EuclideanTurtle> ();
+public class PathwiseTriangleConnector<T extends EuclideanTurtle> extends TurtleGroup<T> {
   public final List<Vector>            points    = new ArrayList<Vector> ();
   public final List<CartesianTriangle> triangles = new LinkedList<CartesianTriangle> ();
 
-  public PathwiseTriangleConnector (final EuclideanTurtle ... _turtles) {
-    turtles.addAll (_turtles);
-    start ();
-  }
+  public PathwiseTriangleConnector (final T ...         _turtles) {super (_turtles); start ();}
+  public PathwiseTriangleConnector (final Collection<T> _turtles) {super (_turtles); start ();}
 
-  public Set<RenderableAction> actions (final Viewport v) {
-    final Set<RenderableAction> result = new TreeSet<RenderableAction> (new PerspectiveComparator (v));
+  public SortedSet<RenderAction> actions (final Viewport v) {
+    final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
     for (final CartesianTriangle t : triangles) if (v.shouldCancel ()) break;
                                                 else                   result.add (t);
     return result;
   }
 
-  public PathwiseTriangleConnector add (final EuclideanTurtle t) {
-    turtles.add (t);
-    points.add (t.position ().clone ());
+  public PathwiseTriangleConnector<T> add (final T turtle) {
+    super.add (turtle);
+    points.add (turtle.position ().clone ());
     return this;
   }
 
@@ -69,17 +67,6 @@ public class PathwiseTriangleConnector extends Renderable {
     return new NonDistributiveTurtleCommand () {
       public TurtleCommand applyTo (final Turtle t) {
         emit ();
-        return this;
-      }
-
-      public TurtleCommand map (Transformation<TurtleCommand> t) {return this;}
-    };
-  }
-
-  public TurtleCommand adder () {
-    return new TurtleCommand () {
-      public TurtleCommand applyTo (final Turtle t) {
-        if (t instanceof EuclideanTurtle) add ((EuclideanTurtle) t);
         return this;
       }
 
