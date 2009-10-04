@@ -12,4 +12,13 @@ public class Disjunction<T> implements Predicate<T> {
     for (final Predicate<T> p : disjuncts) if (p.matches (value)) return true;
     return false;
   }
+
+  public Predicate<T> map (final Transformation<Predicate<T>> t) {
+    final Predicate<T> newPredicate = t.transform (this);
+    if (newPredicate == this) {
+      final List<Predicate<T>> newDisjuncts = new LinkedList<Predicate<T>> ();
+      for (final Predicate<T> p : disjuncts) newDisjuncts.add (t.transform (p));
+      return new Disjunction<T> (newDisjuncts);
+    } else return newPredicate;
+  }
 }

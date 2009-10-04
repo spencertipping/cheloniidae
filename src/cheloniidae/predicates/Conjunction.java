@@ -12,4 +12,13 @@ public class Conjunction<T> implements Predicate<T> {
     for (final Predicate<T> p : conjuncts) if (! p.matches (value)) return false;
     return true;
   }
+
+  public Predicate<T> map (final Transformation<Predicate<T>> t) {
+    final Predicate<T> newPredicate = t.transform (this);
+    if (newPredicate == this) {
+      final List<Predicate<T>> newConjuncts = new LinkedList<Predicate<T>> ();
+      for (final Predicate<T> p : conjuncts) newConjuncts.add (t.transform (p));
+      return new Conjunction<T> (newConjuncts);
+    } else return newPredicate;
+  }
 }
