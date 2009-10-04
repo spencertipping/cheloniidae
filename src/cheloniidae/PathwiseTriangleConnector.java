@@ -55,20 +55,24 @@ public class PathwiseTriangleConnector extends Renderable {
   }
 
   public TurtleCommand starter () {
-    return new TurtleCommand () {
+    return new NonDistributiveTurtleCommand () {
       public TurtleCommand applyTo (final Turtle t) {
         start ();
         return this;
       }
+
+      public TurtleCommand map (Transformation<TurtleCommand> t) {return this;}
     };
   }
 
   public TurtleCommand emitter () {
-    return new TurtleCommand () {
+    return new NonDistributiveTurtleCommand () {
       public TurtleCommand applyTo (final Turtle t) {
         emit ();
         return this;
       }
+
+      public TurtleCommand map (Transformation<TurtleCommand> t) {return this;}
     };
   }
 
@@ -78,6 +82,8 @@ public class PathwiseTriangleConnector extends Renderable {
         if (t instanceof EuclideanTurtle) add ((EuclideanTurtle) t);
         return this;
       }
+
+      public TurtleCommand map (Transformation<TurtleCommand> t) {return this;}
     };
   }
 }
