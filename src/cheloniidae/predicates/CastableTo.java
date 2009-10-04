@@ -1,20 +1,15 @@
 package cheloniidae.predicates;
 
 import cheloniidae.Predicate;
+import cheloniidae.Transformation;
 
-public class CastableTo<T> implements Predicate<Object> {
-  public final Class<T>     type;
-  public final Predicate<T> predicate;
-  public CastableTo (final Class<T> _type, final Predicate<T> _predicate)
+public class CastableTo<T, U extends T> extends AtomicPredicate<T> {
+  public final Class<U>     type;
+  public final Predicate<U> predicate;
+  public CastableTo (final Class<U> _type, final Predicate<U> _predicate)
     {type = _type; predicate = _predicate;}
 
-  public boolean matches (final Object value) {
+  public boolean matches (final T value) {
     return type.isAssignableFrom (value.getClass ()) && predicate.matches (type.cast (value));
-  }
-
-  public Predicate<Object> map (final Transformation<Predicate<Object>> t) {
-    final Predicate<Object> newPredicate = t.transform (this);
-    if (newPredicate == this) return new CastableTo<T> (type, predicate.map (t));
-    else                      return newPredicate;
   }
 }

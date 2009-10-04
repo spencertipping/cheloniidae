@@ -1,8 +1,11 @@
 package cheloniidae.commands;
 
+import cheloniidae.Predicate;
+import cheloniidae.Transformation;
+import cheloniidae.Turtle;
 import cheloniidae.TurtleCommand;
 
-public class When extends TurtleCommand {
+public class When implements TurtleCommand {
   public final Predicate<Turtle> predicate;
   public final TurtleCommand     action;
 

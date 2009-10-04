@@ -7,7 +7,7 @@ public class RemoveAttribute extends AtomicCommand {
   public RemoveAttribute (final Attribute _attribute) {attribute = _attribute;}
 
   public TurtleCommand applyTo (final Turtle t) {
-    t.attributes ().remove (t);
+    t.attributes ().remove (attribute);
     return this;
   }
 }
