@@ -9,7 +9,9 @@ public class band extends SingleTurtleScene<PathwiseTriangleConnector<StandardRo
   }
 
   public TurtleCommand commands () {
-    turtle.add (new StandardRotationalTurtle ()).add (new StandardRotationalTurtle ().position (new Vector (50, 0, 0)));
-    return repeat (120, move (5), bank (3), pitch (3), turtle.emitter ());
+    turtle.add (new StandardRotationalTurtle ().position (new Vector (-50, 0, 0)))
+          .add (new StandardRotationalTurtle ().position (new Vector (50, 0, 0)).bank (180));
+
+    return repeat (120, move (5), turn (90), jump (50), pitch (3), jump (-50), turn (-90), turtle.emitter ());
   }
 }
