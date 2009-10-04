@@ -59,7 +59,7 @@ public class PathwiseTriangleConnector<T extends EuclideanTurtle> extends Turtle
         return this;
       }
 
-      public TurtleCommand map (Transformation<TurtleCommand> t) {return this;}
+      public TurtleCommand map (final Transformation<TurtleCommand> t) {return this;}
     };
   }
 
@@ -70,7 +70,7 @@ public class PathwiseTriangleConnector<T extends EuclideanTurtle> extends Turtle
         return this;
       }
 
-      public TurtleCommand map (Transformation<TurtleCommand> t) {return this;}
+      public TurtleCommand map (final Transformation<TurtleCommand> t) {return this;}
     };
   }
 }
