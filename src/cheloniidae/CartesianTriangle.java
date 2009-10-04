@@ -39,9 +39,16 @@ public class CartesianTriangle extends ViewportCaching implements HasPerspective
       final Vector     pv3 = v.projectPoint (tv3);
       final Graphics2D g   = v.context ();
 
-      g.setColor (color);
-      g.fill     (new Polygon (new int[] {(int) pv1.x, (int) pv2.x, (int) pv3.x},
-                               new int[] {(int) pv1.y, (int) pv2.y, (int) pv3.y}, 3));
+      final int[] xs = new int[] {(int) pv1.x, (int) pv2.x, (int) pv3.x};
+      final int[] ys = new int[] {(int) pv1.y, (int) pv2.y, (int) pv3.y};
+
+      // Render only real triangles. If they become degenerate when projected into 2D, then we ignore them.
+      if (! (xs[0] == xs[1] && ys[0] == ys[1] ||
+             xs[1] == xs[2] && ys[1] == ys[2] ||
+             xs[0] == xs[2] && ys[0] == ys[2])) {
+        g.setColor (color);
+        g.fill     (new Polygon (xs, ys, 3));
+      }
     }
   }
 }
