@@ -17,7 +17,7 @@ public class PathwiseTriangleConnector<T extends EuclideanTurtle> extends Turtle
   public PathwiseTriangleConnector (final Collection<T> _turtles) {super (_turtles); start ();}
 
   public SortedSet<RenderAction> actions (final Viewport v) {
-    final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
+    final SortedSet<RenderAction> result = super.actions (v);
     for (final CartesianTriangle t : triangles) if (v.shouldCancel ()) break;
                                                 else                   result.add (t);
     return result;
