@@ -2,9 +2,9 @@ package cheloniidae.frames;
 
 import cheloniidae.*;
 
-public abstract class SingleTurtleScene extends CoreCommands {
+public abstract class SingleTurtleScene<T extends Turtle> extends CoreCommands {
   protected final TurtleWindow window;
-  protected final Turtle       turtle;
+  protected final T            turtle;
 
   protected final TurtleStack  stack = new TurtleStack ();
 
@@ -17,15 +17,15 @@ public abstract class SingleTurtleScene extends CoreCommands {
     run ();
   }
 
-  public Turtle       createTurtle () {return new StandardRotationalTurtle ();}
+  public T            createTurtle () {return (T) new StandardRotationalTurtle ();}
   public TurtleWindow createWindow () {return new TurtleWindow ();}
 
-  public SingleTurtleScene initialize () {
+  public SingleTurtleScene<T> initialize () {
     window.add (turtle).setVisible (true);
     return this;
   }
 
-  public SingleTurtleScene run () {
+  public SingleTurtleScene<T> run () {
     turtle.run (this.commands ());
     window.pause (0);
     return this;
