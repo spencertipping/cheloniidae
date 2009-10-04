@@ -44,6 +44,15 @@ public class TurtleGroup<T extends Turtle> extends BasicTurtle<TurtleGroup<T>> i
     return this;
   }
 
+  public TurtleCommand adder () {
+    return new TurtleCommand () {
+      public TurtleCommand applyTo (final Turtle t) {
+        if (t instanceof T) add ((T) t);
+        return this;
+      }
+    };
+  }
+
   public SortedSet<RenderAction> actions (final Viewport v) {
     final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
     for (final T t : turtles) for (final RenderAction r : t.actions (v)) if (v.shouldCancel ()) break;
