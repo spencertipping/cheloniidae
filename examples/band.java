@@ -1,6 +1,8 @@
 import cheloniidae.*;
 import cheloniidae.frames.*;
 
+import java.awt.Color;
+
 public class band extends SingleTurtleScene<PathwiseTriangleConnector<StandardRotationalTurtle>> {
   public static void main (String[] args) {new band ();}
 
@@ -9,9 +11,12 @@ public class band extends SingleTurtleScene<PathwiseTriangleConnector<StandardRo
   }
 
   public TurtleCommand commands () {
-    turtle.add (new StandardRotationalTurtle ().position (new Vector (-50, 0, 0)))
-          .add (new StandardRotationalTurtle ().position (new Vector (50, 0, 0)).bank (180));
+    turtle.add (new StandardRotationalTurtle ().position (new Vector (-50, 0, -50)).bank (315))
+          .add (new StandardRotationalTurtle ().position (new Vector (-50, 0,  50)).bank (45))
+          .add (new StandardRotationalTurtle ().position (new Vector ( 50, 0,  50)).bank (135))
+          .add (new StandardRotationalTurtle ().position (new Vector ( 50, 0, -50)).bank (225));
 
-    return repeat (120, move (5), turn (90), jump (50), pitch (3), jump (-50), turn (-90), turtle.emitter ());
+    return sequence (color (new Color (0f, 0f, 0f, 0.1f)), size (5),
+                     repeat (120, move (5), turn (90), jump (50), pitch (3), jump (-50), turn (-90), turtle.emitter ()));
   }
 }
