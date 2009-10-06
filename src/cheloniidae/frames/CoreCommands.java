@@ -1,7 +1,9 @@
 package cheloniidae.frames;
 
 import cheloniidae.*;
+import cheloniidae.attributes.*;
 import cheloniidae.commands.*;
+import cheloniidae.predicates.*;
 import cheloniidae.replicators.*;
 import cheloniidae.transformations.*;
 
@@ -30,8 +32,14 @@ public abstract class CoreCommands {
   public static NullCommand pass  ()                  {return new NullCommand ();}
   public static Debug       debug (final String text) {return new Debug (text);}
 
+  public static When     when     (final Predicate<Turtle> decisional, final TurtleCommand ... commands) {
+    return new When (decisional, commands);
+  }
+
   public static Repeat   repeat   (final int repetitions, final TurtleCommand ... commands) {return new Repeat (repetitions, commands);}
   public static Sequence sequence (final TurtleCommand ... commands)                        {return new Sequence (commands);}
+
+  public static Triangle triangle (final SupportsPosition p1, final SupportsPosition p2) {return new Triangle (p1, p2);}
 
   public static InductiveReplicator<StandardRotationalTurtle> inductiveReplicator (final int copies, final TurtleCommand inductiveStep,
                                                                                    final TurtleCommand ... replicatedActions) {
@@ -58,4 +66,10 @@ public abstract class CoreCommands {
 
   public double random ()                   {return rng.nextDouble ();}
   public double random (final double scale) {return rng.nextDouble () * scale;}
+
+  public static Predicate<Turtle> turtleAttribute (final Predicate<Attribute> predicate) {
+    return new TurtleAttribute (predicate);
+  }
+
+  public static Named named (final String name) {return new Named (name);}
 }
