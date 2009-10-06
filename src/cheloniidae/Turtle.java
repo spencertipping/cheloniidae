@@ -3,8 +3,6 @@
 
 package cheloniidae;
 
-import java.util.Set;
-
 public interface Turtle<T extends Turtle> extends Renderable, Cloneable, HasAttributes {
   public TurtleState serialize   ();
   public T           deserialize (TurtleState t);
