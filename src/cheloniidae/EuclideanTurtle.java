@@ -30,7 +30,7 @@ implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSi
         pp = v.projectPoint (pp);
         pd = v.projectPoint (pd);
 
-        Graphics2D g = v.context ();
+        final Graphics2D g = v.context ();
         g.setStroke (new BasicStroke ((float) (scale / 16.0)));
         g.setColor  (turtle.color ());
         g.drawOval  ((int) (pp.x - scale), (int) (pp.y - scale), (int) (scale * 2.0), (int) (scale * 2.0));
@@ -66,9 +66,11 @@ implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSi
   public T                       position  (final Vector _position) {position.assign (_position); return (T) this;}
   public double                  size      ()                       {return size;}
   public T                       size      (final double _size)     {size = _size; return (T) this;}
+  public double                  lineSize  ()                       {return size ();}
   public T                       lineSize  (final double _size)     {return size (_size);}
   public Color                   color     ()                       {return color;}
   public T                       color     (final Color _color)     {color = _color; return (T) this;}
+  public Color                   lineColor ()                       {return color ();}
   public T                       lineColor (final Color _color)     {return color (_color);}
   public boolean                 visible   ()                       {return visible;}
   public T                       visible   (final boolean _visible) {visible = _visible; return (T) this;}
