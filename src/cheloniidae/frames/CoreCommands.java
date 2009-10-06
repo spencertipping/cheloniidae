@@ -40,6 +40,7 @@ public abstract class CoreCommands {
   public static Sequence sequence (final TurtleCommand ... commands)                        {return new Sequence (commands);}
 
   public static Triangle triangle (final SupportsPosition p1, final SupportsPosition p2) {return new Triangle (p1, p2);}
+  public static Triangle triangle (final TurtleCommand    c1, final TurtleCommand    c2) {return new Triangle (c1, c2);}
 
   public static InductiveReplicator<StandardRotationalTurtle> inductiveReplicator (final int copies, final TurtleCommand inductiveStep,
                                                                                    final TurtleCommand ... replicatedActions) {
