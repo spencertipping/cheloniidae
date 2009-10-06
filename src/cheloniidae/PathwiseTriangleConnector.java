@@ -47,8 +47,13 @@ public class PathwiseTriangleConnector<T extends EuclideanTurtle> extends Turtle
         final Vector          sv1 = points.get (i);
         final Vector          sv2 = points.get (j);
 
-        triangles.add (new CartesianTriangle (tv1, sv1, sv2, t1.color ()));
-        triangles.add (new CartesianTriangle (tv1, tv2, sv2, t2.color ()));
+        // If the triangle's area is below a certain amount, then we don't add the triangle. This is to prevent degenerate triangles from slowing the scene
+        // render operations, which might occur if the user moved one turtle but not the other.
+        if (tv1.clone ().subtract (sv1).cross (sv2.clone ().subtract (sv1)).lengthSquared () > 1.0e-10)
+          triangles.add (new CartesianTriangle (tv1, sv1, sv2, t1.color ()));
+
+        if (tv1.clone ().subtract (tv2).cross (sv2.clone ().subtract (tv2)).lengthSquared () > 1.0e-10)
+          triangles.add (new CartesianTriangle (tv1, tv2, sv2, t2.color ()));
       }
 
     return start ();
@@ -56,23 +61,15 @@ public class PathwiseTriangleConnector<T extends EuclideanTurtle> extends Turtle
 
   public TurtleCommand starter () {
     return new NonDistributiveTurtleCommand () {
-      public TurtleCommand applyTo (final Turtle t) {
-        start ();
-        return this;
-      }
-
-      public TurtleCommand map (final Transformation<TurtleCommand> t) {return this;}
+      public TurtleCommand applyTo (final Turtle t)                        {start (); return this;}
+      public TurtleCommand map     (final Transformation<TurtleCommand> t) {return this;}
     };
   }
 
   public TurtleCommand emitter () {
     return new NonDistributiveTurtleCommand () {
-      public TurtleCommand applyTo (final Turtle t) {
-        emit ();
-        return this;
-      }
-
-      public TurtleCommand map (final Transformation<TurtleCommand> t) {return this;}
+      public TurtleCommand applyTo (final Turtle t)                        {emit (); return this;}
+      public TurtleCommand map     (final Transformation<TurtleCommand> t) {return this;}
     };
   }
 
