@@ -22,8 +22,6 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
     public RenderOperation (final Viewport v) {viewport = v;}
 
     public void run () {
-      int linesDrawnSoFar = 0;
-
       final Graphics2D c = context ();
       c.setColor (getBackground ());
       c.fillRect (0, 0, getWidth (), getHeight ());
@@ -31,13 +29,14 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
       final SortedSet<RenderAction> actions        = turtles.actions (viewport);
       final Iterator<RenderAction>  actionIterator = actions.iterator ();
 
+      int objectsDrawnSoFar = 0;
       while (! shouldCancel && actionIterator.hasNext ()) {
         actionIterator.next ().render (viewport);
-        if (++linesDrawnSoFar % drawingRefreshInterval == 0) repaint ();
+        if (++objectsDrawnSoFar % drawingRefreshInterval == 0) repaint ();
       }
 
+      if (shouldShowObjectCount && ! shouldCancel) setTitle ("Cheloniidae (" + objectsDrawnSoFar + " objects)");
       repaint ();
-      if (shouldShowLineCount && ! shouldCancel) setTitle ("Cheloniidae (" + linesDrawnSoFar + " lines)");
     }
   }
 
@@ -63,7 +62,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
   }
 
   protected int            drawingRefreshInterval     = 1000;
-  protected boolean        shouldShowLineCount        = true;
+  protected boolean        shouldShowObjectCount      = true;
 
   protected BufferedImage  offscreen                  = null;
   protected Graphics2D     cachedContext              = null;
@@ -91,8 +90,8 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
 
   public int          drawingRefreshInterval     ()                                      {return drawingRefreshInterval;}
   public TurtleWindow drawingRefreshInterval     (final int _drawingRefreshInterval)     {drawingRefreshInterval = _drawingRefreshInterval; return this;}
-  public boolean      shouldShowLineCount        ()                                      {return shouldShowLineCount;}
-  public TurtleWindow shouldShowLineCount        (final boolean _shouldShowLineCount)    {shouldShowLineCount = _shouldShowLineCount; return this;}
+  public boolean      shouldShowObjectCount      ()                                      {return shouldShowObjectCount;}
+  public TurtleWindow shouldShowObjectCount      (final boolean _shouldShowObjectCount)  {shouldShowObjectCount = _shouldShowObjectCount; return this;}
   public int          intermediatePointCloudSize ()                                      {return intermediatePointCloud.length;}
   public TurtleWindow intermediatePointCloudSize (final int _intermediatePointCloudSize) {intermediatePointCloud = new Vector[_intermediatePointCloudSize]; return this;}
 
