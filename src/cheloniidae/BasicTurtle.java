@@ -8,9 +8,10 @@ public abstract class BasicTurtle<T extends BasicTurtle> extends Replicable<T> i
 
   protected TurtleWindow window = null;
 
-  public Set<Attribute> attributes ()                       {return attributes;}
-  public TurtleWindow   window ()                           {return window;}
-  public T              window (final TurtleWindow _window) {window = _window; return (T) this;}
+  public Set<Attribute> attributes ()                           {return attributes;}
+  public T              attribute  (final Attribute _attribute) {attributes.add (_attribute); return (T) this;}
+  public TurtleWindow   window     ()                           {return window;}
+  public T              window     (final TurtleWindow _window) {window = _window; return (T) this;}
 
   public T run (final TurtleCommand c) {
     c.applyTo (this);
