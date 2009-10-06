@@ -22,8 +22,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
     public RenderOperation (final Viewport v) {viewport = v;}
 
     public void run () {
-      final long       startTime = System.currentTimeMillis ();
-      final Graphics2D c         = context ();
+      final Graphics2D c = context ();
       c.setColor (getBackground ());
       c.fillRect (0, 0, getWidth (), getHeight ());
 
@@ -37,9 +36,6 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
       }
 
       if (! shouldCancel) {
-        final long endTime = System.currentTimeMillis ();
-        averageTimePerRender = averageTimePerRender * 0.99 + 0.01 * (endTime - startTime);
-
         if (shouldShowObjectCount) setTitle ("Cheloniidae (" + objectsDrawnSoFar + " objects)");
         repaint ();
       }
@@ -69,7 +65,6 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
 
   protected int            drawingRefreshInterval     = 1000;
   protected boolean        shouldShowObjectCount      = true;
-  protected double         averageTimePerRender       = 20;
 
   protected BufferedImage  offscreen                  = null;
   protected Graphics2D     cachedContext              = null;
@@ -107,8 +102,6 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
     cachedContext = null;
     enqueueGraphicsRefreshRequest (new RenderOperation (this));
   }
-
-  protected Thread appropriateRenderOperation () {return averageTimePerRender >= 20.0 ? new IntermediateRenderOperation () : new RenderOperation (this);}
 
   protected void initialize () {
     final TurtleWindow t = this;
@@ -161,7 +154,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
 
                                     mouseDownX = e.getX ();
                                     mouseDownY = e.getY ();
-                                    enqueueGraphicsRefreshRequest (appropriateRenderOperation ());
+                                    enqueueGraphicsRefreshRequest (new IntermediateRenderOperation ());
                                   }
                                                               }
                                                               public void mouseMoved (final MouseEvent e) {}});
@@ -169,7 +162,7 @@ public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
     super.addMouseWheelListener  (new MouseWheelListener  () {public void mouseWheelMoved (final MouseWheelEvent e) {
                                                                 virtualPOV.addScaled (virtualPOVForward, (e.isControlDown () ? -1 : -10) * e.getWheelRotation ());
                                                                 lastChange = System.currentTimeMillis ();
-                                                                enqueueGraphicsRefreshRequest (appropriateRenderOperation ());
+                                                                enqueueGraphicsRefreshRequest (new IntermediateRenderOperation ());
                                                               }});
 
     super.setSize       (600, 372);
