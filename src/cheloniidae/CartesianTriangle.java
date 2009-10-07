@@ -55,12 +55,11 @@ public class CartesianTriangle extends ViewportCaching implements HasPerspective
       // This resulting value is the transparency multiplier.
       final Vector transformedMidpoint    = v.transformPoint (midpoint);
       final double transparencyMultiplier = Math.abs (tv1.clone ().subtract (tv2).cross (
-                                                      tv3.clone ().subtract (tv2)).normalize ().dot (transformedMidpoint) /
-                                                      transformedMidpoint.length ());
+                                                        tv3.clone ().subtract (tv2)).normalize ().dot (transformedMidpoint)) / transformedMidpoint.length ();
       final double transparency           = (255 - color.getAlpha ()) / 255.0;
       final double transparencyPrime      = transparency * transparencyMultiplier;
       final Color  newColor               = new Color (color.getRed (), color.getGreen (), color.getBlue (),
-                                                       255 - (int) (255 * transparencyPrime));
+                                                       255 - (int) (transparencyPrime * 255.0));
 
       // Render only real triangles. If they become degenerate when projected into 2D, then we ignore them.
       if (! (xs[0] == xs[1] && ys[0] == ys[1] ||
