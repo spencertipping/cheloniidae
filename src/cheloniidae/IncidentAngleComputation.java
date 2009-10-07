@@ -1,7 +1,7 @@
 package cheloniidae;
 
 import java.awt.Color;
-import static java.lang.Math;
+import static java.lang.Math.*;
 
 public abstract class IncidentAngleComputation {
   // Incident angle computation is about finding out how much light passes through a translucent material based on the angle. Here's why the angle matters.
