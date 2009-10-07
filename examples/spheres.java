@@ -9,7 +9,7 @@ public class spheres extends SingleTurtleScene {
   }
 
   public TurtleCommand commands () {
-    return sequence (size (0.1), color (new Color (0.3f, 0.5f, 0.5f, 0.5f)), spheres (10));
+    return sequence (size (0.1), color (new Color (0.3f, 0.5f, 0.5f, 0.8f)), spheres (10));
   }
 
   public TurtleCommand spheres (int size) {
