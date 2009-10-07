@@ -58,10 +58,12 @@ public abstract class IncidentAngleComputation {
 
   public static final double planarThickness (final Vector surfaceNormal, final Vector v) {
     // This is a simplified way to compute the secant of the scalar angle between the two vectors.
-    return surfaceNormal.length () * v.length () / Math.abs (surfaceNormal.dot (v));
+    return surfaceNormal.length () * v.length () / abs (surfaceNormal.dot (v));
   }
 
   public static final double cylindricalThickness (final Vector axis, final Vector v) {
-    return 1.0 - axis.length () * v.length () / Math.abs (axis.dot (v));
+    final double cosineTheta = axis.dot (v) / (axis.length () * v.length ());
+    final double sineTheta   = sqrt (1.0 - cosineTheta * cosineTheta);
+    return 1.0 / sineTheta;
   }
 }
