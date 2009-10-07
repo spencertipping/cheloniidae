@@ -46,14 +46,10 @@ public class CartesianLine extends ViewportCaching implements HasPerspectiveProj
       final Vector     pv2       = v.projectPoint (tv2);
       final Graphics2D g         = v.context ();
 
-      // Incident angle computation. This is used to simulate thickness; lines that occur at a shallower angle are rendered as slightly more opaque. See
-      // CartesianTriangle.java for the math involved.
       final Vector transformedMidpoint = v.transformPoint (midpoint);
-      final double transparencyFactor  = 1.0 - Math.abs (tv1.clone ().subtract (tv2).normalize ().dot (transformedMidpoint)) / transformedMidpoint.length ();
-      final double transparency        = (255 - color.getAlpha ()) / 255.0;
-      final double transparencyPrime   = transparency * transparencyFactor;
-      final Color  newColor            = new Color (color.getRed (), color.getGreen (), color.getBlue (),
-                                                    255 - (int) (transparencyPrime * 255.0));
+      final Vector transformedNormal   = tv1.clone ().subtract (tv2);
+      final Color  newColor            = IncidentAngleComputation.adjustForTranslucency (color,
+                                          IncidentAngleComputation.cylindricalThickness (transformedNormal, transformedMidpoint);
 
       g.setStroke (new BasicStroke ((float) Math.abs (thickness * width)));
       g.setColor  (newColor);

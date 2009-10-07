@@ -42,29 +42,14 @@ public class CartesianTriangle extends ViewportCaching implements HasPerspective
       final int[] xs = new int[] {(int) pv1.x, (int) pv2.x, (int) pv3.x};
       final int[] ys = new int[] {(int) pv1.y, (int) pv2.y, (int) pv3.y};
 
-      // Incident angle calculation. This is designed to change the opacity of the triangle depending on the relative camera angle, as would happen with a
-      // material with some thickness, such as smoked glass. The idea is to give the illusion that the material is absorbing (or emitting, depending on the
-      // color relative to the background) light, as it would in real life.
-      //
-      // The formula looks gnarly, but here's what's going on:
-      //
-      //   (tv1 - tv2) x (tv3 - tv2) is the normal vector, which I'll call N.
-      //   If we dot N and the midpoint, we get the cosine of the angle (after normalizing -- hence the division).
-      //   We take the absolute value of the result, since the direction of light travel is irrelevant.
-      //
-      // This resulting value is the transparency multiplier.
-      final Vector transformedMidpoint    = v.transformPoint (midpoint);
-      final double transparencyMultiplier = Math.abs (tv1.clone ().subtract (tv2).cross (
-                                                        tv3.clone ().subtract (tv2)).normalize ().dot (transformedMidpoint)) / transformedMidpoint.length ();
-      final double transparency           = (255 - color.getAlpha ()) / 255.0;
-      final double transparencyPrime      = transparency * transparencyMultiplier;
-      final Color  newColor               = new Color (color.getRed (), color.getGreen (), color.getBlue (),
-                                                       255 - (int) (transparencyPrime * 255.0));
-
       // Render only real triangles. If they become degenerate when projected into 2D, then we ignore them.
       if (! (xs[0] == xs[1] && ys[0] == ys[1] ||
              xs[1] == xs[2] && ys[1] == ys[2] ||
              xs[0] == xs[2] && ys[0] == ys[2])) {
+        final Vector transformedMidpoint    = v.transformPoint (midpoint);
+        final Vector transformedNormal      = tv1.clone ().subtract (tv2).cross (tv3.clone ().subtract (tv2));
+        final Color  newColor               = IncidentAngleComputation.adjustForTranslucency (color,
+                                                IncidentAngleComputation.planarThickness (transformedNormal, transformedMidpoint));
         g.setColor (newColor);
         g.fill     (new Polygon (xs, ys, 3));
       }
