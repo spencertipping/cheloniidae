@@ -48,7 +48,7 @@ public class CartesianTriangle extends ViewportCaching implements HasPerspective
              xs[0] == xs[2] && ys[0] == ys[2])) {
         final Vector transformedMidpoint    = v.transformPoint (midpoint);
         final Vector transformedNormal      = tv1.clone ().subtract (tv2).cross (tv3.clone ().subtract (tv2));
-        final Color  newColor               = IncidentAngleComputation.adjustForTranslucency (color,
+        final Color  newColor               = IncidentAngleComputation.adjustForThickness (color,
                                                 IncidentAngleComputation.planarThickness (transformedNormal, transformedMidpoint));
         g.setColor (newColor);
         g.fill     (new Polygon (xs, ys, 3));

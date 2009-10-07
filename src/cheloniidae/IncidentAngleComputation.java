@@ -27,30 +27,33 @@ public abstract class IncidentAngleComputation {
   // equation:
   //
   //   dL
-  //   -- = - t L
+  //   -- = - o L
   //   dx
   //
-  // where L(x) is the amount of light after traveling through x amount of glass, and t is the translucency of the glass. Solving yields:
+  // where L(x) is the amount of light after traveling through x amount of glass, and o is the opacity of the glass. Solving yields:
   //
-  //              - t x
+  //              - o x
   //   L(x) = C e
   //
-  // Solving for C is simple if we make the assumption that ray #1 should perceive t translucency from one inch of glass. So we can solve with that constraint:
+  // Solving for C is simple if we make the assumption that ray #1 should perceive o opacity from one inch of glass. So we can solve with that constraint:
   //
-  //           -t 1              t
-  //   t = C e         =>   C = ---
-  //                             -t
-  //                            e
+  //               -o               1 - o
+  //   1 - o = C e         =>   C = -----
+  //                                  -o
+  //                                 e
 
-  public static final double perceivedTranslucency (final double thickness, final double opacity) {
-    final double c = opacity / exp (-opacity);
+  public static final double lightTransmission (final double thickness, final double opacity) {
+    final double c = (1.0 - opacity) / exp (-opacity);
     return c * exp (-thickness * opacity);
   }
 
-  public static final Color adjustForTranslucency (final Color original, final double thickness) {
+  public static final Color adjustForThickness (final Color original, final double thickness) {
     final double originalOpacity = original.getAlpha () / 255.0;
-    return new Color (original.getRed (), original.getGreen (), original.getBlue (),
-                      (int) (255 * (1.0 - perceivedTranslucency (thickness, originalOpacity))));
+    final double perceivedOpacity = 1.0 - lightTransmission (thickness, originalOpacity);
+    final double clippedOpacity   = perceivedOpacity > 1.0 ? 1.0 :
+                                    perceivedOpacity < 0.0 ? 0.0 : perceivedOpacity;
+
+    return new Color (original.getRed (), original.getGreen (), original.getBlue (), (int) (clippedOpacity * 255.0));
   }
 
   public static final double planarThickness (final Vector surfaceNormal, final Vector v) {

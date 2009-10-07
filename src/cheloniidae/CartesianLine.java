@@ -48,7 +48,7 @@ public class CartesianLine extends ViewportCaching implements HasPerspectiveProj
 
       final Vector transformedMidpoint = v.transformPoint (midpoint);
       final Vector transformedNormal   = tv1.clone ().subtract (tv2);
-      final Color  newColor            = IncidentAngleComputation.adjustForTranslucency (color,
+      final Color  newColor            = IncidentAngleComputation.adjustForThickness (color,
                                           IncidentAngleComputation.cylindricalThickness (transformedNormal, transformedMidpoint));
 
       g.setStroke (new BasicStroke ((float) Math.abs (thickness * width)));
