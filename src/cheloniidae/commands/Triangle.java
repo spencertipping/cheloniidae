@@ -6,7 +6,7 @@ import java.util.HashSet;
 
 import cheloniidae.*;
 
-public class Triangle extends AtomicCommand {
+public class Triangle implements TurtleCommand {
   public final SupportsPosition p1;
   public final SupportsPosition p2;
 
@@ -44,5 +44,11 @@ public class Triangle extends AtomicCommand {
     }
 
     return this;
+  }
+
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {
+    final TurtleCommand newCommand = t.transform (this);
+    if (newCommand == this && c1 != null) return new Triangle (c1.map (t), c2.map (t));
+    else                                  return newCommand;
   }
 }
