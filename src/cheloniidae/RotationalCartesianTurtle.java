@@ -18,7 +18,7 @@ implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, Su
       directionComplement = _directionComplement.clone ();
     }
 
-    public State applyTo (Turtle t) {
+    public State applyTo (final Turtle t) {
       new DirectionComplement (directionComplement).applyTo (t);
       super.applyTo (t);
       return this;
