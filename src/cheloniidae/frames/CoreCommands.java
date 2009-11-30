@@ -12,7 +12,7 @@ import java.awt.Color;
 import java.util.Random;
 
 public abstract class CoreCommands {
-  protected final Random rng = new Random ();
+  private static final Random rng = new Random ();
 
   public static Move move (final double distance) {return new Move (distance);}
   public static Jump jump (final double distance) {return new Jump (distance);}
@@ -24,6 +24,10 @@ public abstract class CoreCommands {
   public static LineSize  size    (final double size)     {return new LineSize (size);}
   public static LineColor color   (final Color color)     {return new LineColor (color);}
   public static Visible   visible (final boolean visible) {return new Visible (visible);}
+
+  public static LineColor color   (final double r, final double g, final double b) {return color (r, g, b, 1.0);}
+  public static LineColor color   (final double r, final double g, final double b, final double a)
+    {return color (new Color ((float) r, (float) g, (float) b, (float) a));}
 
   public static Position            position            (final Vector position)            {return new Position (position);}
   public static Direction           direction           (final Vector direction)           {return new Direction (direction);}
@@ -65,8 +69,8 @@ public abstract class CoreCommands {
   public static     Identity   identity ()                                                 {return new Identity ();}
   public static <T> Compose<T> compose  (final Transformation<T> ... transformations)      {return new Compose<T> (transformations);}
 
-  public double random ()                   {return rng.nextDouble ();}
-  public double random (final double scale) {return rng.nextDouble () * scale;}
+  public static double random ()                   {return rng.nextDouble ();}
+  public static double random (final double scale) {return rng.nextDouble () * scale;}
 
   public static Predicate<Turtle> turtleAttribute (final Predicate<Attribute> predicate) {
     return new TurtleAttribute (predicate);

@@ -2,7 +2,7 @@ package cheloniidae.frames;
 
 import cheloniidae.*;
 
-public abstract class SingleTurtleScene<T extends Turtle> extends CoreCommands {
+public abstract class SingleTurtleScene<T extends Turtle> {
   protected final TurtleWindow window;
   protected final T            turtle;
 

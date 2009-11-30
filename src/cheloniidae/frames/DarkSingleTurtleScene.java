@@ -2,6 +2,8 @@ package cheloniidae.frames;
 
 import cheloniidae.Turtle;
 
+import static cheloniidae.frames.CoreCommands.color;
+
 import java.awt.Color;
 
 public abstract class DarkSingleTurtleScene<T extends Turtle> extends SingleTurtleScene<T> {
