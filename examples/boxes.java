@@ -3,7 +3,7 @@ import cheloniidae.frames.*;
 
 import static cheloniidae.frames.CoreCommands.*;
 
-public class solidgasket extends SingleTurtleScene {
+public class boxes extends SingleTurtleScene {
   public static void main (String[] args) {new solidgasket ();}
 
   public TurtleCommand commands () {
