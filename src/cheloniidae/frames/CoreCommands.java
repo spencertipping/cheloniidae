@@ -77,4 +77,6 @@ public abstract class CoreCommands {
   }
 
   public static Named named (final String name) {return new Named (name);}
+
+  public static Pause pause (final long time) {return new Pause (time);}
 }

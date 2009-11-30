@@ -1,9 +1,11 @@
 package cheloniidae;
 
+import cheloniidae.commands.SupportsWindow;
+
 import java.util.TreeSet;
 import java.util.Set;
 
-public abstract class BasicTurtle<T extends BasicTurtle> extends Replicable<T> implements Turtle<T> {
+public abstract class BasicTurtle<T extends BasicTurtle> extends Replicable<T> implements Turtle<T>, SupportsWindow {
   public final Set<Attribute> attributes = new TreeSet<Attribute> ();
 
   protected TurtleWindow window = null;
