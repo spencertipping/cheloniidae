@@ -2,6 +2,8 @@ import cheloniidae.*;
 import cheloniidae.replicators.*;
 import cheloniidae.frames.*;
 
+import static cheloniidae.frames.CoreCommands.*;
+
 public class replicatedtube extends SingleTurtleScene {
   public static void main (String[] args) {new replicatedtube ();}
 

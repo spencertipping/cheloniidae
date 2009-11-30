@@ -1,6 +1,8 @@
 import cheloniidae.*;
 import cheloniidae.frames.*;
 
+import static cheloniidae.frames.CoreCommands.*;
+
 public class cube extends SingleTurtleScene {
   public static void main (String[] args) {new cube ();}
   

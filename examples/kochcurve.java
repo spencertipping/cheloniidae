@@ -3,6 +3,8 @@ import cheloniidae.frames.*;
 
 import java.awt.Color;
 
+import static cheloniidae.frames.CoreCommands.*;
+
 public class kochcurve extends DarkSingleTurtleScene {
   public static void main (final String[] args) {new kochcurve ();}
 

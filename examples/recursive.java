@@ -2,6 +2,8 @@ import cheloniidae.*;
 import cheloniidae.commands.*;
 import cheloniidae.frames.*;
 
+import static cheloniidae.frames.CoreCommands.*;
+
 public class recursive extends SingleTurtleScene {
   public static void main (String[] args) {
     new recursive ();

@@ -2,6 +2,8 @@ import cheloniidae.*;
 import cheloniidae.frames.*;
 import java.awt.*;
 
+import static cheloniidae.frames.CoreCommands.*;
+
 public class donut extends SingleTurtleScene {
   public static void main (String[] args) {new donut ();}
 

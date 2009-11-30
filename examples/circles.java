@@ -1,6 +1,8 @@
 import cheloniidae.*;
 import cheloniidae.frames.*;
 
+import static cheloniidae.frames.CoreCommands.*;
+
 import java.awt.Color;
 
 public class circles extends SingleTurtleScene {

@@ -2,6 +2,8 @@ import cheloniidae.*;
 import cheloniidae.resources.*;
 import cheloniidae.frames.*;
 
+import static cheloniidae.frames.CoreCommands.*;
+
 import java.util.*;
 
 public class text extends SingleTurtleScene {
