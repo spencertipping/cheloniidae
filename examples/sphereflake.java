@@ -4,12 +4,8 @@ import cheloniidae.frames.*;
 import static cheloniidae.frames.CoreCommands.*;
 import static java.lang.Math.sin;
 
-public class sphereflake extends SingleTurtleScene<PathwiseTriangleConnector<StandardRotationalTurtle>> {
+public class sphereflake extends SingleTurtleScene {
   public static void main (String[] args) {new sphereflake ();}
-
-  public PathwiseTriangleConnector<StandardRotationalTurtle> createTurtle () {
-    return new PathwiseTriangleConnector<StandardRotationalTurtle> ();
-  }
 
   public TurtleCommand commands () {
     final StandardRotationalTurtle guideTurtle        = new StandardRotationalTurtle ().attribute (named ("guide"));
@@ -24,17 +20,14 @@ public class sphereflake extends SingleTurtleScene<PathwiseTriangleConnector<Sta
 
     turtle.add (guideTurtle).add (new StandardRotationalTurtle ());
 
-    final TurtleCommand sphere = atomic (
-      sequence (unless (isGuideTurtle, turn (180 / majorStep)),
-                pitch (-90), jump (radius), pitch (90),
-                turtle.starter (),
-                repeat (majorStep, turn (180 / majorStep),
-                                   pitch (180 / minorStep),
-                                   repeat (minorStep, move (scale), turtle.emitter (), pitch (360 / minorStep)),
-                                   pitch (-180 / minorStep)),
-                turn (180),
-                pitch (90), jump (radius), pitch (-90),
-                unless (isGuideTurtle, turn (-180 / majorStep))));
+    final TurtleCommand sphere =
+      bandSplitReplicator (turn (180 / majorStep),
+                           pitch (-90), jump (radius), pitch (90),
+                           turtle.starter (),
+                           repeat (majorStep, turn (180 / majorStep),
+                                              pitch (180 / minorStep),
+                                              repeat (minorStep, move (scale), turtle.emitter (), pitch (360 / minorStep)),
+                                              pitch (-180 / minorStep)));
 
     final TurtleCommand go = jump (radius * 4.0 / 3.0);
     final TurtleCommand recursiveStep = atomic (recurse ("sphereflake", 3, scale (1.0 / 3.0), visible (false)));

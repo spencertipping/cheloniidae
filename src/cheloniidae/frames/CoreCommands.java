@@ -59,6 +59,10 @@ public abstract class CoreCommands {
     return inductiveReplicator (1, pass (), copiedActions);
   }
 
+  public static BandSplitReplicator bandSplitReplicator (final Sequence firstTurtlePrimer, final TurtleCommand ... replicatedActions) {
+    return new BandSplitReplicator (firstTurtlePrimer, replicatedActions);
+  }
+
   public static RecursiveExpansion recursiveBlock (final String name, final TurtleCommand ... body) {
     return new RecursiveExpansion (name, sequence (body));
   }
@@ -81,9 +85,9 @@ public abstract class CoreCommands {
     return new TurtleAttribute (predicate);
   }
 
-  public static Named named (final String name) {return new Named (name);}
-
-  public static Pause pause (final long time) {return new Pause (time);}
+  public static AddAttribute addAttribute (final Attribute a) {return new AddAttribute (a);}
+  public static Named        named        (final String name) {return new Named (name);}
+  public static Pause        pause        (final long time)   {return new Pause (time);}
 
   // Can't make this plural because then it would atomize a sequence and not the command that we want to atomize. To compensate, we could wrap each subcommand
   // with a non-distributive proxy, but that sounds like a lot of work for such a simple function.

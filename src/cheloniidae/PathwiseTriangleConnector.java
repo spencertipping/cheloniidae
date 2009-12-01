@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class PathwiseTriangleConnector<T extends EuclideanTurtle> extends TurtleGroup<T> {
+public class PathwiseTriangleConnector<T extends EuclideanTurtle> extends TurtleGroup<T> implements TriangleEmitter<PathwiseTriangleConnector<T>> {
   public final List<Vector>            points    = new ArrayList<Vector> ();
   public final List<CartesianTriangle> triangles = new LinkedList<CartesianTriangle> ();
 
@@ -64,20 +64,6 @@ public class PathwiseTriangleConnector<T extends EuclideanTurtle> extends Turtle
       }
 
     return start ();
-  }
-
-  public TurtleCommand starter () {
-    return new NonDistributiveTurtleCommand () {
-      public TurtleCommand applyTo (final Turtle t)                        {start (); return this;}
-      public TurtleCommand map     (final Transformation<TurtleCommand> t) {return this;}
-    };
-  }
-
-  public TurtleCommand emitter () {
-    return new NonDistributiveTurtleCommand () {
-      public TurtleCommand applyTo (final Turtle t)                        {emit (); return this;}
-      public TurtleCommand map     (final Transformation<TurtleCommand> t) {return this;}
-    };
   }
 
   public PathwiseTriangleConnector<T> run (final TurtleCommand c) {
