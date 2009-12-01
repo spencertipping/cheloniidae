@@ -23,6 +23,13 @@ public class PathwiseTriangleConnector<T extends EuclideanTurtle> extends Turtle
     return result;
   }
 
+  public PathwiseTriangleConnector<T> create () {
+    final PathwiseTriangleConnector<T> result = new PathwiseTriangleConnector<T> ();
+    for (final T t : turtles) result.add ((T) t.clone ());
+    result.start ();
+    return result;
+  }
+
   public PathwiseTriangleConnector<T> add (final T turtle) {
     super.add (turtle);
     points.add (turtle.position ().clone ());

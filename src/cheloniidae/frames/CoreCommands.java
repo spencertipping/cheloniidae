@@ -56,7 +56,7 @@ public abstract class CoreCommands {
   }
 
   public static InductiveReplicator<StandardRotationalTurtle> copy (final TurtleCommand ... copiedActions) {
-    return inductiveReplicator (1, pass (), sequence (copiedActions));
+    return inductiveReplicator (1, pass (), copiedActions);
   }
 
   public static RecursiveExpansion recursiveBlock (final String name, final TurtleCommand ... body) {
@@ -73,8 +73,9 @@ public abstract class CoreCommands {
   public static     Identity   identity ()                                                 {return new Identity ();}
   public static <T> Compose<T> compose  (final Transformation<T> ... transformations)      {return new Compose<T> (transformations);}
 
-  public static double random ()                   {return rng.nextDouble ();}
-  public static double random (final double scale) {return rng.nextDouble () * scale;}
+  public static double random ()                                   {return rng.nextDouble ();}
+  public static double random (final double scale)                 {return random () * scale;}
+  public static double random (final double min, final double max) {return random (max - min) + min;}
 
   public static Predicate<Turtle> turtleAttribute (final Predicate<Attribute> predicate) {
     return new TurtleAttribute (predicate);
@@ -83,4 +84,8 @@ public abstract class CoreCommands {
   public static Named named (final String name) {return new Named (name);}
 
   public static Pause pause (final long time) {return new Pause (time);}
+
+  // Can't make this plural because then it would atomize a sequence and not the command that we want to atomize. To compensate, we could wrap each subcommand
+  // with a non-distributive proxy, but that sounds like a lot of work for such a simple function.
+  public static NonDistributiveProxy atomic (final TurtleCommand c) {return new NonDistributiveProxy (c);}
 }

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.Set;
 
 public abstract class EuclideanTurtle<T extends EuclideanTurtle> extends BasicTurtle<T>
 implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>, SupportsLineColor<T>, SupportsVisible<T>, TurtleCommand {
@@ -39,15 +40,16 @@ implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSi
     }
   }
 
-  public static class State extends ImmutableTurtleState implements TurtleState, TurtleCommand {
+  public static class State extends BasicTurtle.State implements TurtleState, TurtleCommand {
     public final Vector position;
     public final double size;
     public final Color  color;
 
-    public State (final Vector _position, final double _size, final Color _color)
-      {position = _position.clone (); size = _size; color = _color;}
+    public State (final Set<Attribute> _attributes, final Vector _position, final double _size, final Color _color)
+      {super (_attributes); position = _position.clone (); size = _size; color = _color;}
 
     public State applyTo (final Turtle t) {
+      super.applyTo (t);
       new Sequence (new Position  (position),
                     new LineSize  (size),
                     new LineColor (color)).applyTo (t);
@@ -90,7 +92,7 @@ implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSi
     return result;
   }
 
-  public State serialize   ()                    {return new State (position, size, color);}
+  public State serialize   ()                    {return new State (attributes, position, size, color);}
   public T     deserialize (final TurtleState t) {if (t instanceof TurtleCommand) ((TurtleCommand) t).applyTo (this);
                                                   else System.err.println ("EuclideanTurtle::deserialize: TurtleCommand expected, " + t.getClass ().getName () + " received.");
                                                   return (T) this;}
