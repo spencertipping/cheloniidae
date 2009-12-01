@@ -40,6 +40,10 @@ public abstract class CoreCommands {
     return new When (decisional, commands);
   }
 
+  public static When     unless   (final Predicate<Turtle> decisional, final TurtleCommand ... commands) {
+    return when (new Negation<Turtle> (decisional), commands);
+  }
+
   public static Repeat   repeat   (final int repetitions, final TurtleCommand ... commands) {return new Repeat (repetitions, commands);}
   public static Sequence sequence (final TurtleCommand ... commands)                        {return new Sequence (commands);}
 

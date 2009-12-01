@@ -1,4 +1,6 @@
-package cheloniidae;
+package cheloniidae.predicates;
+
+import cheloniidae.*;
 
 public class Negation<T> implements Predicate<T> {
   public final Predicate<T> predicate;

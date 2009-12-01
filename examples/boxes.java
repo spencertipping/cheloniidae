@@ -14,7 +14,7 @@ public class boxes extends SingleTurtleScene {
                                      turn (-90), pitch (90), face, pitch (-90), jump (-100), turn (90), jump (100),
                                      turn (90), pitch (90), face, visible (false));
 
-    return sequence (color (new java.awt.Color (0.2f, 0.3f, 0.4f, 0.1f)),
-                            repeat (4, cube, jump (150), cube, turn (90)));
+    return sequence (color (0.2, 0.3, 0.4, 0.1),
+                     repeat (4, cube, jump (150), cube, turn (90)));
   }
 }
