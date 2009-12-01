@@ -24,13 +24,11 @@ public class sphereflake extends SingleTurtleScene {
                                               pitch (-180 / minorStep)));
 
     final TurtleCommand go = jump (radius * 4.0 / 3.0);
-    final TurtleCommand recursiveStep = atomic (recurse ("sphereflake", 3, scale (1.0 / 3.0), visible (false)));
+    final TurtleCommand recursiveStep = recurse ("sphereflake", 1, scale (1.0 / 3.0), visible (false));
 
     return recursiveBlock ("sphereflake", sphere,
                            inductiveReplicator (6, turn (60),  go, recursiveStep),
-                           turn (30),
-                           inductiveReplicator (3, turn (120), pitch (-60), go, recursiveStep),
-                           turn (-30),
-                           inductiveReplicator (3, turn (120), pitch (60),  go, recursiveStep));
+                           inductiveReplicator (3, turn (120), bank (30), pitch (-60), bank (-30), go, recursiveStep),
+                           inductiveReplicator (3, turn (120), bank (30), pitch (60),  bank (-30), go, recursiveStep));
   }
 }

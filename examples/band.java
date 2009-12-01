@@ -19,6 +19,6 @@ public class band extends SingleTurtleScene<PathwiseTriangleConnector<StandardRo
           .add (new StandardRotationalTurtle ().position (new Vector ( 50, 0, -50)).bank (225));
 
     return sequence (color (new Color (0f, 0f, 0f, 0.02f)),
-                            repeat (120, jump (5), turn (90), jump (50), pitch (3), jump (-50), turn (-90), turtle.emitter ()));
+                     repeat (120, jump (5), turn (90), jump (50), pitch (3), jump (-50), turn (-90), triangleEmit ()));
   }
 }

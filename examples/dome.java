@@ -23,7 +23,7 @@ public class dome extends SingleTurtleScene<PathwiseTriangleConnector<StandardRo
                 when (isGuideTurtle, turn (6)),
                 repeat (30, turn (6),
                             pitch (3),
-                            repeat (60, move (scale), turtle.emitter (), pitch (6)),
+                            repeat (60, move (scale), triangleEmit (), pitch (6)),
                             pitch (3)));
 
     return sphere;

@@ -4,14 +4,21 @@ import cheloniidae.*;
 import cheloniidae.commands.*;
 
 public class BandSplitReplicator extends Replicator {
-  public final Sequence firstTurtlePrimer;
-  public final Sequence actions;
+  public final TurtleCommand firstTurtlePrimer;
+  public final Sequence      actions;
 
-  public InductiveReplicator (final Sequence _firstTurtlePrimer, final TurtleCommand ... _actions)
+  public BandSplitReplicator (final TurtleCommand _firstTurtlePrimer, final TurtleCommand ... _actions)
     {firstTurtlePrimer = _firstTurtlePrimer; actions = new Sequence (_actions);}
 
   public TurtleGroup<Turtle> replicate (final Turtle turtle) {
-    return new PathwiseTriangleConnector<Turtle> ().add (turtle.clone ().run (firstTurtlePrimer)).add (turtle.clone ());
+    if (turtle instanceof EuclideanTurtle)
+      // We have to wrap the pathwise connector in a new turtle group because of type annotations. Specifying a generic with <EuclideanTurtle> makes it
+      // unassignable to anything specified with <Turtle> because Java doesn't know whether the type will be in a contravariant position. (In this case it
+      // isn't, but Java can't prove that.) The best we can do is wrap it.
+      return new TurtleGroup<Turtle> (
+               new PathwiseTriangleConnector<EuclideanTurtle> ().add ((EuclideanTurtle) turtle.clone ().run (firstTurtlePrimer))
+                                                                .add ((EuclideanTurtle) turtle.clone ()));
+    else return null;
   }
 
   public TurtleCommand applyTo (final Turtle turtle) {

@@ -33,6 +33,10 @@ public abstract class CoreCommands {
   public static Direction           direction           (final Vector direction)           {return new Direction (direction);}
   public static DirectionComplement directionComplement (final Vector directionComplement) {return new DirectionComplement (directionComplement);}
 
+  public static Position            position            (final double x, final double y, final double z) {return position            (new Vector (x, y, z));}
+  public static Direction           direction           (final double x, final double y, final double z) {return direction           (new Vector (x, y, z));}
+  public static DirectionComplement directionComplement (final double x, final double y, final double z) {return directionComplement (new Vector (x, y, z));}
+
   public static NullCommand pass  ()                  {return new NullCommand ();}
   public static Debug       debug (final String text) {return new Debug (text);}
 
@@ -59,7 +63,7 @@ public abstract class CoreCommands {
     return inductiveReplicator (1, pass (), copiedActions);
   }
 
-  public static BandSplitReplicator bandSplitReplicator (final Sequence firstTurtlePrimer, final TurtleCommand ... replicatedActions) {
+  public static BandSplitReplicator bandSplitReplicator (final TurtleCommand firstTurtlePrimer, final TurtleCommand ... replicatedActions) {
     return new BandSplitReplicator (firstTurtlePrimer, replicatedActions);
   }
 
