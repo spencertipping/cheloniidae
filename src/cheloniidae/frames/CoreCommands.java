@@ -92,4 +92,7 @@ public abstract class CoreCommands {
   // Can't make this plural because then it would atomize a sequence and not the command that we want to atomize. To compensate, we could wrap each subcommand
   // with a non-distributive proxy, but that sounds like a lot of work for such a simple function.
   public static NonDistributiveProxy atomic (final TurtleCommand c) {return new NonDistributiveProxy (c);}
+
+  public static TriangleEmitter.Start triangleStart () {return new TriangleEmitter.Start ();}
+  public static TriangleEmitter.Emit  triangleEmit  () {return new TriangleEmitter.Emit  ();}
 }

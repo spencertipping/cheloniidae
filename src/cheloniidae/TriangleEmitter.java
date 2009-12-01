@@ -8,6 +8,7 @@ public interface TriangleEmitter<T extends Turtle> {
   }
 
   public static class Emit extends NonDistributiveTurtleCommand {
+    public Emit () {}
     public TurtleCommand applyTo (final Turtle t)                        {if (t instanceof TriangleEmitter) ((TriangleEmitter) t).emit (); return this;}
     public TurtleCommand map     (final Transformation<TurtleCommand> t) {return this;}
   }
