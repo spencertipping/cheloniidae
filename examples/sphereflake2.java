@@ -8,9 +8,9 @@ public class sphereflake2 extends SingleTurtleScene {
   public static void main (String[] args) {new sphereflake2 ();}
 
   public TurtleCommand commands () {
-    final int    majorStep = 8;
-    final int    minorStep = 10;
-    final double scale     = 100;
+    final int    majorStep = 16;
+    final int    minorStep = 30;
+    final double scale     = 20;
     final double radius    = scale * sin ((90 - 180 / minorStep) * Math.PI / 180.0) /
                                      sin ((360 / minorStep) * Math.PI / 180.0);
 
@@ -26,7 +26,7 @@ public class sphereflake2 extends SingleTurtleScene {
                            visible (false));
 
     final TurtleCommand go = jump (radius * 3.0 / 2.0);
-    final TurtleCommand recursiveStep = recurse ("sphereflake", 4, scale (1.0 / 2.0, true), visible (false));
+    final TurtleCommand recursiveStep = recurse ("sphereflake", 3, scale (1.0 / 2.0, true), visible (false));
 
     return recursiveBlock ("sphereflake",
                            color (0.5, 0.3, 0.2, 0.2),
