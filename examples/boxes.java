@@ -4,7 +4,7 @@ import cheloniidae.frames.*;
 import static cheloniidae.frames.CoreCommands.*;
 
 public class boxes extends SingleTurtleScene {
-  public static void main (String[] args) {new solidgasket ();}
+  public static void main (String[] args) {new boxes ();}
 
   public TurtleCommand commands () {
     final TurtleCommand face = sequence (triangle (repeat (2, jump (100), turn (90)), jump (100)),

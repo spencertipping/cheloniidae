@@ -3,6 +3,9 @@ import cheloniidae.frames.*;
 
 import static cheloniidae.frames.CoreCommands.*;
 
+// Yet another gasket attempt that I'm deferring to later.
+// If anyone can fix it, I'd love to have the correct version.
+
 public class solidgasket extends SingleTurtleScene {
   public static void main (String[] args) {new solidgasket ();}
 
