@@ -23,6 +23,12 @@ public class solidgasket extends SingleTurtleScene {
 
     final TurtleCommand recursiveStep = recurse ("gasket", 1, scale (1.0 / 3.0), cube);
 
+    System.err.println ("\033[0;31mNote:\033[0;32mm");
+    System.err.println ("This scene doesn't work. After some hours of trying to find out why,");
+    System.err.println ("I'd like to appeal to anyone who can find the bug(s). If you do end");
+    System.err.println ("up with a proper Sierpinski gasket, you can e-mail it to me and I'll");
+    System.err.println ("include it in the next release of Cheloniidae.\033[0;0m");
+
     return sequence (color (0.2, 0.3, 0.4, 0.1),
                      recursiveBlock ("gasket",
                        repeat (4,
