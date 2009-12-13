@@ -1,0 +1,1311 @@
+#!/usr/bin/perl
+
+use File::Temp  'tempfile';
+use Carp        'carp';
+use Digest::SHA 'sha256_base64';
+use File::Path  'mkpath';
+
+my %data;
+my %externalized_functions;
+my @data_types;
+my @script_args;
+
+sub meta::define_form {
+  my ($namespace, $delegate) = @_;
+  push @data_types, $namespace;
+  *{"meta::${namespace}::implementation"} = $delegate;
+  *{"meta::$namespace"} = sub {
+    my ($name, $value) = @_;
+    chomp $value;
+    $data{"${namespace}::$name"} = $value;
+    $delegate->($name, $value);
+  };
+}
+
+meta::define_form 'meta', sub {
+  my ($name, $value) = @_;
+  eval $value;
+  carp $@ if $@;
+};
+
+meta::meta('datatypes::bootstrap', <<'__guYWiOv4zBmdrlI3k3sW7f/q/xsX38Xvzz0dwwLCIRM');
+meta::define_form 'bootstrap', sub {};
+__guYWiOv4zBmdrlI3k3sW7f/q/xsX38Xvzz0dwwLCIRM
+
+meta::meta('datatypes::code_filter', <<'__gIaVDqDoWT04Y/vzEYyoyadmT36MLhB1ERa09udQZ9M');
+meta::define_form 'code_filter', sub {
+  my ($name, $value) = @_;
+  *{"code_filter::$name"} = eval "sub {\n$value\n}";
+  carp $@ if $@;
+};
+__gIaVDqDoWT04Y/vzEYyoyadmT36MLhB1ERa09udQZ9M
+
+meta::meta('datatypes::data', <<'__j7lFraXGRfKk8ymj2mDJhNbCQMk9FSciN1hdDhzM99U');
+meta::define_form 'data', sub {
+  my ($name, undef) = @_;
+  $externalized_functions{$name} = "data::$name";
+  *{$name} = sub {
+    associate("data::$name", $_[1] || join('', <STDIN>)) if @_ > 0 && $_[0] eq '=';
+    retrieve("data::$name");
+  };
+};
+__j7lFraXGRfKk8ymj2mDJhNbCQMk9FSciN1hdDhzM99U
+
+meta::meta('datatypes::function', <<'__XSIHGGHv0Sh0JBj9KIrP/OzuuB2epyvn9pgtZyWE6t0');
+meta::define_form 'function', sub {
+  my ($name, $value) = @_;
+  $externalized_functions{$name} = "function::$name";
+  *{$name} = eval "sub {\n$value\n}";
+  carp $@ if $@;
+};
+__XSIHGGHv0Sh0JBj9KIrP/OzuuB2epyvn9pgtZyWE6t0
+
+meta::meta('datatypes::internal_function', <<'__heBxmlI7O84FgR+9+ULeiCTWJ4hqd079Z02rZnl9Ong');
+meta::define_form 'internal_function', sub {
+  my ($name, $value) = @_;
+  *{$name} = eval "sub {\n$value\n}";
+  carp $@ if $@;
+};
+__heBxmlI7O84FgR+9+ULeiCTWJ4hqd079Z02rZnl9Ong
+
+meta::meta('datatypes::line_filter', <<'__/k1BhEweDsgaEdqrALbIEjvKhsVrk/hv//e/KPydA6A');
+meta::define_form 'line_filter', sub {
+  my ($name, $value) = @_;
+  *{"line_filter::$name"} = eval "sub {\n$value\n}";
+  carp $@ if $@;
+};
+__/k1BhEweDsgaEdqrALbIEjvKhsVrk/hv//e/KPydA6A
+
+meta::meta('datatypes::section', <<'__dyHqM5u2qiIza2BZZUe8tCJbUbz1UmJwCpsYozFvBmc');
+meta::define_form 'section', sub {};
+__dyHqM5u2qiIza2BZZUe8tCJbUbz1UmJwCpsYozFvBmc
+
+meta::meta('datatypes::unlit_converter', <<'__2X1thh9LQ0oUWCfeWj297YwiGJA/klB7hVI2sWEFtEE');
+meta::define_form 'unlit_converter', sub {
+  my ($name, $value) = @_;
+  *{"unlit_converter::$name"} = eval "sub {\n$value\n}";
+  carp $@ if $@;
+};
+__2X1thh9LQ0oUWCfeWj297YwiGJA/klB7hVI2sWEFtEE
+
+meta::meta('internal::runtime', <<'__Nd6Dp1A6nL7yAGeoRfeZETeaW8vnPN8HI9Diqo66vDA');
+meta::define_form 'internal', \&meta::meta::implementation;
+__Nd6Dp1A6nL7yAGeoRfeZETeaW8vnPN8HI9Diqo66vDA
+
+meta::bootstrap('initialization', <<'__xQuS4r+gfA+l/zXJmfJyENBo2dJ3XIe+8uunULvqTR0');
+#!/usr/bin/perl
+
+use File::Temp  'tempfile';
+use Carp        'carp';
+use Digest::SHA 'sha256_base64';
+use File::Path  'mkpath';
+
+my %data;
+my %externalized_functions;
+my @data_types;
+my @script_args;
+
+sub meta::define_form {
+  my ($namespace, $delegate) = @_;
+  push @data_types, $namespace;
+  *{"meta::${namespace}::implementation"} = $delegate;
+  *{"meta::$namespace"} = sub {
+    my ($name, $value) = @_;
+    chomp $value;
+    $data{"${namespace}::$name"} = $value;
+    $delegate->($name, $value);
+  };
+}
+
+meta::define_form 'meta', sub {
+  my ($name, $value) = @_;
+  eval $value;
+  carp $@ if $@;
+};
+
+__xQuS4r+gfA+l/zXJmfJyENBo2dJ3XIe+8uunULvqTR0
+
+meta::bootstrap('pod', <<'__0h2CBA2cqa4qd6nox9dul6Jn9hcJFHw3uPdC89Xim7o');
+
+=head1 NAME
+
+object - Stateful file-based object
+
+=head1 SYNOPSYS
+
+object [options] action [arguments...]
+
+object shell
+
+=head1 DESCRIPTION
+
+Stateful objects preserve their state between executions by rewriting themselves. Each time the script exits it replaces its contents with its new state. Thus
+state management, for user-writable scripts, is completely transparent.
+
+An object rewrites itself only if its state has changed. This may seem like a dangerous operation, but some checks are put into place to ensure that it goes
+smoothly. First, the object is initially written to a separate file. Next, that file is executed and asked to provide a hashsum of its contents. The original
+object is rewritten only if that hashsum is correct. This ensures that the replacement object is functional and has the right data.
+
+Currently the only known way to lose your data is to edit the serialization-related functions in such a way that they no longer function. However, this is not
+something most people will normally do. In the future there may be a locking mechanism to prevent unintentional edits of these attributes.
+
+=cut
+__0h2CBA2cqa4qd6nox9dul6Jn9hcJFHw3uPdC89Xim7o
+
+meta::code_filter('java', <<'__km8AT8pI4j2S4H4ASYZElvfY9LhnjRiW1BuYQb5LowI');
+my ($line, %settings) = @_;
+
+my $settings = $settings{'name'};
+if ($settings =~ /\sjava(\s|$)/) {
+  my %properties;
+  my @keys_and_values = split /\s+/, $settings;
+  for (@keys_and_values) {
+    my ($k, $v) = split /=/;
+    $properties{$k} = $v;
+  }
+
+  if ($properties{'class'}) {
+    my $classname         = $properties{'class'};
+    my $package_directory = $properties{'package'};
+    $package_directory =~ tr[.][/];
+
+    mkpath(my $directory = &{'source-directory'}() . '/' . $package_directory);
+    open my $fh, $settings{'begin'} ? '>' : '>>', "$directory/${classname}.java";
+    print $fh "$line\n" unless $settings{'begin'} || $settings{'end'};
+    close $fh;
+  }
+
+  return '\begin{javacode}' if $settings{'begin'};
+  return '\end{javacode}'   if $settings{'end'};
+}
+
+return $line;
+__km8AT8pI4j2S4H4ASYZElvfY9LhnjRiW1BuYQb5LowI
+
+meta::code_filter('verbatim', <<'__AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s');
+my ($line, %settings) = @_;
+
+unless ($settings{'name'}) {
+  return '\begin{verbatim}' if $settings{'begin'};
+  return '\end{verbatim}'   if $settings{'end'};
+}
+
+return $line;
+__AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s
+
+meta::data('cltex-vim-highlighter', <<'__9M68+fUDGVDeeJP8SWHRqHPh2Bq1y6WM6Spq8bnK9yo');
+" Cleaner TeX
+" Maintainer: Spencer Tipping <spencer@spencertipping.com>
+" Language:   Cleaner TeX (a variant of LaTeX)
+
+if version < 600
+  syntax clear
+elseif exists("b:current_syntax")
+  finish
+endif
+
+syn match  cltTitle   /^= .*$/
+syn match  cltAuthor  /^a .*$/
+syn match  cltDate    /^d .*$/
+syn match  cltBegin   /^begin$/
+syn match  cltSection /^\s*- .*$/
+syn region cltVerbatim start=/^\s*::$/ end=/^\s*:\.$/
+
+syn match  cltEnumeratedThing /^\s*[eid]\[/
+syn match  cltEnumeratedThing /^\s*\][eid]/
+syn match  cltItem            /^\s*+\s/
+syn match  cltQuantifiedItem  /^\s*+\[[^\]]*\]\s/
+
+runtime! syntax/tex.vim
+
+hi link cltBegin    Keyword
+hi link cltTitle    Identifier
+hi link cltAuthor   Identifier
+hi link cltDate     Identifier
+
+hi link cltEnumeratedThing Special
+hi link cltItem            Special
+hi link cltQuantifiedItem  Special
+
+hi link cltSection  Type
+
+hi link cltVerbatim String
+
+let b:current_syntax = "cltex"
+__9M68+fUDGVDeeJP8SWHRqHPh2Bq1y6WM6Spq8bnK9yo
+
+meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
+shell
+__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc
+
+meta::data('document', <<'__+N0B1MWRa9IRpNOof8xNk7y+TRxtdQzNwqV9kRUtNNU');
+= Cheloniidae
+a Spencer Tipping
+begin
+__+N0B1MWRa9IRpNOof8xNk7y+TRxtdQzNwqV9kRUtNNU
+
+meta::data('header', <<'__3weaOeYzBkeOfc3LesFYaSrX+C33Z+1ezKKZXnikSh8');
+\documentclass{report}
+\usepackage{palatino,mathpazo,amsmath,amssymb,listings,hyperref}
+
+\newcommand{\degrees}{^\circ}
+
+\lstnewenvironment{javacode}
+  {\lstset{language=java,frame=tlb,basicstyle={\scriptsize\tt}}}
+  {}
+__3weaOeYzBkeOfc3LesFYaSrX+C33Z+1ezKKZXnikSh8
+
+meta::data('intro', <<'__uirjwqAxCBH+vu23aaPBO6uNM7a7cUHAYKJo8gIJsGw');
+This is a TeX document generator.
+
+If this is your first time using it, then you'll probably want to install
+the VIM highlighter for the custom TeX format. To do that, run this:
+
+  $ tex-document install-vim-highlighter
+
+If you don't mind an extra line at the end of your .vimrc file, then you
+can automatically associate .cltex files:
+
+  $ tex-document update-vimrc
+
+Now you're ready to go.
+
+To create a new TeX document, do this:
+
+  $ tex-document new newdoc
+
+Next, edit the contents of your new document:
+
+  $ ./newdoc e
+
+Once you're done editing, you can build and display the document:
+
+  $ ./newdoc make
+
+Alternately, you can use the shell interface (exit with the 'exit' command or
+control-D):
+
+  $ ./newdoc shell
+  tex-document$ e
+  tex-document$ make
+  ...
+  tex-document$ ^D
+  $
+
+If you edit and run make a lot, I recommend you save your document just to be
+on the safe side. Normally the document is not committed to disk until you exit
+the shell, but you can commit at any time by using the 'save' command.
+
+To extract your document in its original form, you can say this:
+
+  $ ./newdoc document > file
+
+And to extract the generated TeX:
+
+  $ ./newdoc compile-to-tex > file
+__uirjwqAxCBH+vu23aaPBO6uNM7a7cUHAYKJo8gIJsGw
+
+meta::data('javatex-vim-highlighter', <<'__nEheNk5KhfU1tIJUV7PcB9MfRb0bIbRXyu7BN/Ws6bU');
+" TeX with Java
+" Maintainer: Spencer Tipping <spencer@spencertipping.com>
+" Language:   TeX with Java in it
+
+if version < 600
+  syntax clear
+elseif exists("b:current_syntax")
+  finish
+endif
+
+syn region javatexComment start=/\%^\|^\s*:.$/ end=/\%$\|^\s*::.*\<java\>.*$/ contains=javatexSection
+syn match  javatexSection /^\s*- .*$/           contained
+
+runtime! syntax/java.vim
+
+hi link javatexSection Special
+hi link javatexComment Comment
+
+let b:current_syntax = "javatex"
+__nEheNk5KhfU1tIJUV7PcB9MfRb0bIbRXyu7BN/Ws6bU
+
+meta::data('meta-associations', <<'__5l9K0pfxp7XL+QkT9VfEtP7hQ72gTYqvIOSXA6DO8vQ');
+^function:: .pl
+^internal_function:: .pl
+^meta:: .pl
+^bootstrap:: .pl
+^data::document$ .cltex
+-vim-highlighter$ .vim
+^section:: .javatex
+^unlit_converter:: .pl
+^line_filter:: .pl
+^code_filter:: .pl
+^profile:: .pl
+__5l9K0pfxp7XL+QkT9VfEtP7hQ72gTYqvIOSXA6DO8vQ
+
+meta::data('name', <<'__D1Wj3rfbhbL7vtWydi8IHkW8mlacLVPzUd5P8RYkOl4');
+cheloniidae
+__D1Wj3rfbhbL7vtWydi8IHkW8mlacLVPzUd5P8RYkOl4
+
+meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
+/tmp
+__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
+
+meta::data('pdf-output-file', <<'__B8KvUsCWKlph+apiF8nNMhcwj/O4S+pjwDw/gKHawMA');
+/tmp/cheloniidae.U2xcrOR96AG0PdE9kqPwHAn93wcw+haWHQ7se8FwDaM/document.pdf
+__B8KvUsCWKlph+apiF8nNMhcwj/O4S+pjwDw/gKHawMA
+
+meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
+evince
+__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A
+
+meta::data('pdftex', <<'__aHolEJEGN4wnHiydZyVzwRrETVuJhJOGo/nKL9tsLRY');
+pdflatex -output-directory=__TEMPORARY_DIRECTORY__ __INPUT_FILE__
+__aHolEJEGN4wnHiydZyVzwRrETVuJhJOGo/nKL9tsLRY
+
+meta::data('source-directory', <<'__6LWkZJSOFm8d76O9WGT2KrUBnNx936I9+gu3p3z9hLs');
+/tmp/src
+__6LWkZJSOFm8d76O9WGT2KrUBnNx936I9+gu3p3z9hLs
+
+meta::data('table-of-contents', <<'__a4ayc/80/OGda4BO/1o/V0etpOqiLx1JwB5S3beHW0s');
+1
+__a4ayc/80/OGda4BO/1o/V0etpOqiLx1JwB5S3beHW0s
+
+meta::data('tex', <<'__36pVFkgFfbTr/DrquMMaLrTY5F5S/VJ5Z3Jc90KC+q4');
+latex -output-directory=__TEMPORARY_DIRECTORY__ __INPUT_FILE__
+__36pVFkgFfbTr/DrquMMaLrTY5F5S/VJ5Z3Jc90KC+q4
+
+meta::function('add-to', <<'__KBgra0vG1gIsUI8CCVf4ZEdCatZDCdVO6HuUx+jOJ9Q');
+my ($filename) = @_;
+my @members = grep /^implementation::/, keys %data;
+
+for (@members) {
+  my $destination_name = basename($_);
+  open my($handle), "| $filename import $destination_name" or messages::error("Attribute $_ could not be written.");
+  print $handle retrieve($_);
+  close $handle;
+}
+__KBgra0vG1gIsUI8CCVf4ZEdCatZDCdVO6HuUx+jOJ9Q
+
+meta::function('cat', <<'__h2PeSpk/pPmrzLRTTofdLTbhj06IWUw5WWke6ggUsdk');
+my ($name) = @_;
+$data{$name};
+__h2PeSpk/pPmrzLRTTofdLTbhj06IWUw5WWke6ggUsdk
+
+meta::function('clean', <<'__YiaR22ZfeeFhhPYBUFHWBZqstuOzKtkv2XqmTuXhy1E');
+my $output_directory = &{'pdf-output-file'}();
+$output_directory =~ s+/.*++g;
+unlink <$output_directory/*>;
+rmdir $output_directory;
+__YiaR22ZfeeFhhPYBUFHWBZqstuOzKtkv2XqmTuXhy1E
+
+meta::function('clone', <<'__qP6xPZE75s9g0XJIiC6FGw0vnj2j0glUzsAHxyA3lvY');
+for (@_) {
+  if ($_) {
+    eval {
+      file::write($_, serialize(), noclobber => 1);
+      chmod(0700, $_);
+      print "File $_ cloned successfully.\n";
+    };
+
+    print "$@\n" if $@;
+  }
+}
+__qP6xPZE75s9g0XJIiC6FGw0vnj2j0glUzsAHxyA3lvY
+
+meta::function('compile', <<'__HfmDCotLaO8/ha33D7dUqCAhPmSSrWt1lJc73NXcPz8');
+my $tex_command         = tex();
+my $pdftex_command      = pdftex();
+my $filename            = 'document';
+
+my $contents            = &{'compile-to-tex'}();
+my $output_directory    = &{'output-dir'}();
+chomp $output_directory;
+
+my $temporary_directory = state_based_filename();
+$temporary_directory =~ s+^.*/++;
+$temporary_directory = "$output_directory/$temporary_directory";
+
+$tex_command    =~ s/__TEMPORARY_DIRECTORY__/$temporary_directory/g;
+$tex_command    =~ s+__INPUT_FILE__+$temporary_directory/$filename.tex+g;
+
+$pdftex_command =~ s/__TEMPORARY_DIRECTORY__/$temporary_directory/g;
+$pdftex_command =~ s+__INPUT_FILE__+$temporary_directory/$filename.tex+g;
+
+mkdir $temporary_directory;
+file::write("$temporary_directory/$filename.tex", $contents);
+
+if (&{'table-of-contents'}()) {
+  print "First invocation of TeX:\n";
+  system($tex_command);
+  print "Second invocation of TeX:\n";
+  system($tex_command);
+  print "PDFTeX:\n";
+  system($pdftex_command);
+} else {
+  print "PDFTeX:\n";
+  system($pdftex_command);
+}
+
+associate('data::pdf-output-file', my $result = "$temporary_directory/$filename.pdf", execute => 1);
+$result;
+__HfmDCotLaO8/ha33D7dUqCAhPmSSrWt1lJc73NXcPz8
+
+meta::function('compile-to-tex', <<'__cvWyD1kaLfBVnSppeGw/hSpleoWxLARJQwP1tUKvebc');
+my ($document) = document();
+$document = &$_($document) for (grep /^unlit_converter::/, sort keys %data);
+$document;
+__cvWyD1kaLfBVnSppeGw/hSpleoWxLARJQwP1tUKvebc
+
+meta::function('cp', <<'__yn1SQkcEk6o+gnuCy3QGVFtQb2piaCoUdJPGUkLjpD4');
+my ($from, $to) = @_;
+$data{$to} = $data{$from} if $data{$from};
+messages::error("No such attribute $from") unless $data{$from};
+$data{$from};
+__yn1SQkcEk6o+gnuCy3QGVFtQb2piaCoUdJPGUkLjpD4
+
+meta::function('create', <<'__4e/yca7FeKtJK0U61l9uCtsCPTiznglZlwh6U3iRLvY');
+my ($name, $value) = @_;
+messages::error("Attribute $name already exists.") if grep {$_ eq $name} keys %data;
+associate($name, $value || join('', <STDIN>) || "\n");
+__4e/yca7FeKtJK0U61l9uCtsCPTiznglZlwh6U3iRLvY
+
+meta::function('e', <<'__VOcQy5WG275NZGlFODdYHYBe3oJ7/CHmTT/L9O1I6t0');
+edit('data::document', extension => '.tex');
+reload();
+__VOcQy5WG275NZGlFODdYHYBe3oJ7/CHmTT/L9O1I6t0
+
+meta::function('edit', <<'__rAkSOSll0evjt/D0qmnz2M++ACqz6cPtN8TLTHdQUJE');
+my ($name, %options) = @_;
+
+my $meta_extension = join '', grep {
+  my $s = $_;
+  $s =~ s/\s.*$//;
+  $name =~ /$s/
+} split /\n/, &{'meta-associations'}();
+
+$meta_extension =~ s/^.*\s//;
+chomp $meta_extension;
+
+messages::error("Attribute $name does not exist.") unless grep {$_ eq $name} keys %data;
+associate($name, invoke_editor_on($data{$name} || "# Attribute $name", %options, extension => $meta_extension),
+          execute => $name !~ /^internal::/ && $name !~ /^bootstrap::/);
+delete $data{$name} if length($data{$name}) == 0;
+
+save();
+__rAkSOSll0evjt/D0qmnz2M++ACqz6cPtN8TLTHdQUJE
+
+meta::function('exists', <<'__bxU1sDtIh3+P1x0HuuY0f7sKHr9qNZUEl64m2fvwmDk');
+my $name = shift;
+grep {$_ eq $name} keys %data;
+__bxU1sDtIh3+P1x0HuuY0f7sKHr9qNZUEl64m2fvwmDk
+
+meta::function('grab', <<'__sXs1aeJVBERH6nWE7ZpWiIO5Cg7fSBWcoscDg1DHzD8');
+my ($filename, @attribute_names) = @_;
+associate("implementation::$_", `$filename cat $_`) for @attribute_names;
+__sXs1aeJVBERH6nWE7ZpWiIO5Cg7fSBWcoscDg1DHzD8
+
+meta::function('import', <<'__oK2Kj5RYHcEUK0Iyiqu8w7zipbg+QNF4VO4hm7BkUNA');
+my ($name) = @_;
+associate($name, join('', <STDIN>));
+__oK2Kj5RYHcEUK0Iyiqu8w7zipbg+QNF4VO4hm7BkUNA
+
+meta::function('install-vim-highlighters', <<'__qKwDdQ1bDPFx6t/oiiEMc3lmCgfcKHOtNFym4bY/nFg');
+my $home = $ENV{'HOME'};
+mkdir "$home/.vim";
+mkdir "$home/.vim/syntax";
+file::write("$home/.vim/syntax/cltex.vim", retrieve('data::cltex-vim-highlighter'));
+file::write("$home/.vim/syntax/javatex.vim", retrieve('data::javatex-vim-highlighter'));
+
+<<"EOF";
+The highlighters were created successfully. To have syntax highlighting activated
+automatically, append this to your .vimrc:
+
+  au BufRead,BufNewFile *.cltex   set filetype=cltex
+  au BufRead,BufNewFile *.javatex set filetype=javatex
+
+Alternately, you can run $0 update-vimrc.
+EOF
+__qKwDdQ1bDPFx6t/oiiEMc3lmCgfcKHOtNFym4bY/nFg
+
+meta::function('lock', <<'__pqf/HijyN91BWpnS+uWYip/mFhHhcd+M9/YdlYsvv9Y');
+my (undef, undef, $mode) = stat $0;
+chmod $mode & 0555, $0;
+__pqf/HijyN91BWpnS+uWYip/mFhHhcd+M9/YdlYsvv9Y
+
+meta::function('ls', <<'__M3wGXSw8/xm3RiNq0uLWke1dHm2OWQbvJpHkngdPafg');
+join("\n", sort keys %externalized_functions);
+__M3wGXSw8/xm3RiNq0uLWke1dHm2OWQbvJpHkngdPafg
+
+meta::function('ls-a', <<'__6jKXRDXpIkzIOkcLtB2FOSTuZxqjBLyLZsF1vEmVn18');
+join("\n", map {"  $_"} sort keys %data) . "\n";
+__6jKXRDXpIkzIOkcLtB2FOSTuZxqjBLyLZsF1vEmVn18
+
+meta::function('make', <<'__8mAUcwqcvcEhgs6tEjHaIx3uF9QOC+9DAI7NmulvJ74');
+compile();
+view();
+clean();
+__8mAUcwqcvcEhgs6tEjHaIx3uF9QOC+9DAI7NmulvJ74
+
+meta::function('mv', <<'__PY7iwIY+6QtPN4V5hV4MOImRJVAKDkMmEKtkN34cv5Y');
+my ($from, $to) = @_;
+messages::error("The '$from' attribute does not exist.") unless grep $from, keys %data;
+$data{$to} = $data{$from};
+delete $data{$from};
+__PY7iwIY+6QtPN4V5hV4MOImRJVAKDkMmEKtkN34cv5Y
+
+meta::function('new', <<'__FQjehdFg7T3T2iHPMlGp6nAnrKAsQUIK5CXW02wNnos');
+clone(@_);
+__FQjehdFg7T3T2iHPMlGp6nAnrKAsQUIK5CXW02wNnos
+
+meta::function('pull', <<'__ZU6uOu7dBdjjoNdEL/U7yrjicOQR5OLFQAacjrKqSCg');
+my ($class_name) = @_;
+my @attributes = grep /^implementation::/, split /\n/, `$class_name ls-a`;
+
+for (@attributes) {
+  s/^\s+//;
+  s/\s+$//;
+  print STDERR "Adding $_\n";
+  associate(basename($_), `$class_name cat "$_"`);
+}
+__ZU6uOu7dBdjjoNdEL/U7yrjicOQR5OLFQAacjrKqSCg
+
+meta::function('reload', <<'__GwQjnnfuj0xQlervDJ9EVWzdmdz+XL3Gq0i9rdejvzM');
+execute($_) for (grep {! (/^internal::/ || /^bootstrap::/)} keys %data);
+__GwQjnnfuj0xQlervDJ9EVWzdmdz+XL3Gq0i9rdejvzM
+
+meta::function('rm', <<'__7BVECTVo/mcT5+edC70WPc6S1xCbzAeyUCfCjkKWlww');
+for my $to_be_deleted (@_) {
+  messages::warning("$to_be_deleted does not exist") unless grep {$_ eq $to_be_deleted} keys %data;
+}
+
+delete @data{@_};
+__7BVECTVo/mcT5+edC70WPc6S1xCbzAeyUCfCjkKWlww
+
+meta::function('save', <<'__HuNR2A6/zt/GGZDRiR1x82a4nBxpAlIR1QGc4kUySto');
+my $serialized_data = serialize();
+my $final_state     = state();
+
+my (undef, $temporary_filename) = tempfile("$0." . 'X' x 32, OPEN => 0);
+file::write($temporary_filename, $serialized_data);
+chmod 0700, $temporary_filename;
+
+my $observed_state = `perl $temporary_filename state`;
+chomp $observed_state;
+if ($observed_state ne $final_state) {
+  messages::error("The state of this object ($final_state) is inconsistent with the state of $temporary_filename ($observed_state).\n" .
+                  "$0 has not been updated.");
+} else {
+  file::write($0, $serialized_data);
+  unlink $temporary_filename;
+}
+__HuNR2A6/zt/GGZDRiR1x82a4nBxpAlIR1QGc4kUySto
+
+meta::function('serialize', <<'__KGiI48MlyG6RAVW5QYRK8y97y8tx+jeAwPlY5eDtMTw');
+my @keys_without_internals = grep(!/^internal::/, sort keys %data);
+join "\n", $data{'bootstrap::initialization'},
+           (grep {$_} (map {serialize::single(@_)} grep(/^meta::/,  @keys_without_internals),
+                                                   grep(!/^meta::/, @keys_without_internals),
+                                                   grep(/^internal::/, sort keys %data))),
+           "__END__";
+__KGiI48MlyG6RAVW5QYRK8y97y8tx+jeAwPlY5eDtMTw
+
+meta::function('shell', <<'__1pX0YiaO1Jx8AIJ3/w6tbrNGcmnuuZfIo6840aq4bU4');
+use Term::ReadLine;
+
+my $term = new Term::ReadLine "$0 shell";
+$term->ornaments(0);
+my $prompt = name() . '$ ';
+my $OUT = $term->OUT || \*STDOUT;
+
+while (defined ($_ = $term->readline($prompt))) {
+  my $command_line = $_;
+  my @args = split /\s+/;
+  my $function_name = shift @args;
+
+  return if $function_name eq 'exit';
+
+  if ($externalized_functions{$function_name}) {
+    my $result = eval {&{$function_name}(@args)};
+    messages::warning($@) if $@;
+    chomp $result;
+    print $OUT $result, "\n" unless $@;
+  } else {
+    messages::warning("Command not found: $function_name");
+  }
+
+  $term->addhistory($command_line) if $command_line;
+  $prompt = name() . '$ ';
+}
+__1pX0YiaO1Jx8AIJ3/w6tbrNGcmnuuZfIo6840aq4bU4
+
+meta::function('size', <<'__lDGr6yVnDwcDWLkJH16MNukltjG2ypBSk/ktYb80h80');
+length(serialize());
+__lDGr6yVnDwcDWLkJH16MNukltjG2ypBSk/ktYb80h80
+
+meta::function('snapshot', <<'__qjqsCy4CTt88dIi7IWM+Varpb3GcHsYrFTxW7EwpLW0');
+my ($name) = @_;
+file::write(my $finalname = state_based_filename($name), serialize(), noclobber => 1);
+chmod 0700, $finalname;
+__qjqsCy4CTt88dIi7IWM+Varpb3GcHsYrFTxW7EwpLW0
+
+meta::function('state', <<'__1S8nzRSMoxJU/VEv2rx/NrAt1iRgXQ9ugxjUP3IFunI');
+sha256_base64 serialize();
+__1S8nzRSMoxJU/VEv2rx/NrAt1iRgXQ9ugxjUP3IFunI
+
+meta::function('unlit', <<'__qJxQQTnIdxxWBaOiySqDtTNC9V8xmwwiJXmRFACA8kA');
+my ($profile, %options) = @_;
+$profile ||= &{'default-profile'}();
+
+my $literate_code    = join "\n", map retrieve($_), grep /^section::/, sort keys %data;
+my $inside_code      = 0;
+my $code_indentation = 0;
+my $resulting_code   = '(* ';
+
+for my $line (split /\n/, $literate_code) {
+  if ($inside_code && $line =~ /^\s*:\.$/) {
+    $inside_code = $code_indentation = 0;
+    $line =~ s/^/(* /;
+  }
+
+  if ($inside_code) {
+    my $spaces = ' ' x $code_indentation;
+    $line =~ s/^$spaces//;
+  }
+
+  if ($line =~ /^(\s*)::(.*)$/) {
+    my $spaces             = $1;
+    my $code_section_rules = $2;
+    my $indentation        = length $spaces;
+
+    if ($code_section_rules =~ /\socaml(\s|$)/) {
+      # See whether we should include this code piece. Its inclusion depends on the active
+      # profile and whatever guards are present.
+
+      if ($code_section_rules =~ /if\s*\(([^)]*)\)/) {
+        my $guards   = $1;
+        my @profiles = split /\|/, $guards;
+
+        if (grep {s/^\s*//; s/\s*$//; $_ eq $profile} @profiles) {
+          $inside_code      = 1;
+          $code_indentation = $indentation;
+          $line =~ s/$/ *)/;
+        }
+      } else {
+        $inside_code      = 1;
+        $code_indentation = $indentation;
+        $line =~ s/$/ *)/;
+      }
+    }
+  }
+
+  $resulting_code .= "$line\n";
+}
+
+$resulting_code . ' *)';
+__qJxQQTnIdxxWBaOiySqDtTNC9V8xmwwiJXmRFACA8kA
+
+meta::function('unlock', <<'__08PohCY8fcNe+pWCO6ic6XOOKv48NkrxpNMmTOUIFdA');
+my (undef, undef, $mode) = stat $0;
+chmod $mode | 0200, $0;
+__08PohCY8fcNe+pWCO6ic6XOOKv48NkrxpNMmTOUIFdA
+
+meta::function('update-vimrc', <<'__VJ/A7S8PvUf38Tb82V3BFnW1BEfYw6HXtqb8Vqo8Yk0');
+open my $fh, '>>', "$ENV{'HOME'}/.vimrc";
+print $fh "au BufRead,BufNewFile *.cltex   set filetype=cltex\n";
+print $fh "au BufRead,BufNewFile *.javatex set filetype=javatex";
+close $fh;
+__VJ/A7S8PvUf38Tb82V3BFnW1BEfYw6HXtqb8Vqo8Yk0
+
+meta::function('usage', <<'__oHVev4RtZlF/82SSE87y4Bf7ran2afn/HDtukOQBf9I');
+<<"EOD" . join '  ', split /\n/, ls ();
+Usage: $0 [options] action [arguments]
+Defined actions:
+EOD
+__oHVev4RtZlF/82SSE87y4Bf7ran2afn/HDtukOQBf9I
+
+meta::function('view', <<'__wEtlK5H0ttR24UvcFUsgg5Es1V/VbjMJlU+SKiO2jKs');
+my $pdf_reader      = &{'pdf-reader'}();
+my $pdf_output_file = &{'pdf-output-file'}();
+chomp $pdf_reader;
+system("$pdf_reader '$pdf_output_file'");
+__wEtlK5H0ttR24UvcFUsgg5Es1V/VbjMJlU+SKiO2jKs
+
+meta::internal_function('associate', <<'__D8BKmEFp/adiPPqPnXyMOzlsBMCmuZi62UpJWdoFg/0');
+my ($name, $value, %options) = @_;
+my $namespace = namespace($name);
+messages::error("Namespace $namespace does not exist") unless grep {$_ eq $namespace} @data_types;
+$data{$name} = $value;
+execute($name) if $options{'execute'};
+__D8BKmEFp/adiPPqPnXyMOzlsBMCmuZi62UpJWdoFg/0
+
+meta::internal_function('basename', <<'__T4JEqOUYjMzssdVwV/rdgAhvr0Vz9TQUo0noTdeBLxw');
+my ($name) = @_;
+$name =~ s/^[^:]*:://;
+$name;
+__T4JEqOUYjMzssdVwV/rdgAhvr0Vz9TQUo0noTdeBLxw
+
+meta::internal_function('execute', <<'__FfzmdPKSa4vnT4WNSN3uCxnwrUFKfkQbS6auoIa/SgE');
+my ($name, %options) = @_;
+my $namespace = namespace($name);
+eval {&{"meta::$namespace"}(basename($name), retrieve($name))};
+carp $@ if $@ && $options{'carp'};
+__FfzmdPKSa4vnT4WNSN3uCxnwrUFKfkQbS6auoIa/SgE
+
+meta::internal_function('file::read', <<'__ZxBqZsMZZRuLMQp8Sy//ZsoAvriDebjYLGAX7p7AxXg');
+my $name = shift;
+open my($handle), "<", $name;
+my $result = join "", <$handle>;
+close $handle;
+$result;
+__ZxBqZsMZZRuLMQp8Sy//ZsoAvriDebjYLGAX7p7AxXg
+
+meta::internal_function('file::write', <<'__+NhpMabvNL+hHZaTZwBoFx2IFa79cjOZwGxEXX+xG0o');
+my ($name, $contents, %options) = @_;
+die "Choosing not to overwrite file $name" if $options{'noclobber'} && -f $name;
+open my($handle), ">", $name or die "Can't open $name for writing";
+print $handle $contents;
+close $handle;
+__+NhpMabvNL+hHZaTZwBoFx2IFa79cjOZwGxEXX+xG0o
+
+meta::internal_function('invoke_editor_on', <<'__97Lgs5+qfyAu92Vv5GCVVSYgUgFhOKYkVYXlbWoUs6U');
+my ($data, %options) = @_;
+my $content_hash     = sha256_base64($data);
+my $editor           = $options{'editor'} || $ENV{'VISUAL'} || $ENV{'EDITOR'} ||
+                       messages::error('Either the $VISUAL or $EDITOR environment variable should be set to a valid editor.');
+my $options          = $options{'options'} || $ENV{'VISUAL_OPTS'} || $ENV{'EDITOR_OPTS'} || '';
+my $extension        = $options{'extension'} || '';
+
+my (undef, $filename) = tempfile("$0." . ("X" x 32), OPEN => 0);
+$filename .= $extension;
+
+file::write($filename, $data);
+system("$editor $options \"$filename\"");
+
+my $result = file::read($filename);
+unlink $filename;
+$result;
+__97Lgs5+qfyAu92Vv5GCVVSYgUgFhOKYkVYXlbWoUs6U
+
+meta::internal_function('messages::error', <<'__200qXouilOAQNa4NkmIj6l+Rvb49Jpy8yxvIX29NcK4');
+my ($message) = @_;
+die "$message\n";
+__200qXouilOAQNa4NkmIj6l+Rvb49Jpy8yxvIX29NcK4
+
+meta::internal_function('messages::warning', <<'__DeU/1Klulk/y4fO+wtKt+liOmUKwCEYKM8BvtlXYXBc');
+my ($message) = @_;
+print "$message\n";
+__DeU/1Klulk/y4fO+wtKt+liOmUKwCEYKM8BvtlXYXBc
+
+meta::internal_function('namespace', <<'__D7UfKyyYZ1slZZyaS28hIt8a68jkI3ELBaddROXOHug');
+my ($name) = @_;
+$name =~ s/::.*$//;
+$name;
+__D7UfKyyYZ1slZZyaS28hIt8a68jkI3ELBaddROXOHug
+
+meta::internal_function('retrieve', <<'__h2PeSpk/pPmrzLRTTofdLTbhj06IWUw5WWke6ggUsdk');
+my ($name) = @_;
+$data{$name};
+__h2PeSpk/pPmrzLRTTofdLTbhj06IWUw5WWke6ggUsdk
+
+meta::internal_function('serialize::single', <<'__lDBHaXpbrfER2envI2Ipy77IcdjUnlZou+rggaxsAWE');
+my $name               = shift || $_;
+my $contents           = $data{$name};
+my $delimiter          = "__" . sha256_base64 $contents;
+my $meta_function_name = "meta::" . namespace($name);
+my $invocation_name    = basename $name;
+"$meta_function_name('$invocation_name', <<'$delimiter');\n$contents\n$delimiter\n";
+__lDBHaXpbrfER2envI2Ipy77IcdjUnlZou+rggaxsAWE
+
+meta::internal_function('state_based_filename', <<'__zNSrihAkMKJG5spRYgcFdoNArFKig1u12gIp6gJ8pZw');
+my ($name) = @_;
+my $noise  = $name || state();
+$noise =~ s/\//-/g;
+"$0.$noise";
+__zNSrihAkMKJG5spRYgcFdoNArFKig1u12gIp6gJ8pZw
+
+meta::line_filter('convert_header_info', <<'__1jqqbjBcdOqh/3nTKZSDbW1AgEo4kg0dQ5HdRAgxyzE');
+my ($line) = @_;
+
+$line =~ s/^= (.*)$/\\title{$1}/;
+$line =~ s/^a (.*)$/\\author{$1}/;
+$line =~ s/^d (.*)$/\\date{$1}/;
+
+my $document_header = '\begin{document}\maketitle';
+$document_header .= '\tableofcontents' if &{'table-of-contents'}();
+
+$line =~ s/^begin$/$document_header/;
+
+$line;
+__1jqqbjBcdOqh/3nTKZSDbW1AgEo4kg0dQ5HdRAgxyzE
+
+meta::line_filter('convert_itemized_environments', <<'__crKVW6OfRA2nN2SGPWQ/DAD9NPUws+boS8dK4cf3X2I');
+my ($line) = @_;
+
+$line =~ s/^\s*\+ /\\item /;
+$line =~ s/^\s*\+\[([^\]]*)\] /\\item[\1] /;
+
+$line =~ s/^\s*e\[$/\\begin{enumerate}/;
+$line =~ s/^\s*i\[$/\\begin{itemize}/;
+$line =~ s/^\s*d\[$/\\begin{description}/;
+
+$line =~ s/^\s*a\[$/\\begin{align*}/;
+
+$line =~ s/^\s*\]e$/\\end{enumerate}/;
+$line =~ s/^\s*\]i$/\\end{itemize}/;
+$line =~ s/^\s*\]d$/\\end{description}/;
+
+$line =~ s/^\s*\]a$/\\end{align*}/;
+
+$line;
+__crKVW6OfRA2nN2SGPWQ/DAD9NPUws+boS8dK4cf3X2I
+
+meta::line_filter('convert_sections', <<'__39uz93wRI7d9PaiU6AHPOFU42AvT9qYjBBsQ/iL9AdY');
+my ($line) = @_;
+
+my %indentation_levels = (
+  0 => '\part',
+  2 => '\chapter',
+  4 => '\section',
+  6 => '\subsection',
+  8 => '\subsubsection');
+
+if ($line =~ /^(\s*)- (.*)$/) {
+  my $section = $indentation_levels{length($1)} || die "Invalid indentation level:\n$_";
+  my $section_name = $2;
+  my $label_name   = lc $section_name;
+
+  $label_name =~ s/[^A-Za-z0-9.]/-/g;
+
+  "${section} {$section_name} \\label{sec:$label_name}";
+} else {
+  $line;
+}
+__39uz93wRI7d9PaiU6AHPOFU42AvT9qYjBBsQ/iL9AdY
+
+meta::section('01-preface', <<'__qDHWh93zih31wEBI9UswzVuUZWdDkbmNqzsggNUrwUo');
+  \setlength{\parindent}{0em}
+  \setlength{\parskip}{1em}
+
+  \chapter*{Preface}
+  \addcontentsline{toc}{chapter}{Preface}
+
+  Cheloniidae is the product of two orthogonal goals. One is to write the highest-capacity turtle graphics system possible, and the other is to write Java code
+  with the elegance of Lisp or Haskell. I'm not sure whether I've managed to achieve these goals yet, but this paper explains the thoughtwork behind the code
+  and takes a linear approach to explaining it.
+
+  There are a number of ideas that as far as I know originated with this project. One is the notion of having turtles navigate a three-dimensional space instead
+  of a two-dimensional one. Another is using turtles to render polygons, and the necessary mathematical constructs required for that to make sense. A third
+  notion is the algebra underlying turtle commands and the Lisp-like model used to transform them.
+
+  I recommend reading through this paper if you are interested in:
+
+  e[
+    + Using Java as a functional programming language
+    + Techniques for writing very concise code
+    + Extending Cheloniidae
+    + Writing mathematical systems in Java
+  ]e
+
+  However, be forewarned that there is a lot of math.
+__qDHWh93zih31wEBI9UswzVuUZWdDkbmNqzsggNUrwUo
+
+meta::section('02-internals', <<'__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo');
+- Conceptual Basis
+  - Design Patterns
+    - Public Final
+      In languages like Haskell it is perfectly acceptable to pass exposed data around because it is immutable. The danger of neglecting to enforce access in
+      other languages is generally not that someone will rely on implementation details (though sometimes it is), but rather that someone will change a value
+      without your permission. One way around this is to write accessor methods, which normally are implemented this way:
+
+      ::
+      private int x;
+      public int  getX ()       {return x;}
+      public void setX (int _x) {x = _x;}
+      :.
+
+      The advantage of a set of accessor methods is twofold:
+
+      e[
+        + Access, particularly mutation, has a thread-path and can be traced easily, e.g.
+          ::
+          public void setX (int _x) {
+            new Exception ("X set to " + _x).printStackTrace ();
+            x = _x;
+          }
+          :.
+
+        + The implementation details of the class are hidden, allowing internal refactoring without breaking other code.
+      ]e
+
+      Cheloniidae takes an alternate approach to instance data. All instance data is initialized in the constructor, and all fields are public and final. This
+      ensures that an object is initialized atomically, and that it is immutable after initialization.
+
+      Along with the public-final design pattern, I also adhere to the practice that all local variables, with very few exceptions, are declared as final. This
+      lays the groundwork for a functional and mathematical model of coding.
+
+    - Interfaces as Sets
+      The primary method of categorization in mathematics is grouping objects into sets. Some of these sets reflect intrinsic attributes of objects -- one
+      example is the statement that $x \in \mathbb R$.\footnote{Not really, but let's eliminate complex and Hamiltonian numbers for the sake of example.} Other
+      sets can be seen as objects for which a proposition holds; e.g.~$x \in \mathbb N$ iff $x > 0$ and $x \in \mathbb Z$.
+
+      Java reflects the first use of sets -- we can tag classes to say that their instances have certain intrinsic properties. To simulate the second use of
+      sets, I've defined a framework of predicates in section \ref{sec:predicates}.
+
+      The interface-as-a-set design pattern states two things:
+
+      e[
+        + Every conceptually distinct use of an object should define an interface for that purpose. Often this interface will be empty.
+        + The {\tt Object} type should never be used.
+      ]e
+
+    - No Void Methods
+      Very few methods should ever return void. Better is to return the object to which the method applies.\footnote{Sometimes it is necessary to return void to
+        work around deficiencies in Java's type checker. In a language with covariance and contravariance annotations, such as Scala, this would probably not be
+        the case.} This way, you can chain method calls along and perform object mutation in one statement as opposed to several. This contributes to code
+      readability, since mutations on the same object are grouped, and it also contributes to brevity.
+
+      Most classes in Cheloniidae are stateless, but one exception is the {\tt Vector} class defined in section \ref{sec:vector}. Methods in this class, such as
+      {\tt addScaled} and {\tt multiply}, modify the original vector in-place and return a self-reference. This allows you to write code such as this:
+
+      ::
+      // v1 becomes the average of v1 and v2
+      some_function (v1.multiply (0.5).addScaled (v2, 0.5));
+      :.
+
+  - Turtles
+    Like mathematical axiom systems, Cheloniidae is minimalistic in what it assumes about the implementation of a model. This approach often leads to some
+    confusion because of what we take for granted. For instance, most turtle graphics systems implement a turtle as being a member of a two-dimensional plane,
+    so the turtle has a location and a heading angle. Many allow the turtle to vary in its color and line size, so these too are part of a turtle model.
+
+    These things are not assumed in Cheloniidae. In fact, not even the coordinate model is assumed. A turtle (section \ref{sec:turtle}) is an object with the
+    following properties:
+
+    e[
+      + It can generate a list of {\tt RenderAction}s (section \ref{sec:renderaction}) to reflect things it has drawn.
+      + It can save and restore its state (section \ref{sec:turtlestate}).
+      + It can be cloned (chapter \ref{sec:replication}).
+      + It can be tagged with one or more attributes (section \ref{sec:attributes}).
+      + It can execute turtle commands (chapters \ref{sec:commands-1} and \ref{sec:commands-2}).
+      + It has a window that receives its output (section \ref{sec:turtlewindow}).
+    ]e
+
+    The result of such a general setup is that turtles can reside in non-Euclidean spaces, draw curved lines, or define custom commands for themselves. Also, a
+    ``turtle'' can represent multiple turtles (section \ref{sec:turtlegroup}) or static objects.
+
+    - Turtle
+      :: java class=Turtle package=cheloniidae
+      package cheloniidae;
+      public interface Turtle<T extends Turtle>
+               extends Renderable, Cloneable, HasAttributes {
+        public TurtleState serialize   ();
+        public T           deserialize (TurtleState t);
+
+        public T run   (TurtleCommand c);
+        public T clone ();
+
+        public TurtleWindow window ();
+        public T            window (TurtleWindow _window);
+      }
+      :.
+
+      This interface, like many others in Cheloniidae, has a type parameter that is set to the class that implements it. This notion corresponds to a convention
+      among Haskell typeclasses:
+
+      ::
+      class Eq a where
+        (==) :: a -> a -> Bool
+      :.
+
+      wherein the implementation's type is a restriction on the parameters. In the case of {\tt Turtle}, it is a restriction on the return types of the methods,
+      since often we will want to chain method invocations along and we don't want Java to demote the type of the returned self-reference to a regular {\tt
+      Turtle}. When you run across this style of code in the Cheloniidae code base, you can interpret a return type of {\tt T} as a signal that a method should
+      return {\tt this}.
+
+    - BasicTurtle
+      :: java class=BasicTurtle package=cheloniidae
+      package cheloniidae;
+      import cheloniidae.commands.*;
+      import java.util.*;
+
+      public abstract class BasicTurtle<T extends BasicTurtle>
+                    extends Replicable<T>
+                 implements Turtle<T>, SupportsWindow {
+
+        public static class State
+                    extends ImmutableTurtleState
+                 implements TurtleState, TurtleCommand {
+
+          public final Set<Attribute> attributes = new TreeSet<Attribute> ();
+          public State (final Set<Attribute> _attributes) {attributes.addAll (_attributes);}
+
+          public State applyTo (final Turtle t) {
+            t.attributes ().addAll (attributes);
+            return this;
+          }
+        }
+
+        public final Set<Attribute> attributes = new TreeSet<Attribute> ();
+
+        protected TurtleWindow window = null;
+
+        public Set<Attribute> attributes ()                           {return attributes;}
+        public T              attribute  (final Attribute _attribute) {attributes.add (_attribute);
+                                                                       return (T) this;}
+
+        public TurtleWindow   window     ()                           {return window;}
+        public T              window     (final TurtleWindow _window) {window = _window; return (T) this;}
+
+        public TurtleState serialize () {return new State (attributes);}
+
+        public T run (final TurtleCommand c) {
+          c.applyTo (this);
+          return (T) this;
+        }
+
+        public TurtleCommand map (final Transformation<TurtleCommand> t) {
+          final TurtleState serialized = this.serialize ();
+          if (serialized instanceof TurtleCommand) return ((TurtleCommand) serialized).map (t);
+          else                                     return null;
+        }
+      }
+      :.
+
+      
+    - EuclideanTurtle
+      :: java class=EuclideanTurtle package=cheloniidae
+      package cheloniidae;
+
+      import cheloniidae.commands.*;
+      import java.awt.BasicStroke;
+      import java.awt.Color;
+      import java.awt.Graphics2D;
+
+      import java.util.List;
+      import java.util.ArrayList;
+      import java.util.SortedSet;
+      import java.util.TreeSet;
+      import java.util.Set;
+
+      public abstract class EuclideanTurtle<T extends EuclideanTurtle>
+                    extends BasicTurtle<T>
+                 implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>,
+                            SupportsLineColor<T>, SupportsVisible<T>, TurtleCommand {
+
+        public static class View extends ViewportCaching implements RenderAction {
+          public final EuclideanTurtle turtle;
+          public View (final EuclideanTurtle _turtle) {turtle = _turtle;}
+
+          public double computeDepth (final Viewport v)
+            {return v.transformPoint (turtle.position ()).length ();}
+
+          public void render (final Viewport v) {
+            // pp = perceived position, pd = perceived direction.
+            // These are the position and direction as seen by the user.
+            Vector pp = v.transformPoint (turtle.position ());
+            Vector pd = v.transformPoint (turtle.position ().clone ().add (turtle.direction ()));
+            if (pp.z > 0 && pd.z > 0) {
+              final double scale = 4.0 * v.scaleFactor () / pp.z;
+
+              pp = v.projectPoint (pp);
+              pd = v.projectPoint (pd);
+
+              final Graphics2D g = v.context ();
+              g.setStroke (new BasicStroke ((float) (scale / 16.0)));
+              g.setColor  (turtle.color ());
+              g.drawOval  ((int) (pp.x - scale), (int) (pp.y - scale), (int) (scale * 2.0), (int) (scale * 2.0));
+              g.drawLine  ((int) pp.x,           (int) pp.y,           (int) pd.x,          (int) pd.y);
+            }
+          }
+        }
+
+        public static class State extends BasicTurtle.State implements TurtleState, TurtleCommand {
+          public final Vector position;
+          public final double size;
+          public final Color  color;
+
+          public State (final Set<Attribute> _attributes, final Vector _position, final double _size, final Color _color)
+            {super (_attributes); position = _position.clone (); size = _size; color = _color;}
+
+          public State applyTo (final Turtle t) {
+            super.applyTo (t);
+            new Sequence (new Position  (position),
+                          new LineSize  (size),
+                          new LineColor (color)).applyTo (t);
+            return this;
+          }
+        }
+
+        protected final List<CartesianLine> lines    = new ArrayList<CartesianLine> ();
+        protected final View                view     = new View (this);
+        protected final Vector              position = new Vector ();
+        protected       double              size     = 0.25;
+        protected       Color               color    = new Color (0.2f, 0.3f, 0.3f, 0.3f);
+        protected       boolean             visible  = true;
+
+        public Vector                  position  ()                       {return position;}
+        public T                       position  (final Vector _position) {position.assign (_position); return (T) this;}
+        public double                  size      ()                       {return size;}
+        public T                       size      (final double _size)     {size = _size; return (T) this;}
+        public double                  lineSize  ()                       {return size ();}
+        public T                       lineSize  (final double _size)     {return size (_size);}
+        public Color                   color     ()                       {return color;}
+        public T                       color     (final Color _color)     {color = _color; return (T) this;}
+        public Color                   lineColor ()                       {return color ();}
+        public T                       lineColor (final Color _color)     {return color (_color);}
+        public boolean                 visible   ()                       {return visible;}
+        public T                       visible   (final boolean _visible) {visible = _visible; return (T) this;}
+
+        public abstract Vector direction ();
+
+        public T line (final Vector p1, final Vector p2) {lines.add (new CartesianLine (p1, p2, size, color)); return (T) this;}
+        public T jump (final double distance)            {position.addScaled (this.direction (), distance); return (T) this;}
+        public T move (final double distance)            {final Vector oldPosition = position.clone ();
+                                                          return line (oldPosition, position.addScaled (this.direction (), distance));}
+
+        public SortedSet<RenderAction> actions (final Viewport v) {
+          final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
+          if (visible) result.add (view);
+          for (final RenderAction r : lines) if (v.shouldCancel ()) break;
+                                             else                   result.add (r);
+          return result;
+        }
+
+        public State serialize   ()                    {return new State (attributes, position, size, color);}
+        public T     deserialize (final TurtleState t) {if (t instanceof TurtleCommand) ((TurtleCommand) t).applyTo (this);
+                                                        return (T) this;}
+
+        public T applyTo (final Turtle t) {
+          serialize ().applyTo (t);
+          return (T) this;
+        }
+
+        public String toString () {return "Euclidean turtle: location = " + position ().toString () + ", direction = " + direction ().toString ();}
+      }
+      :.
+    - CartesianTurtle
+    - RotationalCartesianTurtle
+    - StandardRotationalTurtle
+
+  - Commands 1
+    - Application to Turtles
+    - TurtleGroup
+    - NonDistributiveTurtleCommand
+    - TurtleState
+
+  - Attributes and Predicates
+    - Attributes
+    - Equivalence Classes
+    - Predicates
+    - Composition
+
+  - Transformation
+    - Basic Transforms
+    - Predicated Transforms
+
+  - Replication
+    - Splitting
+    - Inductive Replication
+
+  - Commands 2
+    - Repetition
+    - Conditional Execution
+    - Recursion
+
+- Implementation
+  - Displaying Scenes
+    - Renderable
+    - RenderAction
+    - HasPerspectiveProjection
+    - TurtleWindow
+
+  - Renderables
+    - Vector
+    - CartesianLine
+    - CartesianTriangle
+    - Incidence Angles
+__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo
+
+meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
+my ($document) = @_;
+$document .= "\n" . retrieve($_) . "\n" for (grep /^section::/, sort keys %data);
+$document;
+__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc
+
+meta::unlit_converter('main', <<'__3D082OWBmT2cWw4D6ktyDGp1MHknawaTDW2B0gvZPyM');
+my ($document) = @_;
+
+my $sections_already_encountered = 0;
+my $inside_code_block            = 0;
+my $code_block_indentation       = 0;
+my $code_section_name            = '';
+my $result                       = '';
+
+for (split /\n/, $document) {
+  # Handle code blocks.
+  if (/^(\s*):\.$/) {
+    $inside_code_block = $code_block_indentation = 0;
+
+    for my $filter_name (grep /^code_filter::/, sort keys %data) {
+      $_ = &$filter_name($_, name => $code_section_name, indentation => $code_block_indentation, end => 1);
+    }
+  }
+
+  if ($inside_code_block) {
+    my $spaces_to_delete = ' ' x $code_block_indentation;
+    s/^$spaces_to_delete//;
+    for my $filter_name (grep /^code_filter::/, sort keys %data) {
+      $_ = &$filter_name($_, name => $code_section_name, indentation => $code_block_indentation);
+    }
+  } else {
+    for my $filter_name (grep /^line_filter::/, sort keys %data) {
+      $_ = &$filter_name($_);
+    }
+  }
+
+  if (/^(\s*)::(\s.*)?$/) {
+    $inside_code_block      = 1;
+    $code_block_indentation = length($1);
+    $code_section_name      = $2;
+
+    for my $filter_name (grep /^code_filter::/, sort keys %data) {
+      $_ = &$filter_name($_, name => $code_section_name, indentation => $code_block_indentation, begin => 1);
+    }
+  }
+
+  $result .= "$_\n";
+}
+
+$result;
+__3D082OWBmT2cWw4D6ktyDGp1MHknawaTDW2B0gvZPyM
+
+meta::unlit_converter('zz_append_footer', <<'__xZrf+gAwEiK7btRcm+mwC/qtHsXp2FQ/Z8ZCwMvSw4Q');
+my ($document) = @_;
+"$document\n\\end{document}";
+__xZrf+gAwEiK7btRcm+mwC/qtHsXp2FQ/Z8ZCwMvSw4Q
+
+meta::unlit_converter('zz_prepend_header', <<'__4YCmTeTBS/MGOkeIFkQRlLujLJ1g/qS0/0iCeanWkkw');
+my ($document) = @_;
+header() . "\n$document";
+__4YCmTeTBS/MGOkeIFkQRlLujLJ1g/qS0/0iCeanWkkw
+
+meta::internal('runtime', <<'__YPmIzwZkTg8URmPfjiwGRG4VDUF2ZCJqTEz+gjETYLQ');
+my $initial_state = sha256_base64 serialize();
+
+push @script_args, shift @ARGV while @ARGV && $ARGV[0] =~ /^-/;
+
+my $default_action = retrieve('data::default-action');
+chomp $default_action;
+my $function_name = shift(@ARGV) || $default_action || 'usage';
+$function_name = 'usage' unless $externalized_functions{$function_name};
+my $result = &{$function_name}(@ARGV);
+chomp $result;
+print "$result\n" if $result;
+
+END {
+  my $serialized_data = serialize();
+  my $final_state     = sha256_base64 $serialized_data;
+  save() unless $initial_state eq $final_state;
+}
+
+__YPmIzwZkTg8URmPfjiwGRG4VDUF2ZCJqTEz+gjETYLQ
+
+__END__
