@@ -349,9 +349,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__B8KvUsCWKlph+apiF8nNMhcwj/O4S+pjwDw/gKHawMA');
-/tmp/cheloniidae.U2xcrOR96AG0PdE9kqPwHAn93wcw+haWHQ7se8FwDaM/document.pdf
-__B8KvUsCWKlph+apiF8nNMhcwj/O4S+pjwDw/gKHawMA
+meta::data('pdf-output-file', <<'__0lDxqDNZMrWJeFt6z1QHiYRMEibezXnxeNl0oEI/e5g');
+/tmp/cheloniidae.4p3G+HsfDg+C28UA0wC5QjjWTSFuBfxYxbwcwJY9Kts/document.pdf
+__0lDxqDNZMrWJeFt6z1QHiYRMEibezXnxeNl0oEI/e5g
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -908,7 +908,7 @@ meta::section('01-preface', <<'__qDHWh93zih31wEBI9UswzVuUZWdDkbmNqzsggNUrwUo');
   However, be forewarned that there is a lot of math.
 __qDHWh93zih31wEBI9UswzVuUZWdDkbmNqzsggNUrwUo
 
-meta::section('02-internals', <<'__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo');
+meta::section('02-internals', <<'__m/j0nA5vAkobBBt3JXrxZOukJeLcFTv8g9ZO5I1hABQ');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -1069,6 +1069,19 @@ meta::section('02-internals', <<'__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo')
       }
       :.
 
+      The {\tt BasicTurtle} class provides default implementations for the functionality that is likely to be invariant with the type of turtle used.
+      Specifically, it implements the following assumptions made by the {\tt Turtle} interface:
+
+      e[
+        + Basic handling of attributes
+        + Belonging to a window
+        + Default behavior for running a turtle command
+        + Default implementation of the {\tt map} method, used for acting as a turtle command for propagating state to other turtles
+      ]e
+
+      Most turtles are subclasses of {\tt BasicTurtle} because these defaults usually work. However, there are exceptions; {\tt TurtleGroup} (section
+      \ref{sec:turtlegroup}), for instance, provides its own implementation of {\tt run()} to support command distribution across turtles that belong to that
+      group.
       
     - EuclideanTurtle
       :: java class=EuclideanTurtle package=cheloniidae
@@ -1112,7 +1125,8 @@ meta::section('02-internals', <<'__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo')
               g.setStroke (new BasicStroke ((float) (scale / 16.0)));
               g.setColor  (turtle.color ());
               g.drawOval  ((int) (pp.x - scale), (int) (pp.y - scale), (int) (scale * 2.0), (int) (scale * 2.0));
-              g.drawLine  ((int) pp.x,           (int) pp.y,           (int) pd.x,          (int) pd.y);
+              g.drawLine  ((int) pp.x, (int) pp.y,
+                           (int) pd.x, (int) pd.y);
             }
           }
         }
@@ -1122,7 +1136,8 @@ meta::section('02-internals', <<'__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo')
           public final double size;
           public final Color  color;
 
-          public State (final Set<Attribute> _attributes, final Vector _position, final double _size, final Color _color)
+          public State (final Set<Attribute> _attributes, final Vector _position,
+                        final double _size, final Color _color)
             {super (_attributes); position = _position.clone (); size = _size; color = _color;}
 
           public State applyTo (final Turtle t) {
@@ -1142,7 +1157,8 @@ meta::section('02-internals', <<'__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo')
         protected       boolean             visible  = true;
 
         public Vector                  position  ()                       {return position;}
-        public T                       position  (final Vector _position) {position.assign (_position); return (T) this;}
+        public T                       position  (final Vector _position) {position.assign (_position);
+                                                                           return (T) this;}
         public double                  size      ()                       {return size;}
         public T                       size      (final double _size)     {size = _size; return (T) this;}
         public double                  lineSize  ()                       {return size ();}
@@ -1156,11 +1172,14 @@ meta::section('02-internals', <<'__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo')
 
         public abstract Vector direction ();
 
-        public T line (final Vector p1, final Vector p2) {lines.add (new CartesianLine (p1, p2, size, color)); return (T) this;}
-        public T jump (final double distance)            {position.addScaled (this.direction (), distance); return (T) this;}
+        public T line (final Vector p1, final Vector p2) {lines.add (new CartesianLine (p1, p2, size, color));
+                                                          return (T) this;}
+        public T jump (final double distance)            {position.addScaled (this.direction (), distance);
+                                                          return (T) this;}
         public T move (final double distance)            {final Vector oldPosition = position.clone ();
-                                                          return line (oldPosition, position.addScaled (this.direction (), distance));}
-
+                                                          return line (oldPosition,
+                                                                       position.addScaled (this.direction (),
+                                                                                           distance));}
         public SortedSet<RenderAction> actions (final Viewport v) {
           final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
           if (visible) result.add (view);
@@ -1170,7 +1189,8 @@ meta::section('02-internals', <<'__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo')
         }
 
         public State serialize   ()                    {return new State (attributes, position, size, color);}
-        public T     deserialize (final TurtleState t) {if (t instanceof TurtleCommand) ((TurtleCommand) t).applyTo (this);
+        public T     deserialize (final TurtleState t) {if (t instanceof TurtleCommand)
+                                                          ((TurtleCommand) t).applyTo (this);
                                                         return (T) this;}
 
         public T applyTo (final Turtle t) {
@@ -1178,9 +1198,23 @@ meta::section('02-internals', <<'__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo')
           return (T) this;
         }
 
-        public String toString () {return "Euclidean turtle: location = " + position ().toString () + ", direction = " + direction ().toString ();}
+        public String toString () {return "Euclidean turtle: location = " + position ().toString () +
+                                                         ", direction = " + direction ().toString ();}
       }
       :.
+
+      Euclidean turtles make the assumption that they reside in a space with Euclidean geometry and travel in straight lines. Things that you could reasonably
+      conclude from this include:
+
+      e[
+        + The turtle's position can be described in Cartesian coordinates. This implies that all lines generated by the turtle will have endpoints with
+          Cartesian coordinates, so a {\tt CartesianLine} (section \ref{sec:cartesianline}) is a reasonable representation for the output.
+        + The lines generated by the turtle can have thicknesses (referred to as ``size'' in this class) and solid colors. In theory we could implement
+          gradients and such, but I haven't gotten around to that yet.
+        + Since the turtle moves in straight lines, it makes sense to talk about a direction. However, it is not yet clear how that direction should be
+          computed.
+      ]e
+
     - CartesianTurtle
     - RotationalCartesianTurtle
     - StandardRotationalTurtle
@@ -1222,7 +1256,7 @@ meta::section('02-internals', <<'__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo')
     - CartesianLine
     - CartesianTriangle
     - Incidence Angles
-__8EWzEUHdtX/sO3eSDovur2F0hNQ2RneukALSmJ6hhMo
+__m/j0nA5vAkobBBt3JXrxZOukJeLcFTv8g9ZO5I1hABQ
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
