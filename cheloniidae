@@ -244,16 +244,16 @@ a Spencer Tipping
 begin
 __+N0B1MWRa9IRpNOof8xNk7y+TRxtdQzNwqV9kRUtNNU
 
-meta::data('header', <<'__3weaOeYzBkeOfc3LesFYaSrX+C33Z+1ezKKZXnikSh8');
+meta::data('header', <<'__BodDS4lLDvbogTAgyje14yZSUMc3dy4KRj1tSdf8mvs');
 \documentclass{report}
-\usepackage{palatino,mathpazo,amsmath,amssymb,listings,hyperref}
+\usepackage{palatino,mathpazo,amsmath,amssymb,listings,hyperref,geometry}
 
 \newcommand{\degrees}{^\circ}
 
 \lstnewenvironment{javacode}
   {\lstset{language=java,frame=tlb,basicstyle={\scriptsize\tt}}}
   {}
-__3weaOeYzBkeOfc3LesFYaSrX+C33Z+1ezKKZXnikSh8
+__BodDS4lLDvbogTAgyje14yZSUMc3dy4KRj1tSdf8mvs
 
 meta::data('intro', <<'__uirjwqAxCBH+vu23aaPBO6uNM7a7cUHAYKJo8gIJsGw');
 This is a TeX document generator.
@@ -349,9 +349,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__0lDxqDNZMrWJeFt6z1QHiYRMEibezXnxeNl0oEI/e5g');
-/tmp/cheloniidae.4p3G+HsfDg+C28UA0wC5QjjWTSFuBfxYxbwcwJY9Kts/document.pdf
-__0lDxqDNZMrWJeFt6z1QHiYRMEibezXnxeNl0oEI/e5g
+meta::data('pdf-output-file', <<'__bNZ2OnaMwzsXssNjbzsGdOSWsLVpaBjKyckLn/+1DOE');
+/tmp/cheloniidae.1McnRBQvzV1D67XLSeX3neYfWpmCAlZlzWrF82B+s-0/document.pdf
+__bNZ2OnaMwzsXssNjbzsGdOSWsLVpaBjKyckLn/+1DOE
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -908,7 +908,7 @@ meta::section('01-preface', <<'__qDHWh93zih31wEBI9UswzVuUZWdDkbmNqzsggNUrwUo');
   However, be forewarned that there is a lot of math.
 __qDHWh93zih31wEBI9UswzVuUZWdDkbmNqzsggNUrwUo
 
-meta::section('02-internals', <<'__m/j0nA5vAkobBBt3JXrxZOukJeLcFTv8g9ZO5I1hABQ');
+meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -972,7 +972,7 @@ meta::section('02-internals', <<'__m/j0nA5vAkobBBt3JXrxZOukJeLcFTv8g9ZO5I1hABQ')
       :.
 
   - Turtles
-    Like mathematical axiom systems, Cheloniidae is minimalistic in what it assumes about the implementation of a model. This approach often leads to some
+    Like mathematical axiom systems, Cheloniidae is minimalistic in what it assumes about the implementation of a model. This approach can lead to some
     confusion because of what we take for granted. For instance, most turtle graphics systems implement a turtle as being a member of a two-dimensional plane,
     so the turtle has a location and a heading angle. Many allow the turtle to vary in its color and line size, so these too are part of a turtle model.
 
@@ -1111,22 +1111,21 @@ meta::section('02-internals', <<'__m/j0nA5vAkobBBt3JXrxZOukJeLcFTv8g9ZO5I1hABQ')
             {return v.transformPoint (turtle.position ()).length ();}
 
           public void render (final Viewport v) {
-            // pp = perceived position, pd = perceived direction.
-            // These are the position and direction as seen by the user.
-            Vector pp = v.transformPoint (turtle.position ());
-            Vector pd = v.transformPoint (turtle.position ().clone ().add (turtle.direction ()));
-            if (pp.z > 0 && pd.z > 0) {
-              final double scale = 4.0 * v.scaleFactor () / pp.z;
+            final Vector tp = v.transformPoint (turtle.position ());
+            final Vector td = v.transformPoint (turtle.position ().clone ().add (turtle.direction ()));
+            if (tp.z > 0 && td.z > 0) {
+              final double scale = 4.0 * v.scaleFactor () / tp.z;
 
-              pp = v.projectPoint (pp);
-              pd = v.projectPoint (pd);
+              // pp = perceived position, pd = perceived direction.
+              // These are the position and direction as seen by the user.
+              final Vector pp = v.projectPoint (tp);
+              final Vector pd = v.projectPoint (td);
 
               final Graphics2D g = v.context ();
               g.setStroke (new BasicStroke ((float) (scale / 16.0)));
               g.setColor  (turtle.color ());
               g.drawOval  ((int) (pp.x - scale), (int) (pp.y - scale), (int) (scale * 2.0), (int) (scale * 2.0));
-              g.drawLine  ((int) pp.x, (int) pp.y,
-                           (int) pd.x, (int) pd.y);
+              g.drawLine  ((int) pp.x, (int) pp.y, (int) pd.x, (int) pd.y);
             }
           }
         }
@@ -1172,14 +1171,15 @@ meta::section('02-internals', <<'__m/j0nA5vAkobBBt3JXrxZOukJeLcFTv8g9ZO5I1hABQ')
 
         public abstract Vector direction ();
 
-        public T line (final Vector p1, final Vector p2) {lines.add (new CartesianLine (p1, p2, size, color));
-                                                          return (T) this;}
-        public T jump (final double distance)            {position.addScaled (this.direction (), distance);
-                                                          return (T) this;}
-        public T move (final double distance)            {final Vector oldPosition = position.clone ();
-                                                          return line (oldPosition,
-                                                                       position.addScaled (this.direction (),
-                                                                                           distance));}
+        public T jump (final double distance) {position.addScaled (this.direction (), distance); return (T) this;}
+        public T move (final double distance) {final Vector oldPosition = position.clone ();
+                                               return line (oldPosition,
+                                                            position.addScaled (this.direction (), distance));}
+
+        public T line (final Vector p1, final Vector p2)
+          {lines.add (new CartesianLine (p1, p2, size, color)); return (T) this;}
+
+
         public SortedSet<RenderAction> actions (final Viewport v) {
           final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
           if (visible) result.add (view);
@@ -1192,7 +1192,6 @@ meta::section('02-internals', <<'__m/j0nA5vAkobBBt3JXrxZOukJeLcFTv8g9ZO5I1hABQ')
         public T     deserialize (final TurtleState t) {if (t instanceof TurtleCommand)
                                                           ((TurtleCommand) t).applyTo (this);
                                                         return (T) this;}
-
         public T applyTo (final Turtle t) {
           serialize ().applyTo (t);
           return (T) this;
@@ -1203,8 +1202,8 @@ meta::section('02-internals', <<'__m/j0nA5vAkobBBt3JXrxZOukJeLcFTv8g9ZO5I1hABQ')
       }
       :.
 
-      Euclidean turtles make the assumption that they reside in a space with Euclidean geometry and travel in straight lines. Things that you could reasonably
-      conclude from this include:
+      Euclidean turtles make the assumption that they reside in a space with Euclidean geometry and travel in straight lines. Things that can be reasonably
+      concluded from this include:
 
       e[
         + The turtle's position can be described in Cartesian coordinates. This implies that all lines generated by the turtle will have endpoints with
@@ -1212,15 +1211,177 @@ meta::section('02-internals', <<'__m/j0nA5vAkobBBt3JXrxZOukJeLcFTv8g9ZO5I1hABQ')
         + The lines generated by the turtle can have thicknesses (referred to as ``size'' in this class) and solid colors. In theory we could implement
           gradients and such, but I haven't gotten around to that yet.
         + Since the turtle moves in straight lines, it makes sense to talk about a direction. However, it is not yet clear how that direction should be
-          computed.
+          computed, so it is abstract.
       ]e
 
+      Two nested classes are defined: \verb|EuclideanTurtle.View| and \verb|EuclideanTurtle.State|. {\tt View} is a {\tt RenderAction} that draws a circle and a
+      line indicating the turtle's position and direction. When the turtle is asked for its list of render actions, it includes an instance of {\tt View} in its
+      result.
+
+      The {\tt State} class stores the extra state for a Euclidean turtle. To keep the code compact, the inheritance chain of turtle states mirrors the
+      inheritance chain of turtles whenever possible.
+
     - CartesianTurtle
+      :: java class=CartesianTurtle package=cheloniidae
+      package cheloniidae;
+
+      import cheloniidae.commands.*;
+
+      import java.awt.Color;
+      import java.util.Set;
+
+      public abstract class CartesianTurtle<T extends CartesianTurtle> extends EuclideanTurtle<T>
+      implements SupportsDirection<T> {
+
+        public static class State extends EuclideanTurtle.State {
+          public final Vector direction;
+          
+          public State (final Set<Attribute> _attributes, final Vector _position, final double _size,
+                        final Color _color, final Vector _direction) {
+            super (_attributes, _position, _size, _color);
+            direction = _direction.clone ();
+          }
+
+          public State applyTo (final Turtle t) {
+            new Direction (direction).applyTo (t);
+            super.applyTo (t);
+            return this;
+          }
+        }
+
+        protected Vector direction = new Vector (0, 1, 0);
+
+        public Vector direction ()                        {return new Vector (direction);}
+        public T      direction (final Vector _direction) {direction.assign (_direction); return (T) this;}
+
+        public State serialize () {return new State (attributes, position, size, color, direction);}
+      }
+      :.
+
+      The new assumption made by the Cartesian turtle (perhaps a misnomer) is that the direction is a persistent vector in Cartesian space. That is, it is
+      invariant with the position of the turtle.
+
+      Making this assumption is subtly different from stating that the turtle always travels in straight lines. While it is true that the limit of the turtle's
+      movement is guaranteed to be straight in a Cartesian direction model (this was not true in the Euclidean model), no matter how small the distance
+      traveled, the weaker Euclidean statement that any single turtle movement will yield a straight path holds in both cases. Once using a Cartesian model, in
+      other words, we are guaranteed that a movement of distance $x$ followed by a movement of distance $y$ will yield the same turtle position as a movement of
+      distance $x + y$.
+
     - RotationalCartesianTurtle
+      :: java class=RotationalCartesianTurtle package=cheloniidae
+      package cheloniidae;
+
+      import cheloniidae.commands.*;
+
+      import java.awt.Color;
+      import java.util.Set;
+
+      public abstract class RotationalCartesianTurtle<T extends RotationalCartesianTurtle> extends CartesianTurtle<T>
+      implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, SupportsTurn<T> {
+
+        public static class State extends CartesianTurtle.State {
+          public final Vector directionComplement;
+
+          public State (final Set<Attribute> _attributes, final Vector _position, final double _size, final Color _color,
+                        final Vector _direction, final Vector _directionComplement) {
+            super (_attributes, _position, _size, _color, _direction);
+            directionComplement = _directionComplement.clone ();
+          }
+
+          public State applyTo (final Turtle t) {
+            new DirectionComplement (directionComplement).applyTo (t);
+            super.applyTo (t);
+            return this;
+          }
+        }
+
+        protected Vector directionComplement = new Vector (0, 0, -1);
+
+        public Vector directionComplement ()                                  {return directionComplement;}
+        public T      directionComplement (final Vector _directionComplement) {directionComplement = _directionComplement;
+                                                                               return (T) this;}
+
+        public T pitch (final double angle) {final Vector axis   = direction.cross (directionComplement);
+                                             direction           = direction.rotateAbout           (axis, angle);
+                                             directionComplement = directionComplement.rotateAbout (axis, angle);
+                                             return (T) this;}
+
+        public T bank (final double angle) {directionComplement = directionComplement.rotateAbout (direction, angle);
+                                            return (T) this;}
+        public T turn (final double angle) {direction           = direction.rotateAbout (directionComplement, angle);
+                                            return (T) this;}
+
+        public State serialize () {return new State (attributes, position, size, color, direction, directionComplement);}
+        public String toString () {return super.toString () + ", direction complement = " +
+                                          directionComplement ().toString ();}
+      }
+      :.
+
+      The rotational Cartesian turtle, as the name suggests, uses a rotational model to manipulate the Cartesian direction unit vector. To do this, three
+      methods are provided:
+
+      e[
+        + \verb|turn()|: Rotates the direction about the turtle's ``up'' vector. Intuitively, this is like turning a car.
+        + \verb|bank()|: Rotates the turtle's ``up'' vector about the turtle's direction. Intuitively, this corresponds to tilting.
+        + \verb|pitch()|: Rotates both the turtle's direction and its ``up'' vector about the cross product of the two. This corresponds to an airplane diving
+          or pulling up.
+      ]e
+
+      OK, so what is the ``up'' vector? It's an extra piece of information that is stored with the turtle so that it knows how to turn properly. In this
+      implementation it's called {\tt directionComplement}. When the turtle is initialized, its {\tt directionComplement} points directly towards the camera and
+      its {\tt direction} points straight up (towards the top of the screen). These two vectors should always be at right angles to one another.
+
     - StandardRotationalTurtle
+      :: java class=StandardRotationalTurtle package=cheloniidae
+      package cheloniidae;
+      public class StandardRotationalTurtle extends RotationalCartesianTurtle<StandardRotationalTurtle> {
+        public StandardRotationalTurtle create () {return new StandardRotationalTurtle ();}
+      }
+      :.
+
+      This is just a class to provide a shorthand for creating a rotational Cartesian turtle. Its purpose is to fill in the parameterized type.
 
   - Commands 1
+    A turtle command is a functional abstraction of the methods that a turtle provides. It can be thought of as a first-class way of referring to some turtle
+    method such as {\tt move} or {\tt turn}. This lets you assemble sequences of commands at runtime and then issue them to one or more turtles.
+
+    When defining various turtle classes, most notably {\tt EuclideanTurtle} (section \ref{sec:euclideanturtle}), you may have noticed the implementation of
+    interfaces such as {\tt SupportsMove}, {\tt SupportsTurn}, etc. These interfaces indicate that a turtle is able to understand certain turtle commands. So,
+    for instance, if you have a Euclidean turtle {\tt t}, then you could say this:
+
+    ::
+    t.move (100);
+    :.
+
+    \noindent or, equivalently:
+
+    ::
+    t.run (new Move (100));
+    :.
+
+    Because {\tt Move} is a regular Java class, instances are first-class objects; thus they can be stored and transformed (see section
+    \ref{sec:transformation}). They can also be composed more easily than explicit method calls:
+
+    ::
+    for (int i = 0; i < 4; ++i) t.move (100).turn (90);
+    :.
+
+    \noindent can also be written as:
+
+    ::
+    t.run (new Repeat (4, new Move (100), new Turn (90)));
+    :.
+
+    The word {\tt new} obscures the meaning here, so the {\tt CoreCommands} class (section \ref{sec:corecommands}) defines shorthand methods to allow us to
+    write this equivalent statement:
+
+    ::
+    t.run (repeat (4, move (100), turn (90)));
+    :.
+
     - Application to Turtles
+      
+
     - TurtleGroup
     - NonDistributiveTurtleCommand
     - TurtleState
@@ -1256,7 +1417,11 @@ meta::section('02-internals', <<'__m/j0nA5vAkobBBt3JXrxZOukJeLcFTv8g9ZO5I1hABQ')
     - CartesianLine
     - CartesianTriangle
     - Incidence Angles
-__m/j0nA5vAkobBBt3JXrxZOukJeLcFTv8g9ZO5I1hABQ
+
+  - Frames
+    - SingleTurtleScene
+    - CoreCommands
+__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
