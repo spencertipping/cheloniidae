@@ -351,9 +351,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__4zTFdQn70t5q3Kokw5aQXpbRZ6FTOWd8j0K065XnUEU');
-/tmp/cheloniidae.1qJGMbIlaPwEAMJnKqCYHL-EArH26xHG+Mgd0LJX7TY/document.pdf
-__4zTFdQn70t5q3Kokw5aQXpbRZ6FTOWd8j0K065XnUEU
+meta::data('pdf-output-file', <<'__JsF2jxyl69Hlj7XGTWSgfo3W6oYrpu55iNUH2OZzbFo');
+/tmp/cheloniidae.fRKGrR4Gkk3K86TwJjU0hcActbRDEoz4w16wGf2Vsh4/document.pdf
+__JsF2jxyl69Hlj7XGTWSgfo3W6oYrpu55iNUH2OZzbFo
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -910,7 +910,7 @@ meta::section('01-preface', <<'__RG63UqwgBmiQPPNbEaUHAGQi+r/BG17VmFVWpcCQz8A');
   However, be forewarned that there is a lot of math.
 __RG63UqwgBmiQPPNbEaUHAGQi+r/BG17VmFVWpcCQz8A
 
-meta::section('02-internals', <<'__vgr1FAbjVzMsnfZVmrMuudMTiTF00JdR/vG2OTogLt0');
+meta::section('02-internals', <<'__z9BS9HCtqggA+RjnHeaWloWhuX1BTXtxA31KF2aDp/Y');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -1536,9 +1536,8 @@ meta::section('02-internals', <<'__vgr1FAbjVzMsnfZVmrMuudMTiTF00JdR/vG2OTogLt0')
       t1.deserialize (t2.serialize ());
       :.
 
-      \noindent thus turtles themselves can be turtle commands that, when issued to other turtles, synchronize their state.
-
-      However, all that is explicitly required of a {\tt TurtleState} object is that it supports Java's object-stream serialization.
+      \noindent Thus turtles themselves can be turtle commands that, when issued to other turtles, synchronize their state. However, all that is explicitly
+      required of a {\tt TurtleState} object is that it supports Java's object-stream serialization.
 
       :: java class=TurtleState package=cheloniidae
       package cheloniidae;
@@ -1546,10 +1545,54 @@ meta::section('02-internals', <<'__vgr1FAbjVzMsnfZVmrMuudMTiTF00JdR/vG2OTogLt0')
       public interface TurtleState extends Serializable {}
       :.
 
-  - Attributes and Predicates
+  - Predicates
+    Predicates exist to let you define logical propositions for objects. They could be useful in any number of different ways, including matching against a
+    particular type of turtle command, selecting a turtle from a group, or anything else requiring identification of an object as being either in or out of a
+    set.
+
     - Attributes
+      While you could write a predicate that matched a particular property of an object, it's often easier to put a tag on the object instead. The attribute
+      framework allows you to do just that; all turtles, for example, are required to support attribute lists.
+
+      There are a few supporting interface definitions involved. First, the {\tt Attribute} itself:
+
+      :: java class=Attribute package=cheloniidae
+      package cheloniidae;
+      public interface Attribute
+               extends Transformable<Attribute>, HasEquivalenceClass<Attribute> {}
+      :.
+
+      Of note are the {\tt HasEquivalenceClass} and {\tt Comparable} definitions. {\tt HasEquivalenceClass} indicates that we can construct a predicate to
+      compare two attributes (this is explained further in section \ref{sec:equivalence-classes}). {\tt Comparable} is required so that attributes can be put
+      into a {\tt TreeSet} object -- this is the default set used by {\tt BasicTurtle}. The comparison function can be structurally inconsistent, but must be
+      referentially consistent.
+
+      :: java class=HasAttributes package=cheloniidae
+      package cheloniidae;
+      import java.util.Set;
+      public interface HasAttributes {
+        public Set<Attribute> attributes ();
+      }
+      :.
+
+      - AtomicAttribute
+        Some attributes are atomic in the sense that they have no capacity to store other attributes. For these we can make some assumptions that ease
+        implementation:
+
+        :: java class=AtomicAttribute package=cheloniidae.attributes
+        package cheloniidae.attributes;
+
+        import cheloniidae.Attribute;
+        import cheloniidae.Transformation;
+
+        public abstract class AtomicAttribute implements Attribute {
+          public Attribute map (final Transformation<Attribute> t) {return t.transform (this);}
+        }
+        :.
+
+        Notice the implementation of {\tt compareTo}; the output will be meaningless but referentially consistent. This is acceptable, however.
+
     - Equivalence Classes
-    - Predicates
     - Composition
 
   - Transformation
@@ -1582,7 +1625,7 @@ meta::section('02-internals', <<'__vgr1FAbjVzMsnfZVmrMuudMTiTF00JdR/vG2OTogLt0')
   - Frames
     - SingleTurtleScene
     - CoreCommands
-__vgr1FAbjVzMsnfZVmrMuudMTiTF00JdR/vG2OTogLt0
+__z9BS9HCtqggA+RjnHeaWloWhuX1BTXtxA31KF2aDp/Y
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
