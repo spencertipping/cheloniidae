@@ -238,11 +238,13 @@ meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
 __zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc
 
-meta::data('document', <<'__+N0B1MWRa9IRpNOof8xNk7y+TRxtdQzNwqV9kRUtNNU');
+meta::data('document', <<'__pADbN5xRAC0lsKZa0ePPPG7lePWVU/w/Ye4zm07ddTE');
 = Cheloniidae
 a Spencer Tipping
 begin
-__+N0B1MWRa9IRpNOof8xNk7y+TRxtdQzNwqV9kRUtNNU
+
+\sloppy
+__pADbN5xRAC0lsKZa0ePPPG7lePWVU/w/Ye4zm07ddTE
 
 meta::data('header', <<'__BodDS4lLDvbogTAgyje14yZSUMc3dy4KRj1tSdf8mvs');
 \documentclass{report}
@@ -349,9 +351,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__bNZ2OnaMwzsXssNjbzsGdOSWsLVpaBjKyckLn/+1DOE');
-/tmp/cheloniidae.1McnRBQvzV1D67XLSeX3neYfWpmCAlZlzWrF82B+s-0/document.pdf
-__bNZ2OnaMwzsXssNjbzsGdOSWsLVpaBjKyckLn/+1DOE
+meta::data('pdf-output-file', <<'__4zTFdQn70t5q3Kokw5aQXpbRZ6FTOWd8j0K065XnUEU');
+/tmp/cheloniidae.1qJGMbIlaPwEAMJnKqCYHL-EArH26xHG+Mgd0LJX7TY/document.pdf
+__4zTFdQn70t5q3Kokw5aQXpbRZ6FTOWd8j0K065XnUEU
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -881,7 +883,7 @@ if ($line =~ /^(\s*)- (.*)$/) {
 }
 __39uz93wRI7d9PaiU6AHPOFU42AvT9qYjBBsQ/iL9AdY
 
-meta::section('01-preface', <<'__qDHWh93zih31wEBI9UswzVuUZWdDkbmNqzsggNUrwUo');
+meta::section('01-preface', <<'__RG63UqwgBmiQPPNbEaUHAGQi+r/BG17VmFVWpcCQz8A');
   \setlength{\parindent}{0em}
   \setlength{\parskip}{1em}
 
@@ -890,7 +892,7 @@ meta::section('01-preface', <<'__qDHWh93zih31wEBI9UswzVuUZWdDkbmNqzsggNUrwUo');
 
   Cheloniidae is the product of two orthogonal goals. One is to write the highest-capacity turtle graphics system possible, and the other is to write Java code
   with the elegance of Lisp or Haskell. I'm not sure whether I've managed to achieve these goals yet, but this paper explains the thoughtwork behind the code
-  and takes a linear approach to explaining it.
+  with a linear approach.
 
   There are a number of ideas that as far as I know originated with this project. One is the notion of having turtles navigate a three-dimensional space instead
   of a two-dimensional one. Another is using turtles to render polygons, and the necessary mathematical constructs required for that to make sense. A third
@@ -906,9 +908,9 @@ meta::section('01-preface', <<'__qDHWh93zih31wEBI9UswzVuUZWdDkbmNqzsggNUrwUo');
   ]e
 
   However, be forewarned that there is a lot of math.
-__qDHWh93zih31wEBI9UswzVuUZWdDkbmNqzsggNUrwUo
+__RG63UqwgBmiQPPNbEaUHAGQi+r/BG17VmFVWpcCQz8A
 
-meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g');
+meta::section('02-internals', <<'__vgr1FAbjVzMsnfZVmrMuudMTiTF00JdR/vG2OTogLt0');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -992,6 +994,19 @@ meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g')
     ``turtle'' can represent multiple turtles (section \ref{sec:turtlegroup}) or static objects.
 
     - Turtle
+      This interface, like many others in Cheloniidae, has a type parameter that is set to the class that implements it. This notion corresponds to a convention
+      among Haskell typeclasses:
+
+      ::
+      class Eq a where
+        (==) :: a -> a -> Bool
+      :.
+
+      wherein the implementation's type is a restriction on the parameters. In the case of {\tt Turtle}, it is a restriction on the return types of the methods,
+      since often we will want to chain method invocations along and we don't want Java to demote the type of the returned self-reference to a regular {\tt
+      Turtle}. When you run across this style of code in the Cheloniidae code base, you can interpret a return type of {\tt T} as a signal that a method should
+      return {\tt this}.
+
       :: java class=Turtle package=cheloniidae
       package cheloniidae;
       public interface Turtle<T extends Turtle>
@@ -1007,20 +1022,21 @@ meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g')
       }
       :.
 
-      This interface, like many others in Cheloniidae, has a type parameter that is set to the class that implements it. This notion corresponds to a convention
-      among Haskell typeclasses:
-
-      ::
-      class Eq a where
-        (==) :: a -> a -> Bool
-      :.
-
-      wherein the implementation's type is a restriction on the parameters. In the case of {\tt Turtle}, it is a restriction on the return types of the methods,
-      since often we will want to chain method invocations along and we don't want Java to demote the type of the returned self-reference to a regular {\tt
-      Turtle}. When you run across this style of code in the Cheloniidae code base, you can interpret a return type of {\tt T} as a signal that a method should
-      return {\tt this}.
-
     - BasicTurtle
+      The {\tt BasicTurtle} class provides default implementations for the functionality that is likely to be invariant with the type of turtle used.
+      Specifically, it implements the following assumptions made by the {\tt Turtle} interface:
+
+      e[
+        + Basic handling of attributes
+        + Belonging to a window
+        + Default behavior for running a turtle command
+        + Default implementation of the {\tt map} method, used for acting as a turtle command for propagating state to other turtles
+      ]e
+
+      Most turtles are subclasses of {\tt BasicTurtle} because these defaults usually work. However, there are exceptions; {\tt TurtleGroup} (section
+      \ref{sec:turtlegroup}), for instance, provides its own implementation of {\tt run()} to support command distribution across turtles that belong to that
+      group.
+
       :: java class=BasicTurtle package=cheloniidae
       package cheloniidae;
       import cheloniidae.commands.*;
@@ -1068,22 +1084,27 @@ meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g')
         }
       }
       :.
-
-      The {\tt BasicTurtle} class provides default implementations for the functionality that is likely to be invariant with the type of turtle used.
-      Specifically, it implements the following assumptions made by the {\tt Turtle} interface:
-
-      e[
-        + Basic handling of attributes
-        + Belonging to a window
-        + Default behavior for running a turtle command
-        + Default implementation of the {\tt map} method, used for acting as a turtle command for propagating state to other turtles
-      ]e
-
-      Most turtles are subclasses of {\tt BasicTurtle} because these defaults usually work. However, there are exceptions; {\tt TurtleGroup} (section
-      \ref{sec:turtlegroup}), for instance, provides its own implementation of {\tt run()} to support command distribution across turtles that belong to that
-      group.
       
     - EuclideanTurtle
+      Euclidean turtles make the assumption that they reside in a space with Euclidean geometry and travel in straight lines. Things that can be reasonably
+      concluded from this include:
+
+      e[
+        + The turtle's position can be described in Cartesian coordinates. This implies that all lines generated by the turtle will have endpoints with
+          Cartesian coordinates, so a {\tt CartesianLine} (section \ref{sec:cartesianline}) is a reasonable representation for the output.
+        + The lines generated by the turtle can have thicknesses (referred to as ``size'' in this class) and solid colors. In theory we could implement
+          gradients and such, but I haven't gotten around to that yet.
+        + Since the turtle moves in straight lines, it makes sense to talk about a direction. However, it is not yet clear how that direction should be
+          computed, so it is abstract.
+      ]e
+
+      Two nested classes are defined: \verb|EuclideanTurtle.View| and \verb|EuclideanTurtle.State|. {\tt View} is a {\tt RenderAction} that draws a circle and a
+      line indicating the turtle's position and direction. When the turtle is asked for its list of render actions, it includes an instance of {\tt View} in its
+      result.
+
+      The {\tt State} class stores the extra state for a Euclidean turtle. To keep the code compact, the inheritance chain of turtle states mirrors the
+      inheritance chain of turtles whenever possible.
+
       :: java class=EuclideanTurtle package=cheloniidae
       package cheloniidae;
 
@@ -1202,26 +1223,16 @@ meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g')
       }
       :.
 
-      Euclidean turtles make the assumption that they reside in a space with Euclidean geometry and travel in straight lines. Things that can be reasonably
-      concluded from this include:
-
-      e[
-        + The turtle's position can be described in Cartesian coordinates. This implies that all lines generated by the turtle will have endpoints with
-          Cartesian coordinates, so a {\tt CartesianLine} (section \ref{sec:cartesianline}) is a reasonable representation for the output.
-        + The lines generated by the turtle can have thicknesses (referred to as ``size'' in this class) and solid colors. In theory we could implement
-          gradients and such, but I haven't gotten around to that yet.
-        + Since the turtle moves in straight lines, it makes sense to talk about a direction. However, it is not yet clear how that direction should be
-          computed, so it is abstract.
-      ]e
-
-      Two nested classes are defined: \verb|EuclideanTurtle.View| and \verb|EuclideanTurtle.State|. {\tt View} is a {\tt RenderAction} that draws a circle and a
-      line indicating the turtle's position and direction. When the turtle is asked for its list of render actions, it includes an instance of {\tt View} in its
-      result.
-
-      The {\tt State} class stores the extra state for a Euclidean turtle. To keep the code compact, the inheritance chain of turtle states mirrors the
-      inheritance chain of turtles whenever possible.
-
     - CartesianTurtle
+      The new assumption made by the Cartesian turtle (perhaps a misnomer from a mathematical perspective) is that the direction is a persistent vector with
+      Cartesian coordinates. That is, it is invariant with the position of the turtle.
+
+      Making this assumption is subtly different from stating that the turtle always travels in straight lines. While it is true that the limit of the turtle's
+      movement is guaranteed to be straight in a Cartesian direction model (this was not true in the Euclidean model), no matter how small the distance
+      traveled, the weaker Euclidean statement that any single turtle movement will yield a straight path holds in both cases. Once using a Cartesian model, in
+      other words, we are guaranteed that a movement of distance $x$ followed by a movement of distance $y$ will yield the same turtle position as a movement of
+      distance $x + y$.
+
       :: java class=CartesianTurtle package=cheloniidae
       package cheloniidae;
 
@@ -1258,16 +1269,21 @@ meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g')
       }
       :.
 
-      The new assumption made by the Cartesian turtle (perhaps a misnomer) is that the direction is a persistent vector in Cartesian space. That is, it is
-      invariant with the position of the turtle.
-
-      Making this assumption is subtly different from stating that the turtle always travels in straight lines. While it is true that the limit of the turtle's
-      movement is guaranteed to be straight in a Cartesian direction model (this was not true in the Euclidean model), no matter how small the distance
-      traveled, the weaker Euclidean statement that any single turtle movement will yield a straight path holds in both cases. Once using a Cartesian model, in
-      other words, we are guaranteed that a movement of distance $x$ followed by a movement of distance $y$ will yield the same turtle position as a movement of
-      distance $x + y$.
-
     - RotationalCartesianTurtle
+      The rotational Cartesian turtle, as the name suggests, uses a rotational model to manipulate the Cartesian direction unit vector. To do this, three
+      methods are provided:
+
+      e[
+        + \verb|turn()|: Rotates the direction about the turtle's ``up'' vector. Intuitively, this is like turning a car.
+        + \verb|bank()|: Rotates the turtle's ``up'' vector about the turtle's direction. Intuitively, this corresponds to tilting.
+        + \verb|pitch()|: Rotates both the turtle's direction and its ``up'' vector about the cross product of the two. This corresponds to an airplane diving
+          or pulling up.
+      ]e
+
+      OK, so what is the ``up'' vector? It's an extra piece of information that is stored with the turtle so that it knows how to turn properly. In this
+      implementation it's called {\tt directionComplement}. When the turtle is initialized, its {\tt directionComplement} points directly towards the camera and
+      its {\tt direction} points straight up (towards the top of the screen). These two vectors should always be at right angles to one another.
+
       :: java class=RotationalCartesianTurtle package=cheloniidae
       package cheloniidae;
 
@@ -1305,11 +1321,10 @@ meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g')
                                              direction           = direction.rotateAbout           (axis, angle);
                                              directionComplement = directionComplement.rotateAbout (axis, angle);
                                              return (T) this;}
-
-        public T bank (final double angle) {directionComplement = directionComplement.rotateAbout (direction, angle);
-                                            return (T) this;}
-        public T turn (final double angle) {direction           = direction.rotateAbout (directionComplement, angle);
-                                            return (T) this;}
+        public T bank (final double angle)
+          {directionComplement = directionComplement.rotateAbout (direction, angle); return (T) this;}
+        public T turn (final double angle)
+          {direction = direction.rotateAbout (directionComplement, angle);           return (T) this;}
 
         public State serialize () {return new State (attributes, position, size, color, direction, directionComplement);}
         public String toString () {return super.toString () + ", direction complement = " +
@@ -1317,29 +1332,30 @@ meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g')
       }
       :.
 
-      The rotational Cartesian turtle, as the name suggests, uses a rotational model to manipulate the Cartesian direction unit vector. To do this, three
-      methods are provided:
-
-      e[
-        + \verb|turn()|: Rotates the direction about the turtle's ``up'' vector. Intuitively, this is like turning a car.
-        + \verb|bank()|: Rotates the turtle's ``up'' vector about the turtle's direction. Intuitively, this corresponds to tilting.
-        + \verb|pitch()|: Rotates both the turtle's direction and its ``up'' vector about the cross product of the two. This corresponds to an airplane diving
-          or pulling up.
-      ]e
-
-      OK, so what is the ``up'' vector? It's an extra piece of information that is stored with the turtle so that it knows how to turn properly. In this
-      implementation it's called {\tt directionComplement}. When the turtle is initialized, its {\tt directionComplement} points directly towards the camera and
-      its {\tt direction} points straight up (towards the top of the screen). These two vectors should always be at right angles to one another.
-
     - StandardRotationalTurtle
+      This is just a class to provide a shorthand for creating a rotational Cartesian turtle. Its purpose is to fill in the parameterized type. I suppose it
+      could be a standard practice to provide these ``endpoint'' classes that self-parameterize; that way people using your turtle can instantiate it without
+      parameterizing it explicitly:
+
+      ::
+      new MyTurtle<MyTurtle> ()
+      :.
+
+      \noindent seems redundant; most people would expect
+
+      ::
+      new MyTurtle ()
+      :.
+
+      \noindent as a library interface. It is important to ultimately specify the type for method chaining (e.g.~\verb|t.move (100).turn (90)|), which you will
+      probably want unless you are using turtle commands.
+
       :: java class=StandardRotationalTurtle package=cheloniidae
       package cheloniidae;
       public class StandardRotationalTurtle extends RotationalCartesianTurtle<StandardRotationalTurtle> {
         public StandardRotationalTurtle create () {return new StandardRotationalTurtle ();}
       }
       :.
-
-      This is just a class to provide a shorthand for creating a rotational Cartesian turtle. Its purpose is to fill in the parameterized type.
 
   - Commands 1
     A turtle command is a functional abstraction of the methods that a turtle provides. It can be thought of as a first-class way of referring to some turtle
@@ -1380,11 +1396,155 @@ meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g')
     :.
 
     - Application to Turtles
-      
+      There are two internal steps involved in a command invocation. The first is the turtle's logic for receiving the command (in the {\tt run()} method),
+      which varies depending on whether the turtle is representing just itself or other turtles. The second is the command's logic for applying itself to a
+      turtle (the {\tt applyTo()} method), which actually carries out the action involved.
+
+      Most normal turtles specify a pass-through {\tt run()} method, so that invoking \verb|t.run (move (100))| translates almost directly into
+      \verb|t.move (100)|. However, some turtles act as proxies for other turtles (see section \ref{sec:turtlegroup} for one such example). In that case, they
+      pass the commands on, so a call to \verb|t.run (move (100))| might translate to something like this:
+
+      ::
+      for (final Turtle t1 : turtles) t1.move (100);
+      :.
 
     - TurtleGroup
+      A turtle group acts as a distributive proxy for talking to a bunch of turtles at once. It maintains a list of sub-turtles and issues each command you give
+      it to each sub-turtle. It also provides its own command interface for adding a turtle, so you can add new turtles at runtime with the command interface.
+
+      Most of the complexity of this class has to do with figuring out which commands are intended to address the turtle group itself, and which ones are
+      supposed to be distributed to the grouped turtles. For this purpose there is a marker interface called {\tt NonDistributiveTurtleCommand}, described in
+      section \ref{sec:nondistributiveturtlecommand}.
+
+      :: java class=TurtleGroup package=cheloniidae
+      package cheloniidae;
+
+      import java.util.Collection;
+      import java.util.List;
+      import java.util.ArrayList;
+      import java.util.SortedSet;
+      import java.util.TreeSet;
+
+      public class TurtleGroup<T extends Turtle>
+           extends BasicTurtle<TurtleGroup<T>>
+        implements Turtle<TurtleGroup<T>>, TurtleCommand {
+
+        public static class State extends ImmutableTurtleState implements NonDistributiveTurtleCommand {
+          // Turtle states are stored positionally instead of by some form of map because of replication.
+          // We need to be able to produce a turtle state object that can apply itself to a cloned group,
+          // and the cloned group won't share object identity with the original.
+          public final List<TurtleState> states = new ArrayList<TurtleState> ();
+          public State (final TurtleGroup group) {
+            for (final Turtle t : (List<Turtle>) group.turtles ()) states.add (t.serialize ());
+          }
+
+          public State applyTo (final Turtle t) {
+            t.deserialize (this);
+            return this;
+          }
+        }
+
+        public TurtleGroup (final T ...         _turtles) {for (final T t : _turtles) turtles.add (t);}
+        public TurtleGroup (final Collection<T> _turtles) {turtles.addAll (_turtles);}
+
+        protected List<T> turtles = new ArrayList<T> ();
+
+        public TurtleGroup<T> create () {
+          final TurtleGroup<T> result = new TurtleGroup<T> ();
+          for (final Turtle t : turtles ()) result.turtles ().add ((T) t.clone ());
+          return result;
+        }
+
+        public List<T>        turtles ()                           {return turtles;}
+        public TurtleGroup<T> turtles (final List<T> _turtles)     {turtles = _turtles; return this;}
+        public TurtleGroup<T> window  (final TurtleWindow _window) {super.window (_window);
+                                                                    for (final T t : turtles) t.window (window);
+                                                                    return this;}
+        public TurtleGroup<T> add (final T turtle) {
+          turtles.add (turtle);
+          turtle.window (window ());
+          return this;
+        }
+
+        public TurtleCommand adder () {
+          return new TurtleCommand () {
+            public TurtleCommand applyTo (final Turtle t) {
+              add ((T) t);
+              return this;
+            }
+
+            public TurtleCommand map (Transformation<TurtleCommand> t) {return this;}
+          };
+        }
+
+        public SortedSet<RenderAction> actions (final Viewport v) {
+          final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
+          for (final T t : turtles) for (final RenderAction r : t.actions (v)) if (v.shouldCancel ()) break;
+                                                                               else                   result.add (r);
+          return result;
+        }
+
+        public State          serialize   () {return new State (this);}
+        public TurtleGroup<T> deserialize (final TurtleState state) {
+          if (state instanceof State) {
+            final List<TurtleState> stateList = ((State) state).states;
+            for (int i = 0; i < stateList.size (); ++i) turtles ().get (i).deserialize (stateList.get (i));
+          }
+          return this;
+        }
+
+        public TurtleGroup<T> applyTo (final Turtle t) {
+          serialize ().applyTo (t);
+          return this;
+        }
+
+        public TurtleGroup<T> run (final TurtleCommand c) {
+          if (c instanceof NonDistributiveTurtleCommand) c.applyTo (this);
+          else for (final T t : turtles) t.run (c);
+          return this;
+        }
+      }
+      :.
+
     - NonDistributiveTurtleCommand
+      This is a marker interface that indicates that a turtle command should not be sent to grouped turtles, but instead should act on the turtle group proxy as
+      a whole. It ends up coming in handy for serialization (notice that \verb|TurtleGroup.State| implements it), and later on it is useful to control the order
+      of turtle movements for triangle rendering (section \ref{sec:parallelization}).
+
+      :: java class=NonDistributiveTurtleCommand package=cheloniidae
+      package cheloniidae;
+      public interface NonDistributiveTurtleCommand extends TurtleCommand {}
+      :.
+
     - TurtleState
+      A turtle state is simply a snapshot of a turtle's configuration. Turtles are required to generate instances of turtle states via the {\tt serialize()}
+      method, and they must also be able to restore their configuration from a state object via {\tt deserialize()}.
+
+      Normally there wouldn't be very much complexity to this idea, but it turns out that with a little bit of generalization we can get a lot of flexibility. A
+      turtle state object can be combined with a turtle in only one meaningful way; that combination results in the turtle restoring its state. So it makes
+      sense for many turtle states to also be turtle commands. We see this in the definition of {\tt BasicTurtle} in section \ref{sec:basicturtle}.
+
+      Further, turtles themselves can be seen as state-propagation commands; for instance, if I say this:
+
+      ::
+      t1.run (t2);
+      :.
+
+      \noindent what I might mean is this:
+
+      ::
+      t1.deserialize (t2.serialize ());
+      :.
+
+      \noindent thus turtles themselves can be turtle commands that, when issued to other turtles, synchronize their state.
+
+      However, all that is explicitly required of a {\tt TurtleState} object is that it supports Java's object-stream serialization.
+
+      :: java class=TurtleState package=cheloniidae
+      package cheloniidae;
+      import java.io.Serializable;
+      public interface TurtleState extends Serializable {}
+      :.
 
   - Attributes and Predicates
     - Attributes
@@ -1404,6 +1564,7 @@ meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g')
     - Repetition
     - Conditional Execution
     - Recursion
+    - Parallelization
 
 - Implementation
   - Displaying Scenes
@@ -1421,7 +1582,7 @@ meta::section('02-internals', <<'__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g')
   - Frames
     - SingleTurtleScene
     - CoreCommands
-__0sT1ngyhLHRATb8E1rLtyuW5139G4qUjnfdILVv+m+g
+__vgr1FAbjVzMsnfZVmrMuudMTiTF00JdR/vG2OTogLt0
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
