@@ -883,9 +883,9 @@ if ($line =~ /^(\s*)- (.*)$/) {
 }
 __39uz93wRI7d9PaiU6AHPOFU42AvT9qYjBBsQ/iL9AdY
 
-meta::section('01-preface', <<'__RG63UqwgBmiQPPNbEaUHAGQi+r/BG17VmFVWpcCQz8A');
+meta::section('01-preface', <<'__Ri0j3wEfC2AKbZhSW2uLegazG0SLv4ie81FjdAhnpZY');
   \setlength{\parindent}{0em}
-  \setlength{\parskip}{1em}
+  \setlength{\parskip}{0.4em}
 
   \chapter*{Preface}
   \addcontentsline{toc}{chapter}{Preface}
@@ -908,9 +908,9 @@ meta::section('01-preface', <<'__RG63UqwgBmiQPPNbEaUHAGQi+r/BG17VmFVWpcCQz8A');
   ]e
 
   However, be forewarned that there is a lot of math.
-__RG63UqwgBmiQPPNbEaUHAGQi+r/BG17VmFVWpcCQz8A
+__Ri0j3wEfC2AKbZhSW2uLegazG0SLv4ie81FjdAhnpZY
 
-meta::section('02-internals', <<'__z9BS9HCtqggA+RjnHeaWloWhuX1BTXtxA31KF2aDp/Y');
+meta::section('02-internals', <<'__u2mS9dCmvb9Z9QxkElJu9R5z0Hs2U8wwLi4bB8IqMkg');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -1592,8 +1592,60 @@ meta::section('02-internals', <<'__z9BS9HCtqggA+RjnHeaWloWhuX1BTXtxA31KF2aDp/Y')
 
         Notice the implementation of {\tt compareTo}; the output will be meaningless but referentially consistent. This is acceptable, however.
 
+      - NamedAttribute
+        One kind of atomic attribute is a named attribute, which is simply a tag with a name on it. This can be used to mark objects as being inside named sets,
+        or to identify them uniquely. This particular attribute is useful when differentiating turtles; you might want different turtles to follow different
+        instructions. Used in conjunction with the {\tt When} command (section \ref{sec:conditional-execution}), you can write the equivalent of an {\tt if}
+        statement in pure turtle command language.
+
+        :: java class=Named package=cheloniidae.attributes
+        package cheloniidae.attributes;
+
+        import cheloniidae.Attribute;
+        import cheloniidae.Predicate;
+
+        import cheloniidae.predicates.CastableTo;
+        import cheloniidae.predicates.AtomicPredicate;
+
+        public class Named extends AtomicAttribute {
+          public final String name;
+          public Named (final String _name) {name = _name;}
+          
+          public Predicate<Attribute> projectivePredicate () {
+            return new CastableTo<Attribute, Named> (Named.class, new AtomicPredicate<Named> () {
+              public boolean matches (final Named value) {return value.name.equals (name);}
+            });
+          }
+        }
+        :.
+
     - Equivalence Classes
+      How should attributes be compared? For instance, suppose you add a named attribute to a turtle:
+
+      ::
+      t.attribute (new Named ("foo"));
+      :.
+
+      If you then try to ask whether my turtle has that name:
+
+      ::
+      t.attributes ().contains (new Named ("foo"));
+      :.
+
+      you get {\tt false} because the attribute set uses comparison functions instead of (inferred) structural equality. This is where you need some way to
+      identify whether two instances are really the same thing, and each attribute provides a {\em projective predicate} to determine this. A projective
+      predicate projects the attribute into an equivalence class where attributes that share semantics are considered equal.
+
+      :: java class=HasEquivalenceClass package=cheloniidae
+      package cheloniidae;
+      public interface HasEquivalenceClass<T> {
+        public Predicate<T> projectivePredicate ();
+      }
+      :.
+
     - Composition
+      There are a few different combinators for predicates. Mathematics defines operators for negation ($\neg P$), conjunction and disjunction ($P \wedge Q$ and
+      $P \vee Q$), etc.
 
   - Transformation
     - Basic Transforms
@@ -1625,7 +1677,7 @@ meta::section('02-internals', <<'__z9BS9HCtqggA+RjnHeaWloWhuX1BTXtxA31KF2aDp/Y')
   - Frames
     - SingleTurtleScene
     - CoreCommands
-__z9BS9HCtqggA+RjnHeaWloWhuX1BTXtxA31KF2aDp/Y
+__u2mS9dCmvb9Z9QxkElJu9R5z0Hs2U8wwLi4bB8IqMkg
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
