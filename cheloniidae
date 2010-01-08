@@ -351,9 +351,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__JsF2jxyl69Hlj7XGTWSgfo3W6oYrpu55iNUH2OZzbFo');
-/tmp/cheloniidae.fRKGrR4Gkk3K86TwJjU0hcActbRDEoz4w16wGf2Vsh4/document.pdf
-__JsF2jxyl69Hlj7XGTWSgfo3W6oYrpu55iNUH2OZzbFo
+meta::data('pdf-output-file', <<'__NCFrAeQcV2adD1HO1vbpjoea1LDgvj7cGPLBpTjpUF4');
+/tmp/cheloniidae.rjP+CC+GcvESbw9EPnSY5PlpTzmAj967t-vqvIIvDbA/document.pdf
+__NCFrAeQcV2adD1HO1vbpjoea1LDgvj7cGPLBpTjpUF4
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -910,7 +910,7 @@ meta::section('01-preface', <<'__Ri0j3wEfC2AKbZhSW2uLegazG0SLv4ie81FjdAhnpZY');
   However, be forewarned that there is a lot of math.
 __Ri0j3wEfC2AKbZhSW2uLegazG0SLv4ie81FjdAhnpZY
 
-meta::section('02-internals', <<'__u2mS9dCmvb9Z9QxkElJu9R5z0Hs2U8wwLi4bB8IqMkg');
+meta::section('02-internals', <<'__XP9CLGJ7EU3t875NkLHKVQPiXWXn+pEdN2udppwZgAg');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -1629,11 +1629,11 @@ meta::section('02-internals', <<'__u2mS9dCmvb9Z9QxkElJu9R5z0Hs2U8wwLi4bB8IqMkg')
       If you then try to ask whether my turtle has that name:
 
       ::
-      t.attributes ().contains (new Named ("foo"));
+      t.attributes ().contains (new Named ("foo"))
       :.
 
-      you get {\tt false} because the attribute set uses comparison functions instead of (inferred) structural equality. This is where you need some way to
-      identify whether two instances are really the same thing, and each attribute provides a {\em projective predicate} to determine this. A projective
+      \noindent you get {\tt false} because the attribute set uses comparison functions instead of (inferred) structural equality. This is where you need some
+      way to identify whether two instances are really the same thing, and each attribute provides a {\em projective predicate} to determine this. A projective
       predicate projects the attribute into an equivalence class where attributes that share semantics are considered equal.
 
       :: java class=HasEquivalenceClass package=cheloniidae
@@ -1644,8 +1644,93 @@ meta::section('02-internals', <<'__u2mS9dCmvb9Z9QxkElJu9R5z0Hs2U8wwLi4bB8IqMkg')
       :.
 
     - Composition
-      There are a few different combinators for predicates. Mathematics defines operators for negation ($\neg P$), conjunction and disjunction ($P \wedge Q$ and
-      $P \vee Q$), etc.
+      There are a few different combinators for predicates including negation, conjunction, and type refinement.
+
+      - Negation
+        The output of any predicate can be negated.
+
+        :: java class=Negation package=cheloniidae.predicates
+        package cheloniidae.predicates;
+
+        import cheloniidae.*;
+
+        public class Negation<T> implements Predicate<T> {
+          public final Predicate<T> predicate;
+          public Negation (final Predicate<T> _predicate) {predicate = _predicate;}
+          public boolean matches (final T value) {return ! predicate.matches (value);}
+
+          public Predicate<T> map (final Transformation<Predicate<T>> t) {
+            final Predicate<T> newPredicate = t.transform (this);
+            if (newPredicate == this) return new Negation (t.transform (predicate));
+            else                      return newPredicate;
+          }
+        }
+        :.
+
+      - Conjunction
+        Predicates can be conjoined, resulting in a new predicate $P(x) = Q(x) \wedge R(x)$.
+
+        :: java class=Conjunction package=cheloniidae.predicates
+        package cheloniidae;
+
+        import java.util.Collection;
+        import java.util.LinkedList;
+        import java.util.List;
+
+        public class Conjunction<T> implements Predicate<T> {
+          public final List<Predicate<T>> conjuncts = new LinkedList<Predicate<T>> ();
+          public Conjunction (final Predicate<T> ... _conjuncts)
+            {for (final Predicate<T> p : _conjuncts) conjuncts.add (p);}
+          public Conjunction (final Collection<Predicate<T>> _conjuncts) {conjuncts.addAll (_conjuncts);}
+
+          public boolean matches (final T value) {
+            for (final Predicate<T> p : conjuncts) if (! p.matches (value)) return false;
+            return true;
+          }
+
+          public Predicate<T> map (final Transformation<Predicate<T>> t) {
+            final Predicate<T> newPredicate = t.transform (this);
+            if (newPredicate == this) {
+              final List<Predicate<T>> newConjuncts = new LinkedList<Predicate<T>> ();
+              for (final Predicate<T> p : conjuncts) newConjuncts.add (t.transform (p));
+              return new Conjunction<T> (newConjuncts);
+            } else return newPredicate;
+          }
+        }
+        :.
+
+      - Disjunction
+        Just like conjunction, predicates can also be disjoined. In practice, this and {\tt Conjunction} (see section \ref{sec:conjunction}) should be factored
+        into a single base class that implements a binary reduction on the predicates' outputs.
+
+        :: java class=Disjunction package=cheloniidae.predicates
+        package cheloniidae;
+
+        import java.util.Collection;
+        import java.util.LinkedList;
+        import java.util.List;
+
+        public class Disjunction<T> implements Predicate<T> {
+          public final List<Predicate<T>> disjuncts = new LinkedList<Predicate<T>> ();
+          public Disjunction (final Predicate<T> ... _disjuncts)
+            {for (final Predicate<T> p : _disjuncts) disjuncts.add (p);}
+          public Disjunction (final Collection<Predicate<T>> _disjuncts) {disjuncts.addAll (_disjuncts);}
+
+          public boolean matches (final T value) {
+            for (final Predicate<T> p : disjuncts) if (p.matches (value)) return true;
+            return false;
+          }
+
+          public Predicate<T> map (final Transformation<Predicate<T>> t) {
+            final Predicate<T> newPredicate = t.transform (this);
+            if (newPredicate == this) {
+              final List<Predicate<T>> newDisjuncts = new LinkedList<Predicate<T>> ();
+              for (final Predicate<T> p : disjuncts) newDisjuncts.add (t.transform (p));
+              return new Disjunction<T> (newDisjuncts);
+            } else return newPredicate;
+          }
+        }
+        :.
 
   - Transformation
     - Basic Transforms
@@ -1677,7 +1762,7 @@ meta::section('02-internals', <<'__u2mS9dCmvb9Z9QxkElJu9R5z0Hs2U8wwLi4bB8IqMkg')
   - Frames
     - SingleTurtleScene
     - CoreCommands
-__u2mS9dCmvb9Z9QxkElJu9R5z0Hs2U8wwLi4bB8IqMkg
+__XP9CLGJ7EU3t875NkLHKVQPiXWXn+pEdN2udppwZgAg
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
