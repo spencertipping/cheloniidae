@@ -246,16 +246,17 @@ begin
 \sloppy
 __pADbN5xRAC0lsKZa0ePPPG7lePWVU/w/Ye4zm07ddTE
 
-meta::data('header', <<'__BodDS4lLDvbogTAgyje14yZSUMc3dy4KRj1tSdf8mvs');
+meta::data('header', <<'__Ql9HvglcUnAF5runNdBrCKak9c3Gl/ImXsVKdU31Kow');
 \documentclass{report}
-\usepackage{palatino,mathpazo,amsmath,amssymb,listings,hyperref,geometry}
+%\usepackage{palatino,mathpazo,amsmath,amssymb,listings,hyperref,geometry}
+\usepackage{amsmath,amssymb,charter,courier,listings,hyperref,geometry}
 
 \newcommand{\degrees}{^\circ}
 
 \lstnewenvironment{javacode}
   {\lstset{language=java,frame=tlb,basicstyle={\scriptsize\tt}}}
   {}
-__BodDS4lLDvbogTAgyje14yZSUMc3dy4KRj1tSdf8mvs
+__Ql9HvglcUnAF5runNdBrCKak9c3Gl/ImXsVKdU31Kow
 
 meta::data('intro', <<'__uirjwqAxCBH+vu23aaPBO6uNM7a7cUHAYKJo8gIJsGw');
 This is a TeX document generator.
@@ -351,9 +352,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__NCFrAeQcV2adD1HO1vbpjoea1LDgvj7cGPLBpTjpUF4');
-/tmp/cheloniidae.rjP+CC+GcvESbw9EPnSY5PlpTzmAj967t-vqvIIvDbA/document.pdf
-__NCFrAeQcV2adD1HO1vbpjoea1LDgvj7cGPLBpTjpUF4
+meta::data('pdf-output-file', <<'__gSKri6xr9UjlJFXTYRyrvMnIwdluoeNdUpb8/LzqFlg');
+/tmp/cheloniidae.EjEu+Y89HOZlTfpjJSjxx9xPt6iZ4i2OST7apb6ihxU/document.pdf
+__gSKri6xr9UjlJFXTYRyrvMnIwdluoeNdUpb8/LzqFlg
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -910,7 +911,7 @@ meta::section('01-preface', <<'__Ri0j3wEfC2AKbZhSW2uLegazG0SLv4ie81FjdAhnpZY');
   However, be forewarned that there is a lot of math.
 __Ri0j3wEfC2AKbZhSW2uLegazG0SLv4ie81FjdAhnpZY
 
-meta::section('02-internals', <<'__XP9CLGJ7EU3t875NkLHKVQPiXWXn+pEdN2udppwZgAg');
+meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -1634,12 +1635,29 @@ meta::section('02-internals', <<'__XP9CLGJ7EU3t875NkLHKVQPiXWXn+pEdN2udppwZgAg')
 
       \noindent you get {\tt false} because the attribute set uses comparison functions instead of (inferred) structural equality. This is where you need some
       way to identify whether two instances are really the same thing, and each attribute provides a {\em projective predicate} to determine this. A projective
-      predicate projects the attribute into an equivalence class where attributes that share semantics are considered equal.
+      predicate projects the attribute into an equivalence class where attributes that share semantics are considered equal. So, for example:
+
+      ::
+      new Named ("foo").projectivePredicate ().matches (someAttribute)
+      :.
+
+      \noindent would correctly determine whether {\tt someAttribute} matches \verb|Named ("foo")|.
 
       :: java class=HasEquivalenceClass package=cheloniidae
       package cheloniidae;
       public interface HasEquivalenceClass<T> {
         public Predicate<T> projectivePredicate ();
+      }
+      :.
+
+    - Basic Predicates
+      A predicate at its core is just an object that implements a method called {\tt matches} which takes an object and returns a boolean. Because it extends
+      {\tt Transformable} (see section \ref{sec:transformable}), predicates must also implement the {\tt map} method.
+
+      :: java class=Predicate package=cheloniidae
+      package cheloniidae;
+      public interface Predicate<T> extends Transformable<Predicate<T>> {
+        public boolean matches (T value);
       }
       :.
 
@@ -1700,8 +1718,9 @@ meta::section('02-internals', <<'__XP9CLGJ7EU3t875NkLHKVQPiXWXn+pEdN2udppwZgAg')
         :.
 
       - Disjunction
-        Just like conjunction, predicates can also be disjoined. In practice, this and {\tt Conjunction} (see section \ref{sec:conjunction}) should be factored
-        into a single base class that implements a binary reduction on the predicates' outputs.
+        Just like conjunction, predicates can also be disjoined ($Q \vee R$). Ideally, this and {\tt Conjunction} (see section \ref{sec:conjunction}) should be
+        factored into a single base class that implements a binary reduction on the predicates' outputs. However, the optimized traversal of sub-predicates
+        (that is, the fact that we stop computing once we know the final outcome) is valuable and would require a non-standard encoding of binary reduction.
 
         :: java class=Disjunction package=cheloniidae.predicates
         package cheloniidae;
@@ -1762,7 +1781,7 @@ meta::section('02-internals', <<'__XP9CLGJ7EU3t875NkLHKVQPiXWXn+pEdN2udppwZgAg')
   - Frames
     - SingleTurtleScene
     - CoreCommands
-__XP9CLGJ7EU3t875NkLHKVQPiXWXn+pEdN2udppwZgAg
+__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
