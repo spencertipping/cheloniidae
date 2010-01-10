@@ -358,9 +358,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__fO8hdWsnSt5XtfpTVaHhi2z+NV+VXTfqb1MWUPB6C9s');
-/tmp/cheloniidae.DKjYytJn6awdC9ShyykULuerpmX90QQn5BgbZAiXrq8/document.pdf
-__fO8hdWsnSt5XtfpTVaHhi2z+NV+VXTfqb1MWUPB6C9s
+meta::data('pdf-output-file', <<'__WBHcyMCOUnBjSlVBHm0s8DrSD0ynEiy/XjjCdUqncT8');
+/tmp/cheloniidae.vHTQxVyIQ+C0XnhLkO6NiDv3qJWqWB-fZwfCPHL2CgU/document.pdf
+__WBHcyMCOUnBjSlVBHm0s8DrSD0ynEiy/XjjCdUqncT8
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -914,7 +914,7 @@ meta::section('01-preface', <<'__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs');
   However, be forewarned that there is a lot of math.
 __MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs
 
-meta::section('02-internals', <<'__l6qEPUgx7+GpcuCkpZpWNcKW2dnCcWALwnawL+4XPxM');
+meta::section('02-internals', <<'__oyFMcsocf9+4uiqNQZPxkvUsUm01r1g5C5qmTQhDwFo');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -954,7 +954,7 @@ meta::section('02-internals', <<'__l6qEPUgx7+GpcuCkpZpWNcKW2dnCcWALwnawL+4XPxM')
       sets can be seen as objects for which a proposition holds; e.g.~$x \in \mathbb N$ iff $x > 0$ and $x \in \mathbb Z$.
 
       Java reflects the first use of sets -- we can tag classes to say that their instances have certain intrinsic properties. To simulate the second use of
-      sets, I've defined a framework of predicates in \Ref{section}{sec:predicates}.
+      sets, I've defined a framework of predicates in \Ref{chapter}{sec:predicates}.
 
       The interface-as-a-set design pattern states two things:
 
@@ -1565,7 +1565,7 @@ meta::section('02-internals', <<'__l6qEPUgx7+GpcuCkpZpWNcKW2dnCcWALwnawL+4XPxM')
       }
       :.
 
-      - Atomic Predicates
+      - AtomicPredicate
         The idea of atomic objects comes into play with transformations (see \Ref{chapter}{sec:transformation}). Basically, the idea is that an atomic predicate
         can't contain others, so the transformation must be applied only to one predicate. (This is not true, for instance, for the {\tt Conjunction} complex
         predicate defined in \Ref{section}{sec:conjunction}.)
@@ -1952,8 +1952,46 @@ meta::section('02-internals', <<'__l6qEPUgx7+GpcuCkpZpWNcKW2dnCcWALwnawL+4XPxM')
       objects themselves.
 
     - Basic Transformations
-      
       - Identity
+        This transformation just maps objects to themselves.
+
+        :: java class=Identity package=cheloniidae.transformations
+        package cheloniidae.transformations;
+        import cheloniidae.*;
+        public class Identity<T> implements Transformation<T> {
+          public Identity () {}
+          public T transform (final T x) {return x;}
+        }
+        :.
+
+      - Scale
+        Slightly more complex is the transformation that finds {\tt Move} and {\tt Jump} turtle commands and scales their distances by a given factor. This is
+        primarily useful for recursion (\Ref{section}{sec:recursion}). This transformation makes sense only for turtle commands.
+
+        :: java class=Scale package=cheloniidae.transformations
+        package cheloniidae.transformations;
+
+        import cheloniidae.*;
+        import cheloniidae.commands.*;
+
+        public class Scale implements Transformation<TurtleCommand> {
+          public final double  factor;
+          public final boolean scaleLineSizes;
+
+          public Scale (final double _factor)                                {this (_factor, false);}
+          public Scale (final double _factor, final boolean _scaleLineSizes) {factor = _factor; scaleLineSizes = _scaleLineSizes;}
+
+          public TurtleCommand transform (final TurtleCommand c) {
+            if                        (c instanceof Move)     return new Move     (((Move) c).value     * factor);
+            else if                   (c instanceof Jump)     return new Jump     (((Jump) c).value     * factor);
+            else if (scaleLineSizes && c instanceof LineSize) return new LineSize (((LineSize) c).value * factor);
+            else                                              return c;
+          }
+        }
+        :.
+
+    - Composition
+      
 
     - Predicated Transformations
 
@@ -1983,7 +2021,7 @@ meta::section('02-internals', <<'__l6qEPUgx7+GpcuCkpZpWNcKW2dnCcWALwnawL+4XPxM')
   - Frames
     - SingleTurtleScene
     - CoreCommands
-__l6qEPUgx7+GpcuCkpZpWNcKW2dnCcWALwnawL+4XPxM
+__oyFMcsocf9+4uiqNQZPxkvUsUm01r1g5C5qmTQhDwFo
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
