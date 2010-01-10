@@ -246,7 +246,7 @@ begin
 \sloppy
 __pADbN5xRAC0lsKZa0ePPPG7lePWVU/w/Ye4zm07ddTE
 
-meta::data('header', <<'__aeB5hHjcAqQyrFSTxlB01+xpEiSHnYVEI/SKOJHqg2I');
+meta::data('header', <<'__t/ou+xU9YMovOSHTApqt8gwf3umPN+Y3rWeSlz3AZaU');
 \documentclass{report}
 \usepackage{amsmath,amssymb,pxfonts,listings,geometry,color}
 \usepackage[colorlinks]{hyperref}
@@ -261,10 +261,11 @@ meta::data('header', <<'__aeB5hHjcAqQyrFSTxlB01+xpEiSHnYVEI/SKOJHqg2I');
 
 \lstnewenvironment{javacode}
   {\lstset{language=java,frame=l,columns=fixed,basewidth=0.5em,
+           numbers=left,
            backgroundcolor=\color{gray95},
            basicstyle={\tt\scriptsize}}}
   {}
-__aeB5hHjcAqQyrFSTxlB01+xpEiSHnYVEI/SKOJHqg2I
+__t/ou+xU9YMovOSHTApqt8gwf3umPN+Y3rWeSlz3AZaU
 
 meta::data('intro', <<'__uirjwqAxCBH+vu23aaPBO6uNM7a7cUHAYKJo8gIJsGw');
 This is a TeX document generator.
@@ -360,9 +361,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__JPf1oSnsy9q37uLRnM26ukX130f5VBizNFXEJWoeJb4');
-/tmp/cheloniidae.d+AcaYMvwm-Ah1gz3pYkakJe+WKq1e6l973oT4t56Tg/document.pdf
-__JPf1oSnsy9q37uLRnM26ukX130f5VBizNFXEJWoeJb4
+meta::data('pdf-output-file', <<'__Rch9zRcOxD77TtaHzYg4lRmlAQ77lcgl36pu8E/uZGA');
+/tmp/cheloniidae.46QNUgdIU24mj9IZoFluHZp2USVjIkw1H8XhnwVAZgI/document.pdf
+__Rch9zRcOxD77TtaHzYg4lRmlAQ77lcgl36pu8E/uZGA
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -916,7 +917,7 @@ meta::section('01-preface', <<'__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs');
   However, be forewarned that there is a lot of math.
 __MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs
 
-meta::section('02-internals', <<'__MkX09vqySViK1Wlmdg8EzxvS6uEcCzfS/1frObHntrU');
+meta::section('02-internals', <<'__MefnSDzDkiGWHVb1ik+uoLTUCE69YVVcHqia/24wShE');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -1401,6 +1402,16 @@ meta::section('02-internals', <<'__MkX09vqySViK1Wlmdg8EzxvS6uEcCzfS/1frObHntrU')
     t.run (repeat (4, move (100), turn (90)));
     :.
 
+    The {\tt Repeat} command is discussed further in \Ref{section}{sec:repetition}.
+
+    :: java class=TurtleCommand package=cheloniidae
+    package cheloniidae;
+    import java.io.Serializable;
+    public interface TurtleCommand extends Transformable<TurtleCommand>, Serializable {
+      public TurtleCommand applyTo (Turtle t);
+    }
+    :.
+
     - Application to Turtles
       There are two internal steps involved in a command invocation. The first is the turtle's logic for receiving the command (in the {\tt run()} method),
       which varies depending on whether the turtle is representing just itself or other turtles. The second is the command's logic for applying itself to a
@@ -1695,6 +1706,60 @@ meta::section('02-internals', <<'__MkX09vqySViK1Wlmdg8EzxvS6uEcCzfS/1frObHntrU')
               for (final Predicate<T> p : disjuncts) newDisjuncts.add (p.map (t));
               return new Disjunction<T> (newDisjuncts);
             } else return newPredicate;
+          }
+        }
+        :.
+
+      - Type refinement
+        When you have a group of generic objects and want to measure a property that only some of those objects possess, you're using an abstraction called type
+        refinement. The idea is that you ignore all of the objects that don't have the property you're looking for, and run a more specialized predicate on the
+        objects that do support it. So, for example, if you have these classes:
+
+        ::
+        class Point                {public double x, y;}
+        class Point3 extends Point {public double z;}
+        :.
+
+        \noindent you could write a predicate to find positive $z$-coordinates like this:
+
+        ::
+        class ZPositive implements Predicate<Point> {
+          boolean matches (final Point p) {
+            if (p instanceof Point3) return ((Point3) p).z > 0;
+            else                     return false;
+          }
+        }
+        :.
+
+        Simpler, though, is to use a type refinement:
+
+        ::
+        class ZPositive implements Predicate<Point3> {
+          public boolean matches (final Point3 p) {
+            return p.z > 0;
+          }
+        }
+
+        Predicate<Point> zplus = new CastableTo<Point, Point3> (Point3.class, new ZPositive ());
+        :.
+
+        :: java class=CastableTo package=cheloniidae.predicates
+        package cheloniidae.predicates;
+
+        import cheloniidae.Predicate;
+        import cheloniidae.Transformation;
+
+        public class CastableTo<T, U extends T> extends AtomicPredicate<T> {
+          public final Class<U>     type;
+          public final Predicate<U> predicate;
+
+          public CastableTo (final Class<U> _type) {type = _type; predicate = null;}
+          public CastableTo (final Class<U> _type, final Predicate<U> _predicate)
+            {type = _type; predicate = _predicate;}
+
+          public boolean matches (final T value) {
+            return type.isAssignableFrom (value.getClass ()) &&
+                   (predicate == null || predicate.matches (type.cast (value)));
           }
         }
         :.
@@ -2013,16 +2078,472 @@ meta::section('02-internals', <<'__MkX09vqySViK1Wlmdg8EzxvS6uEcCzfS/1frObHntrU')
       :.
 
     - Predicated Transformations
-      Another wrapper for transformations is one which conditionally applies a given transform.
+      Another wrapper for transformations is one which conditionally applies a given transform. It uses a predicate to decide whether each object it runs across
+      should be transformed; if it should, then the transformation is applied; otherwise, it applies the identity transformation leaving the object unchanged.
+
+      :: java class=PredicatedTransformation package=cheloniidae.transformations
+      package cheloniidae.transformations;
+      import cheloniidae.*;
+      public class PredicatedTransformation<T extends Transformable> implements Transformation<T> {
+        public final Predicate<T>      predicate;
+        public final Transformation<T> transformation;
+
+        public PredicatedTransformation (final Predicate<T> _predicate, final Transformation<T> _transformation)
+          {predicate = _predicate; transformation = _transformation;}
+
+        public T transform (final T input) {
+          if (predicate.matches (input)) return input.map (transformation);
+          else                           return input;
+        }
+      }
+      :.
 
   - Replication
-    - Splitting
+    Similar to the concept of transformation (\Ref{chapter}{sec:transformation}) is replication. The goal of replication is to create a transformed clone of a
+    mutable object such as a turtle. Since the replication framework was written with turtles in mind, I'll sacrifice generality for simplicity by making the
+    assumption that turtles are the only things we would want to replicate this way.
+
+    - Motivation
+      - Creating a tree
+        So, why would you want to replicate a turtle? Well, one reason is to draw some sort of recursive structure. For example, you could draw a tree like this
+        (pseudocode):
+
+        ::
+        define stack as a stack of turtle states
+        define tree (turtle, recursion limit) as
+          move some distance
+          if recursion limit > 0 then
+            repeat 2
+              push turtle state onto stack
+              do some random setup
+              tree (turtle, recursion limit - 1)
+              pop turtle state from stack
+        :.
+
+        However, this implementation is a bit clunky and the imperative structure obscures the meaning of what's going on. What we'd like to say is this:
+
+        ::
+        define tree (turtle, recursion limit) as
+          move some distance
+          if recursion limit > 0 then
+            repeat 2
+              with a copy of turtle
+                do some random setup
+                tree (the copy of turtle, recursion limit - 1)
+        :.
+
+        So at each point the turtle splits off into two new turtles, and each one performs the next iteration. This design pattern is called splitting, and is
+        described in \Ref{section}{sec:splitting}.
+
+      - Making a circle of things
+        Let's suppose you have a square initially:
+
+        ::
+        define square (turtle, distance) as
+          repeat 4 turtle move distance turn 90
+        :.
+
+        \noindent and you decide you want a ring of them. This isn't too hard to do, since drawing a square leaves the turtle where it started, but perhaps you
+        want to change the square to a half-circle at some point in the future and don't want to worry about breaking your code. So you insulate calls to {\tt
+        square} by using a temporary turtle state:
+
+        ::
+        define protected (shape, turtle, <stuff>) as
+          define state as turtle serialize in
+            shape (turtle, <stuff>)
+            turtle deserialize state
+        :.
+
+        So now you make a circle of squares like this:
+
+        ::
+        define circle of (shape, turtle, <stuff>) as
+          repeat 10
+            turtle jump 100 turn 36
+            protected (shape, turtle, <stuff>)
+        :.
+
+        And this works fairly well. However, the design pattern can be abstracted away just a bit. The pattern here is called {\em inductive replication}
+        because each turtle copy is computed from the previous one by an inductive step. The replicator for this is described in
+        \Ref{section}{sec:inductive-replication}.
+
+    - Replicable
+      Unfortunately, replication isn't quite as simple as it could be. We don't want a complete copy of a replicated turtle, since the copy shouldn't inherit
+      the lines of the original. Also, we want an object of the same type as the original, so we need to provide a per-subclass method to create an instance of
+      that subclass. In this case, it's called {\tt create}.
+
+      Because replication requires clonability, I'm using the Java notion of a {\tt clone} method. The {\tt Turtle} interface (\Ref{section}{sec:turtle})
+      inherits from Java's {\tt Cloneable} interface to indicate that the {\tt clone} method does what it should. The default implementation provided by the
+      {\tt Replicable} interface should always work (the semantics are correct), but it may be necessary to make modifications in subclasses.
+
+      :: java class=Replicable package=cheloniidae
+      package cheloniidae;
+      import cheloniidae.commands.*;
+      public abstract class Replicable<T extends Turtle> implements Turtle<T>, TurtleCommand {
+        public abstract T create ();
+
+        public T clone () {
+          final T result = this.create ();
+          this.applyTo (result);
+          return result;
+        }
+      }
+      :.
+
+    - Replicator
+      The {\tt Replicable} class isn't strictly required for replication, but it provides the correct semantics for {\tt clone}. Replicators should work on any
+      object that implements {\tt Cloneable}, though they're restricted to turtles for the purposes of Cheloniidae.\footnote{This may change in the future.} The
+      idea is that a replicator takes one turtle and returns a collection of new turtles with some initial configuration.
+
+      :: java class=Replicator package=cheloniidae
+      package cheloniidae;
+      public interface Replicator extends NonDistributiveTurtleCommand {
+        public TurtleGroup<Turtle> replicate (Turtle base);
+      }
+      :.
+
     - Inductive Replication
+      The simplest way to get a bunch of turtles is follow a system like this:
+
+      ::
+      define copy (turtle, configuration command, n) as
+        if n > 0 then
+          a copy of turtle configured by the configuration command, along with
+            copy (the copy of turtle, configuration command, n - 1)
+        else
+          an empty turtle group
+      :.
+
+      \noindent so that each new copy is a transformed version of the previous copy. The Cheloniidae class to implement this is:
+
+      :: java class=InductiveReplicator package=cheloniidae.replicators
+      package cheloniidae.replicators;
+
+      import cheloniidae.*;
+      import cheloniidae.commands.*;
+
+      public class InductiveReplicator<T extends Turtle> implements Replicator {
+        public final TurtleCommand step;
+        public final int           copies;
+        public final Sequence      actions;
+        public InductiveReplicator (final int _copies, final TurtleCommand _step, final TurtleCommand ... _actions)
+          {step = _step; copies = _copies; actions = new Sequence (_actions);}
+
+        public TurtleGroup<Turtle> replicate (final Turtle turtle) {
+          final TurtleGroup<Turtle> result   = new TurtleGroup<Turtle> ();
+          Turtle                    previous = turtle;
+          for (int i = 0; i < copies; ++i) result.turtles ().add (previous = previous.clone ().run (step));
+          return result;
+        }
+
+        public TurtleCommand applyTo (final Turtle turtle) {
+          final TurtleGroup<Turtle> copies = this.replicate (turtle);
+          turtle.window ().add (copies);
+          copies.run (actions);
+          return this;
+        }
+
+        public TurtleCommand map (final Transformation<TurtleCommand> t) {
+          final TurtleCommand newCommand = t.transform (this);
+          if (newCommand == this) return new InductiveReplicator (copies, step.map (t), actions.map (t));
+          else                    return newCommand;
+        }
+      }
+      :.
+
+    - Splitting
+      Often you'll just want a single copy of a turtle instead of a series of transformed ones. An easy way to do this is to use the inductive replicator to
+      obtain a single copy:
+
+      ::
+      t.run (new InductiveReplicator (1, new NullCommand (), <commands>));
+      :.
+
+      Doing this will run \verb|<commmands>| on a copy of {\tt t}. The {\tt NullCommand} command is a no-op; it does nothing, and is useful for situations like
+      this. {\tt CoreCommands} (\Ref{section}{sec:corecommands}) provides a convenient shorthand for split operations, allowing this code to be used instead:
+
+      ::
+      t.run (copy (<commands>));
+      :.
 
   - Commands 2
+    Most of the commands we've seen so far are straightforward; they generate some form of output immediately and don't really change the behavior of things
+    very much. The commands in this chapter are geared more towards transformation of other commands, doing things like simulating control flow and leveraging
+    transformation (\Ref{chapter}{sec:transformation}) to modify pieces of the command structure.
+
+    - Sequencing
+      Just as most imperative programming languages execute one statement after another, Cheloniidae provides a construct that executes one turtle command after
+      another. It has shown up in some classes already, often to bundle a sequence of commands into a single {\tt TurtleCommand} object.
+
+      Notice the {\tt SerialTurtleCommandComposition} interface. This is a flag indicating that sequences string together a bunch of logical operations.
+      \Ref{Section}{sec:parallelization} explains why this is important.
+
+      :: java class=Sequence package=cheloniidae.commands
+      package cheloniidae.commands;
+
+      import cheloniidae.SerialTurtleCommandComposition;
+      import cheloniidae.Turtle;
+      import cheloniidae.TurtleCommand;
+      import cheloniidae.Transformation;
+
+      public class Sequence implements TurtleCommand, SerialTurtleCommandComposition {
+        protected TurtleCommand intersperse = null;
+
+        public final TurtleCommand[] commands;
+        public Sequence (final TurtleCommand ... _commands) {commands = _commands;}
+
+        public Sequence applyTo (final Turtle t) {if (intersperse != null) t.run (intersperse);
+                                                  for (TurtleCommand c : commands) {
+                                                    t.run (c);
+                                                    if (intersperse != null) t.run (intersperse);
+                                                  }
+                                                  return this;}
+
+        public Sequence interspersing (final TurtleCommand c) {
+          intersperse = intersperse == null || c == null ? c : new Sequence (c, intersperse);
+          return this;
+        }
+
+        public TurtleCommand map (final Transformation<TurtleCommand> t) {
+          final TurtleCommand newCommand = t.transform (this);
+          if (newCommand == this) {
+            final TurtleCommand[] cs = new TurtleCommand[commands.length];
+            for (int i = 0; i < commands.length; ++i) cs[i] = commands[i].map (t);
+            return new Sequence (cs).interspersing (intersperse != null ? intersperse.map (t) : null);
+          } else return newCommand;
+        }
+      }
+      :.
+
     - Repetition
+      The {\tt Repeat} command lets you reduce a series of repeated commands:
+
+      ::
+      move (100), turn (90),
+      move (100), turn (90)
+      :.
+
+      \noindent to a single repetition invocation:
+
+      ::
+      repeat (2, move (100), turn (90))
+      :.
+
+      It doesn't expand the commands in memory. Rather, when run on a turtle it loops over its body a number of times; this saves memory for large repeat
+      counts.
+
+      :: java class=Repeat package=cheloniidae.commands
+      package cheloniidae.commands;
+
+      import cheloniidae.SerialTurtleCommandComposition;
+      import cheloniidae.Turtle;
+      import cheloniidae.TurtleCommand;
+      import cheloniidae.Transformation;
+
+      public class Repeat implements TurtleCommand, SerialTurtleCommandComposition {
+        public final int      repetitions;
+        public final Sequence body;
+
+        public Repeat (final int _repetitions, final TurtleCommand ... _body)
+          {repetitions = _repetitions; body = new Sequence (_body);}
+
+        public Repeat applyTo (final Turtle t) {
+          for (int i = 0; i < repetitions; ++i) t.run (body);
+          return this;
+        }
+
+        public TurtleCommand map (final Transformation<TurtleCommand> t) {
+          final TurtleCommand newCommand = t.transform (this);
+          if (newCommand == this) return new Repeat (repetitions, body.map (t));
+          else                    return newCommand;
+        }
+      }
+      :.
+
     - Conditional Execution
+      Commands can be predicated on turtles. This can be useful if you have a group of turtles and you want only some of them to follow a command path. The way
+      to do this is to use the {\tt When} command on a turtle predicate:
+
+      ::
+      group.run (new When (someTurtlePredicate, <commands>));
+      :.
+
+      :: java class=When package=cheloniidae.commands
+      package cheloniidae.commands;
+
+      import cheloniidae.Predicate;
+      import cheloniidae.Transformation;
+      import cheloniidae.Turtle;
+      import cheloniidae.TurtleCommand;
+
+      public class When implements TurtleCommand {
+        public final Predicate<Turtle> predicate;
+        public final TurtleCommand     action;
+
+        public When (final Predicate<Turtle> _predicate, final TurtleCommand ... _actions)
+          {predicate = _predicate; action = new Sequence (_actions);}
+
+        public TurtleCommand applyTo (final Turtle t) {
+          if (predicate.matches (t)) t.run (action);
+          return this;
+        }
+
+        public TurtleCommand map (final Transformation<TurtleCommand> t) {
+          final TurtleCommand newCommand = t.transform (this);
+          if (newCommand == this) return new When (predicate, action.map (t));
+          else                    return newCommand;
+        }
+      }
+      :.
+
     - Recursion
+      This is where things get complicated. Turtle commands weren't really designed with recursive expansion in mind, so a few hacks are required to implement
+      recursion. What we are ultimately trying to achieve is analogous to recursion in a functional language:
+
+      ::
+      factorial (0) = 1
+      factorial (n) = n * factorial (n - 1)
+      :.
+
+      \noindent which yields:
+
+      ::
+      factorial (5) = 5 * factorial (4)
+                    = 5 * 4 * factorial (3)
+                    = 5 * 4 * 3 * factorial (2)
+                    = 5 * 4 * 3 * 2 * factorial (1)
+                    = 5 * 4 * 3 * 2 * 1 * factorial (0)
+                    = 5 * 4 * 3 * 2 * 1 * 1
+      :.
+
+      In Cheloniidae, recursion looks a little bit different. Instead of being a computational construct, it ends up looking more like a rewrite system and
+      provides an interface that lets you customize how the terms are rewritten. The recursive construct of a square would look like this:
+
+      ::
+      new RecursiveExpansion ("square", new Move (100), new Turn (90),
+                                        new RecursiveExpansion.Marker (
+                                          "square", 3,
+                                          new Identity<TurtleCommand> (), new NullCommand ()))
+      :.
+
+      The {\tt Marker} instance tells the {\tt RecursiveExpansion} that an expansion should be inserted there. Each marker stores the name of the code to be
+      expanded, enabling multiple-level recursion. The \verb|3| indicates that the marker should survive for three more expansions before turning into a base
+      case. This should yield a total of four move-turn sequences.
+
+      Each marker also has the ability to transform its expansion in some way; this lets you do things traditionally done by passing parameters into the
+      recursive invocation. In this case, we use the identity transformation because we don't want to change either the move or the turn; however, we could just
+      as easily make the other sides of the square decrease in length exponentially:
+
+      ::
+      new RecursiveExpansion.Marker (
+        "square", 3,
+        new Scale (0.5), new NullCommand ())
+      :.
+
+      The final parameter is the value that the expansion should take when its expansion count reaches zero. So here is the rewriting that happens when a turtle
+      executes our square definition:
+
+      ::
+      move, turn,
+        marker ("square", 3, identity, null)
+
+      move, turn, sequence (move, turn,
+        marker ("square", 2, identity, null)).map (identity)
+
+      move, turn, sequence (move, turn, sequence (move, turn,
+        marker ("square", 1, identity, null)).map (identity))
+
+      move, turn, sequence (move, turn, sequence (move, turn, sequence (move, turn, null)))
+      :.
+
+      Since the null command does nothing, the turtle executes four moves and four turns, producing a square as expected.
+
+      :: java class=RecursiveExpansion package=cheloniidae.commands
+      package cheloniidae.commands;
+
+      import cheloniidae.*;
+      import cheloniidae.transformations.*;
+
+      public class RecursiveExpansion implements TurtleCommand {
+        public static class Marker implements TurtleCommand {
+          public final String                        name;
+          public final int                           remainingExpansions;
+          public final Transformation<TurtleCommand> inductiveTransformation;
+          public final TurtleCommand                 base;
+          public       TurtleCommand                 inductiveExpansion = null;
+
+          public Marker (final String _name, final int _remainingExpansions,
+                         final Transformation<TurtleCommand> _inductiveTransformation, final TurtleCommand _base)
+            {name                    = _name;                    remainingExpansions = _remainingExpansions;
+             inductiveTransformation = _inductiveTransformation; base                = _base;}
+
+          public Marker inductiveExpansion (final TurtleCommand _inductiveExpansion) {
+            inductiveExpansion = _inductiveExpansion;
+            return this;
+          }
+
+          public TurtleCommand applyTo (final Turtle t) {
+            if (remainingExpansions <= 0) t.run (base);
+            else {
+              final TurtleCommand transformedExpansion =
+                inductiveExpansion.map (inductiveTransformation).map (new DecrementTransformation (name));
+              t.run (transformedExpansion.map (new ExpansionPopulator (name, transformedExpansion)));
+            }
+            return this;
+          }
+
+          public TurtleCommand map (final Transformation<TurtleCommand> t) {
+            final TurtleCommand newCommand = t.transform (this);
+            if (newCommand == this)
+              return new Marker (name, remainingExpansions,
+                                 inductiveTransformation, base.map (t)).inductiveExpansion (inductiveExpansion);
+            else
+              return newCommand;
+          }
+        }
+
+        public static class DecrementTransformation implements Transformation<TurtleCommand> {
+          public final String name;
+          public DecrementTransformation (final String _name) {name = _name;}
+
+          public TurtleCommand transform (final TurtleCommand c) {
+            if (c instanceof Marker && ((Marker) c).name.equals (name)) {
+              final Marker cprime = (Marker) c;
+              return new Marker (cprime.name, cprime.remainingExpansions - 1, cprime.inductiveTransformation, cprime.base);
+            } else return c;
+          }
+        }
+
+        public static class ExpansionPopulator implements Transformation<TurtleCommand> {
+          public final String        name;
+          public final TurtleCommand expansion;
+          public ExpansionPopulator (final String _name, final TurtleCommand _expansion)
+            {name = _name; expansion = _expansion;}
+
+          public TurtleCommand transform (final TurtleCommand c) {
+            if (c instanceof Marker && ((Marker) c).name.equals (name)) ((Marker) c).inductiveExpansion (expansion);
+            return c;
+          }
+        }
+
+        public final String        name;
+        public final TurtleCommand body;
+
+        public RecursiveExpansion (final String _name, final TurtleCommand _body) {name = _name; body = _body;}
+
+        public TurtleCommand applyTo (final Turtle t) {
+          t.run (body.map (new ExpansionPopulator (name, body)));
+          return this;
+        }
+
+        public TurtleCommand map (final Transformation<TurtleCommand> t) {
+          final TurtleCommand newCommand = t.transform (this);
+          if (newCommand == this) return new RecursiveExpansion (name, body.map (t));
+          else                    return newCommand;
+        }
+      }
+      :.
+
     - Parallelization
 
 - Implementation
@@ -2041,7 +2562,9 @@ meta::section('02-internals', <<'__MkX09vqySViK1Wlmdg8EzxvS6uEcCzfS/1frObHntrU')
   - Frames
     - SingleTurtleScene
     - CoreCommands
-__MkX09vqySViK1Wlmdg8EzxvS6uEcCzfS/1frObHntrU
+
+- Examples
+__MefnSDzDkiGWHVb1ik+uoLTUCE69YVVcHqia/24wShE
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
