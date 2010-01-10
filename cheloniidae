@@ -246,17 +246,21 @@ begin
 \sloppy
 __pADbN5xRAC0lsKZa0ePPPG7lePWVU/w/Ye4zm07ddTE
 
-meta::data('header', <<'__Ql9HvglcUnAF5runNdBrCKak9c3Gl/ImXsVKdU31Kow');
+meta::data('header', <<'__oVDCu7sqVcR2yPf3HJSDF5lOUKFfZfHBixqE1XCDFD0');
 \documentclass{report}
-%\usepackage{palatino,mathpazo,amsmath,amssymb,listings,hyperref,geometry}
-\usepackage{amsmath,amssymb,charter,courier,listings,hyperref,geometry}
+\usepackage{amsmath,amssymb,pxfonts,listings,geometry,color}
+\usepackage[colorlinks]{hyperref}
+
+\definecolor{gray95}{rgb}{0.95,0.95,0.95}
 
 \newcommand{\degrees}{^\circ}
 
 \lstnewenvironment{javacode}
-  {\lstset{language=java,frame=tlb,basicstyle={\scriptsize\tt}}}
+  {\lstset{language=java,frame=l,columns=fixed,basewidth=0.5em,
+           backgroundcolor=\color{gray95},
+           basicstyle={\tt\scriptsize}}}
   {}
-__Ql9HvglcUnAF5runNdBrCKak9c3Gl/ImXsVKdU31Kow
+__oVDCu7sqVcR2yPf3HJSDF5lOUKFfZfHBixqE1XCDFD0
 
 meta::data('intro', <<'__uirjwqAxCBH+vu23aaPBO6uNM7a7cUHAYKJo8gIJsGw');
 This is a TeX document generator.
@@ -352,9 +356,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__gSKri6xr9UjlJFXTYRyrvMnIwdluoeNdUpb8/LzqFlg');
-/tmp/cheloniidae.EjEu+Y89HOZlTfpjJSjxx9xPt6iZ4i2OST7apb6ihxU/document.pdf
-__gSKri6xr9UjlJFXTYRyrvMnIwdluoeNdUpb8/LzqFlg
+meta::data('pdf-output-file', <<'__Xqqcq9vmzwlF+1r6LQ4fkMurACaydHcBZz/272E2ZJs');
+/tmp/cheloniidae.0FE-Lrv+trbK0z595dN6uOdOqjnJzHCyqRIFT76pJHc/document.pdf
+__Xqqcq9vmzwlF+1r6LQ4fkMurACaydHcBZz/272E2ZJs
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -884,10 +888,7 @@ if ($line =~ /^(\s*)- (.*)$/) {
 }
 __39uz93wRI7d9PaiU6AHPOFU42AvT9qYjBBsQ/iL9AdY
 
-meta::section('01-preface', <<'__Ri0j3wEfC2AKbZhSW2uLegazG0SLv4ie81FjdAhnpZY');
-  \setlength{\parindent}{0em}
-  \setlength{\parskip}{0.4em}
-
+meta::section('01-preface', <<'__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs');
   \chapter*{Preface}
   \addcontentsline{toc}{chapter}{Preface}
 
@@ -909,7 +910,7 @@ meta::section('01-preface', <<'__Ri0j3wEfC2AKbZhSW2uLegazG0SLv4ie81FjdAhnpZY');
   ]e
 
   However, be forewarned that there is a lot of math.
-__Ri0j3wEfC2AKbZhSW2uLegazG0SLv4ie81FjdAhnpZY
+__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs
 
 meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA');
 - Conceptual Basis
