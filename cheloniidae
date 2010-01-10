@@ -246,12 +246,14 @@ begin
 \sloppy
 __pADbN5xRAC0lsKZa0ePPPG7lePWVU/w/Ye4zm07ddTE
 
-meta::data('header', <<'__oVDCu7sqVcR2yPf3HJSDF5lOUKFfZfHBixqE1XCDFD0');
+meta::data('header', <<'__ZSNrPhtxI3rd02QRnWJl56To5kHpPyfgAJIWBhXJOEg');
 \documentclass{report}
 \usepackage{amsmath,amssymb,pxfonts,listings,geometry,color}
 \usepackage[colorlinks]{hyperref}
 
 \definecolor{gray95}{rgb}{0.95,0.95,0.95}
+
+\newcommand{\Ref}[2]{\hyperref[#2]{#1 \ref*{#2}}}
 
 \newcommand{\degrees}{^\circ}
 
@@ -260,7 +262,7 @@ meta::data('header', <<'__oVDCu7sqVcR2yPf3HJSDF5lOUKFfZfHBixqE1XCDFD0');
            backgroundcolor=\color{gray95},
            basicstyle={\tt\scriptsize}}}
   {}
-__oVDCu7sqVcR2yPf3HJSDF5lOUKFfZfHBixqE1XCDFD0
+__ZSNrPhtxI3rd02QRnWJl56To5kHpPyfgAJIWBhXJOEg
 
 meta::data('intro', <<'__uirjwqAxCBH+vu23aaPBO6uNM7a7cUHAYKJo8gIJsGw');
 This is a TeX document generator.
@@ -356,9 +358,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__Xqqcq9vmzwlF+1r6LQ4fkMurACaydHcBZz/272E2ZJs');
-/tmp/cheloniidae.0FE-Lrv+trbK0z595dN6uOdOqjnJzHCyqRIFT76pJHc/document.pdf
-__Xqqcq9vmzwlF+1r6LQ4fkMurACaydHcBZz/272E2ZJs
+meta::data('pdf-output-file', <<'__fO8hdWsnSt5XtfpTVaHhi2z+NV+VXTfqb1MWUPB6C9s');
+/tmp/cheloniidae.DKjYytJn6awdC9ShyykULuerpmX90QQn5BgbZAiXrq8/document.pdf
+__fO8hdWsnSt5XtfpTVaHhi2z+NV+VXTfqb1MWUPB6C9s
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -912,7 +914,7 @@ meta::section('01-preface', <<'__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs');
   However, be forewarned that there is a lot of math.
 __MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs
 
-meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA');
+meta::section('02-internals', <<'__l6qEPUgx7+GpcuCkpZpWNcKW2dnCcWALwnawL+4XPxM');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -952,7 +954,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
       sets can be seen as objects for which a proposition holds; e.g.~$x \in \mathbb N$ iff $x > 0$ and $x \in \mathbb Z$.
 
       Java reflects the first use of sets -- we can tag classes to say that their instances have certain intrinsic properties. To simulate the second use of
-      sets, I've defined a framework of predicates in section \ref{sec:predicates}.
+      sets, I've defined a framework of predicates in \Ref{section}{sec:predicates}.
 
       The interface-as-a-set design pattern states two things:
 
@@ -967,7 +969,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
         the case.} This way, you can chain method calls along and perform object mutation in one statement as opposed to several. This contributes to code
       readability, since mutations on the same object are grouped, and it also contributes to brevity.
 
-      Most classes in Cheloniidae are stateless, but one exception is the {\tt Vector} class defined in section \ref{sec:vector}. Methods in this class, such as
+      Most classes in Cheloniidae are stateless, but one exception is the {\tt Vector} class defined in \Ref{section}{sec:vector}. Methods in this class, such as
       {\tt addScaled} and {\tt multiply}, modify the original vector in-place and return a self-reference. This allows you to write code such as this:
 
       ::
@@ -980,20 +982,20 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
     confusion because of what we take for granted. For instance, most turtle graphics systems implement a turtle as being a member of a two-dimensional plane,
     so the turtle has a location and a heading angle. Many allow the turtle to vary in its color and line size, so these too are part of a turtle model.
 
-    These things are not assumed in Cheloniidae. In fact, not even the coordinate model is assumed. A turtle (section \ref{sec:turtle}) is an object with the
+    These things are not assumed in Cheloniidae. In fact, not even the coordinate model is assumed. A turtle (\Ref{section}{sec:turtle}) is an object with the
     following properties:
 
     e[
-      + It can generate a list of {\tt RenderAction}s (section \ref{sec:renderaction}) to reflect things it has drawn.
-      + It can save and restore its state (section \ref{sec:turtlestate}).
-      + It can be cloned (chapter \ref{sec:replication}).
-      + It can be tagged with one or more attributes (section \ref{sec:attributes}).
+      + It can generate a list of {\tt RenderAction}s (\Ref{section}{sec:renderaction}) to reflect things it has drawn.
+      + It can save and restore its state (\Ref{section}{sec:turtlestate}).
+      + It can be cloned (\Ref{chapter}{sec:replication}).
+      + It can be tagged with one or more attributes (\Ref{section}{sec:attributes}).
       + It can execute turtle commands (chapters \ref{sec:commands-1} and \ref{sec:commands-2}).
-      + It has a window that receives its output (section \ref{sec:turtlewindow}).
+      + It has a window that receives its output (\Ref{section}{sec:turtlewindow}).
     ]e
 
     The result of such a general setup is that turtles can reside in non-Euclidean spaces, draw curved lines, or define custom commands for themselves. Also, a
-    ``turtle'' can represent multiple turtles (section \ref{sec:turtlegroup}) or static objects.
+    ``turtle'' can represent multiple turtles (\Ref{section}{sec:turtlegroup}) or static objects.
 
     - Turtle
       This interface, like many others in Cheloniidae, has a type parameter that is set to the class that implements it. This notion corresponds to a convention
@@ -1035,9 +1037,9 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
         + Default implementation of the {\tt map} method, used for acting as a turtle command for propagating state to other turtles
       ]e
 
-      Most turtles are subclasses of {\tt BasicTurtle} because these defaults usually work. However, there are exceptions; {\tt TurtleGroup} (section
-      \ref{sec:turtlegroup}), for instance, provides its own implementation of {\tt run()} to support command distribution across turtles that belong to that
-      group.
+      Most turtles are subclasses of {\tt BasicTurtle} because these defaults usually work. However, there are exceptions; {\tt TurtleGroup}
+      (\Ref{section}{sec:turtlegroup}), for instance, provides its own implementation of {\tt run()} to support command distribution across turtles that belong
+      to that group.
 
       :: java class=BasicTurtle package=cheloniidae
       package cheloniidae;
@@ -1093,7 +1095,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
 
       e[
         + The turtle's position can be described in Cartesian coordinates. This implies that all lines generated by the turtle will have endpoints with
-          Cartesian coordinates, so a {\tt CartesianLine} (section \ref{sec:cartesianline}) is a reasonable representation for the output.
+          Cartesian coordinates, so a {\tt CartesianLine} (\Ref{section}{sec:cartesianline}) is a reasonable representation for the output.
         + The lines generated by the turtle can have thicknesses (referred to as ``size'' in this class) and solid colors. In theory we could implement
           gradients and such, but I haven't gotten around to that yet.
         + Since the turtle moves in straight lines, it makes sense to talk about a direction. However, it is not yet clear how that direction should be
@@ -1363,7 +1365,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
     A turtle command is a functional abstraction of the methods that a turtle provides. It can be thought of as a first-class way of referring to some turtle
     method such as {\tt move} or {\tt turn}. This lets you assemble sequences of commands at runtime and then issue them to one or more turtles.
 
-    When defining various turtle classes, most notably {\tt EuclideanTurtle} (section \ref{sec:euclideanturtle}), you may have noticed the implementation of
+    When defining various turtle classes, most notably {\tt EuclideanTurtle} (\Ref{section}{sec:euclideanturtle}), you may have noticed the implementation of
     interfaces such as {\tt SupportsMove}, {\tt SupportsTurn}, etc. These interfaces indicate that a turtle is able to understand certain turtle commands. So,
     for instance, if you have a Euclidean turtle {\tt t}, then you could say this:
 
@@ -1377,8 +1379,8 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
     t.run (new Move (100));
     :.
 
-    Because {\tt Move} is a regular Java class, instances are first-class objects; thus they can be stored and transformed (see section
-    \ref{sec:transformation}). They can also be composed more easily than explicit method calls:
+    Because {\tt Move} is a regular Java class, instances are first-class objects; thus they can be stored and transformed (see
+    \Ref{chapter}{sec:transformation}). They can also be composed more easily than explicit method calls:
 
     ::
     for (int i = 0; i < 4; ++i) t.move (100).turn (90);
@@ -1390,7 +1392,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
     t.run (new Repeat (4, new Move (100), new Turn (90)));
     :.
 
-    The word {\tt new} obscures the meaning here, so the {\tt CoreCommands} class (section \ref{sec:corecommands}) defines shorthand methods to allow us to
+    The word {\tt new} obscures the meaning here, so the {\tt CoreCommands} class (\Ref{section}{sec:corecommands}) defines shorthand methods to allow us to
     write this equivalent statement:
 
     ::
@@ -1403,7 +1405,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
       turtle (the {\tt applyTo()} method), which actually carries out the action involved.
 
       Most normal turtles specify a pass-through {\tt run()} method, so that invoking \verb|t.run (move (100))| translates almost directly into
-      \verb|t.move (100)|. However, some turtles act as proxies for other turtles (see section \ref{sec:turtlegroup} for one such example). In that case, they
+      \verb|t.move (100)|. However, some turtles act as proxies for other turtles (see \Ref{section}{sec:turtlegroup} for one such example). In that case, they
       pass the commands on, so a call to \verb|t.run (move (100))| might translate to something like this:
 
       ::
@@ -1416,7 +1418,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
 
       Most of the complexity of this class has to do with figuring out which commands are intended to address the turtle group itself, and which ones are
       supposed to be distributed to the grouped turtles. For this purpose there is a marker interface called {\tt NonDistributiveTurtleCommand}, described in
-      section \ref{sec:nondistributiveturtlecommand}.
+      \Ref{section}{sec:nondistributiveturtlecommand}.
 
       :: java class=TurtleGroup package=cheloniidae
       package cheloniidae;
@@ -1511,7 +1513,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
     - NonDistributiveTurtleCommand
       This is a marker interface that indicates that a turtle command should not be sent to grouped turtles, but instead should act on the turtle group proxy as
       a whole. It ends up coming in handy for serialization (notice that \verb|TurtleGroup.State| implements it), and later on it is useful to control the order
-      of turtle movements for triangle rendering (section \ref{sec:parallelization}).
+      of turtle movements for triangle rendering (\Ref{section}{sec:parallelization}).
 
       :: java class=NonDistributiveTurtleCommand package=cheloniidae
       package cheloniidae;
@@ -1524,7 +1526,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
 
       Normally there wouldn't be very much complexity to this idea, but it turns out that with a little bit of generalization we can get a lot of flexibility. A
       turtle state object can be combined with a turtle in only one meaningful way; that combination results in the turtle restoring its state. So it makes
-      sense for many turtle states to also be turtle commands. We see this in the definition of {\tt BasicTurtle} in section \ref{sec:basicturtle}.
+      sense for many turtle states to also be turtle commands. We see this in the definition of {\tt BasicTurtle} in \Ref{section}{sec:basicturtle}.
 
       Further, turtles themselves can be seen as state-propagation commands; for instance, if I say this:
 
@@ -1552,6 +1554,149 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
     particular type of turtle command, selecting a turtle from a group, or anything else requiring identification of an object as being either in or out of a
     set.
 
+    - Basic Predicates
+      A predicate at its core is just an object that implements a method called {\tt matches} which takes an object and returns a boolean. Because it extends
+      {\tt Transformable} (see \Ref{chapter}{sec:transformation}), predicates must also implement the {\tt map} method.
+
+      :: java class=Predicate package=cheloniidae
+      package cheloniidae;
+      public interface Predicate<T> extends Transformable<Predicate<T>> {
+        public boolean matches (T value);
+      }
+      :.
+
+      - Atomic Predicates
+        The idea of atomic objects comes into play with transformations (see \Ref{chapter}{sec:transformation}). Basically, the idea is that an atomic predicate
+        can't contain others, so the transformation must be applied only to one predicate. (This is not true, for instance, for the {\tt Conjunction} complex
+        predicate defined in \Ref{section}{sec:conjunction}.)
+
+        :: java class=AtomicPredicate package=cheloniidae.predicates
+        package cheloniidae.predicates;
+        import cheloniidae.Predicate;
+        import cheloniidae.Transformation;
+        public abstract class AtomicPredicate<T> implements Predicate<T> {
+          public Predicate<T> map (Transformation<Predicate<T>> t) {return this;}
+        }
+        :.
+
+      - The True Predicate
+        There are cases where it's useful to have a predicate that matches everything. The {\tt True} predicate does just that:
+
+        :: java class=True package=cheloniidae.predicates
+        package cheloniidae.predicates;
+        import cheloniidae.Predicate;
+        public class True<T> extends AtomicPredicate<T> {
+          public boolean matches (final T value) {return true;}
+        }
+        :.
+
+      - HasAttribute
+        Sometimes it's valuable to know whether an object has an attribute (\Ref{section}{sec:attributes}) that matches a given predicate. This predicate goes
+        through all of the attributes of an object to determine whether any of them match:
+
+        :: java class=HasAttribute package=cheloniidae.predicates
+        package cheloniidae.predicates;
+        import cheloniidae.*;
+        public class HasAttribute<T extends HasAttributes> extends AtomicPredicate<T> {
+          public final Predicate<Attribute> predicate;
+          public HasAttribute (final Predicate<Attribute> _predicate) {predicate = _predicate;}
+
+          public boolean matches (final T attributeContainer) {
+            for (final Attribute a : attributeContainer.attributes ())
+              if (predicate.matches (a)) return true;
+            return false;
+          }
+        }
+        :.
+
+    - Composition
+      There are a few different combinators for predicates including negation, conjunction, and type refinement.
+
+      - Negation
+        The output of any predicate can be negated.
+
+        :: java class=Negation package=cheloniidae.predicates
+        package cheloniidae.predicates;
+        import cheloniidae.*;
+        public class Negation<T> implements Predicate<T> {
+          public final Predicate<T> predicate;
+          public Negation (final Predicate<T> _predicate) {predicate = _predicate;}
+          public boolean matches (final T value) {return ! predicate.matches (value);}
+
+          public Predicate<T> map (final Transformation<Predicate<T>> t) {
+            final Predicate<T> newPredicate = t.transform (this);
+            if (newPredicate == this) return new Negation (t.transform (predicate));
+            else                      return newPredicate;
+          }
+        }
+        :.
+
+      - Conjunction
+        Predicates can be conjoined, resulting in a new predicate $P(x) = Q(x) \wedge R(x)$.
+
+        :: java class=Conjunction package=cheloniidae.predicates
+        package cheloniidae;
+
+        import java.util.Collection;
+        import java.util.LinkedList;
+        import java.util.List;
+
+        public class Conjunction<T> implements Predicate<T> {
+          public final List<Predicate<T>> conjuncts = new LinkedList<Predicate<T>> ();
+          public Conjunction (final Predicate<T> ... _conjuncts)
+            {for (final Predicate<T> p : _conjuncts) conjuncts.add (p);}
+          public Conjunction (final Collection<Predicate<T>> _conjuncts) {conjuncts.addAll (_conjuncts);}
+
+          public boolean matches (final T value) {
+            for (final Predicate<T> p : conjuncts) if (! p.matches (value)) return false;
+            return true;
+          }
+
+          public Predicate<T> map (final Transformation<Predicate<T>> t) {
+            final Predicate<T> newPredicate = t.transform (this);
+            if (newPredicate == this) {
+              final List<Predicate<T>> newConjuncts = new LinkedList<Predicate<T>> ();
+              for (final Predicate<T> p : conjuncts) newConjuncts.add (t.transform (p));
+              return new Conjunction<T> (newConjuncts);
+            } else return newPredicate;
+          }
+        }
+        :.
+
+      - Disjunction
+        Just like conjunction, predicates can also be disjoined ($Q \vee R$). Ideally, this and {\tt Conjunction} (see \Ref{section}{sec:conjunction}) should be
+        factored into a single base class that implements a binary reduction on the predicates' outputs. However, the optimized traversal of sub-predicates
+        (that is, the fact that we stop computing once we know the final outcome) is valuable and would require a non-standard encoding of binary reduction.
+
+        :: java class=Disjunction package=cheloniidae.predicates
+        package cheloniidae;
+
+        import java.util.Collection;
+        import java.util.LinkedList;
+        import java.util.List;
+
+        public class Disjunction<T> implements Predicate<T> {
+          public final List<Predicate<T>> disjuncts = new LinkedList<Predicate<T>> ();
+          public Disjunction (final Predicate<T> ... _disjuncts)
+            {for (final Predicate<T> p : _disjuncts) disjuncts.add (p);}
+          public Disjunction (final Collection<Predicate<T>> _disjuncts) {disjuncts.addAll (_disjuncts);}
+
+          public boolean matches (final T value) {
+            for (final Predicate<T> p : disjuncts) if (p.matches (value)) return true;
+            return false;
+          }
+
+          public Predicate<T> map (final Transformation<Predicate<T>> t) {
+            final Predicate<T> newPredicate = t.transform (this);
+            if (newPredicate == this) {
+              final List<Predicate<T>> newDisjuncts = new LinkedList<Predicate<T>> ();
+              for (final Predicate<T> p : disjuncts) newDisjuncts.add (t.transform (p));
+              return new Disjunction<T> (newDisjuncts);
+            } else return newPredicate;
+          }
+        }
+        :.
+
     - Attributes
       While you could write a predicate that matched a particular property of an object, it's often easier to put a tag on the object instead. The attribute
       framework allows you to do just that; all turtles, for example, are required to support attribute lists.
@@ -1565,7 +1710,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
       :.
 
       Of note are the {\tt HasEquivalenceClass} and {\tt Comparable} definitions. {\tt HasEquivalenceClass} indicates that we can construct a predicate to
-      compare two attributes (this is explained further in section \ref{sec:equivalence-classes}). {\tt Comparable} is required so that attributes can be put
+      compare two attributes (this is explained further in \Ref{section}{sec:equivalence-classes}). {\tt Comparable} is required so that attributes can be put
       into a {\tt TreeSet} object -- this is the default set used by {\tt BasicTurtle}. The comparison function can be structurally inconsistent, but must be
       referentially consistent.
 
@@ -1583,10 +1728,8 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
 
         :: java class=AtomicAttribute package=cheloniidae.attributes
         package cheloniidae.attributes;
-
         import cheloniidae.Attribute;
         import cheloniidae.Transformation;
-
         public abstract class AtomicAttribute implements Attribute {
           public Attribute map (final Transformation<Attribute> t) {return t.transform (this);}
         }
@@ -1597,7 +1740,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
       - NamedAttribute
         One kind of atomic attribute is a named attribute, which is simply a tag with a name on it. This can be used to mark objects as being inside named sets,
         or to identify them uniquely. This particular attribute is useful when differentiating turtles; you might want different turtles to follow different
-        instructions. Used in conjunction with the {\tt When} command (section \ref{sec:conditional-execution}), you can write the equivalent of an {\tt if}
+        instructions. Used in conjunction with the {\tt When} command (\Ref{section}{sec:conditional-execution}), you can write the equivalent of an {\tt if}
         statement in pure turtle command language.
 
         :: java class=Named package=cheloniidae.attributes
@@ -1651,110 +1794,168 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
       }
       :.
 
-    - Basic Predicates
-      A predicate at its core is just an object that implements a method called {\tt matches} which takes an object and returns a boolean. Because it extends
-      {\tt Transformable} (see section \ref{sec:transformable}), predicates must also implement the {\tt map} method.
+  - Transformation
+    Cheloniidae provides a way to take an object and run it through a transformer to produce a variant. Because most things in Cheloniidae are immutable,
+    transformations return a modified copy, leaving the original intact.
 
-      :: java class=Predicate package=cheloniidae
-      package cheloniidae;
-      public interface Predicate<T> extends Transformable<Predicate<T>> {
-        public boolean matches (T value);
+    The {\tt Transformable} interface defines a single {\tt map} method. This allows the object being transformed to invoke the transformation on its children,
+    if it has any, and reconstruct itself with modified child copies. Here is the signature for the {\tt Transformable} interface:
+
+    :: java class=Transformable package=cheloniidae
+    package cheloniidae;
+    public interface Transformable<T> {
+      public T map (Transformation<T> transformation);
+    }
+    :.
+
+    Correspondingly, there is a {\tt Transformation} interface that defines a {\tt transform} method:
+
+    :: java class=Transformation package=cheloniidae
+    package cheloniidae;
+    public interface Transformation<T> {
+      public T transform (T input);
+    }
+    :.
+
+    Note that the type is fixed on transformations; so, for example, a \verb|Transformation<Turtle>| must both take and return only instances of {\tt Turtle}.
+    This isn't the most general form; transformations could be defined as mapping across types, but for the sake of simplicity I've chosen to fix the type.
+    
+    The {\tt transform} method is very straightforward; this transformation, for instance, will append \verb|"foo"| to a string:
+
+    ::
+    class AppendFoo implements Transformation<String> {
+      public String transform (final String input) {return input + "foo";}
+    }
+    :.
+
+    By default, strings don't supply a {\tt map} method, so this transformation would have to be invoked directly on a string: \verb|t.transform (s)|.
+
+    - The {\tt map} Method
+      In its simplest form (i.e.~for atomic objects), {\tt map} simply returns the result of applying a transformation to {\tt this}. The {\tt AtomicPredicate}
+      (\Ref{section}{sec:atomicpredicate}) and {\tt AtomicAttribute} (\Ref{section}{sec:atomicattribute}) classes illustrate this case. More complex objects
+      require that {\tt map} iterate through their children as well.
+
+      For example, suppose we are writing an arithmetic expression library and we want to write a transformation to reduce an expression tree. The class
+      hierarchy could look like this:
+
+      ::
+      abstract class Expression {}
+
+      class Constant extends Expression {
+        public final double x;
+        public Constant (final double _x) {x = _x;}
+      }
+
+      abstract class BinaryExpression extends Expression {
+        public final Expression e1;
+        public final Expression e2;
+        public BinaryExpression (final Expression _e1, final Expression _e2)
+          {e1 = _e1; e2 = _e2;}
+      }
+
+      class Sum extends BinaryExpression {
+        public Sum (final Expression _e1, final Expression _e2)
+          {super (_e1, _e2);}
+      }
+
+      class Product extends BinaryExpression {
+        public Product (final Expression _e1, final Expression _e2)
+          {super (_e1, _e2);}
       }
       :.
 
-    - Composition
-      There are a few different combinators for predicates including negation, conjunction, and type refinement.
+      Now we want to make these expressions transformable. We need a {\tt map} method for each one, since the transformation shouldn't have to know anything
+      about how the expressions store sub-expressions. After some factoring, it might be implemented like this.
 
-      - Negation
-        The output of any predicate can be negated.
+      ::
+      abstract class Expression implements Transformable<Expression> {}
 
-        :: java class=Negation package=cheloniidae.predicates
-        package cheloniidae.predicates;
-
-        import cheloniidae.*;
-
-        public class Negation<T> implements Predicate<T> {
-          public final Predicate<T> predicate;
-          public Negation (final Predicate<T> _predicate) {predicate = _predicate;}
-          public boolean matches (final T value) {return ! predicate.matches (value);}
-
-          public Predicate<T> map (final Transformation<Predicate<T>> t) {
-            final Predicate<T> newPredicate = t.transform (this);
-            if (newPredicate == this) return new Negation (t.transform (predicate));
-            else                      return newPredicate;
-          }
+      class Constant extends Expression {
+        public final double x;
+        public Constant (final double _x) {x = _x;}
+        public Expression map (final Transformation<Expression> t) {
+          // Simple case: Map only over this.
+          return t.transform (this);
         }
-        :.
+      }
 
-      - Conjunction
-        Predicates can be conjoined, resulting in a new predicate $P(x) = Q(x) \wedge R(x)$.
+      abstract class BinaryExpression extends Expression {
+        public final Expression e1;
+        public final Expression e2;
+        public BinaryExpression (final Expression _e1, final Expression _e2)
+          {e1 = _e1; e2 = _e2;}
 
-        :: java class=Conjunction package=cheloniidae.predicates
-        package cheloniidae;
+        // Should return whatever type this expression is. There are multiple types of
+        // binary expressions, so this should construct an instance of whichever child
+        // class is currently subclassing.
+        public abstract BinaryExpression create (final Expression _e1, final Expression _e2);
 
-        import java.util.Collection;
-        import java.util.LinkedList;
-        import java.util.List;
+        public Expression map (final Transformation<Expression> t) {
+          // Complex case: Map over this, and then see whether we got something different.
+          // If the transformation modifies this binary expression, then we don't descend,
+          // since we wouldn't know what to do with the transformations of e1 and e2.
+          // However, if it left this binary expression alone, then we create a new binary
+          // expression of this type with the transformations of e1 and e2.
 
-        public class Conjunction<T> implements Predicate<T> {
-          public final List<Predicate<T>> conjuncts = new LinkedList<Predicate<T>> ();
-          public Conjunction (final Predicate<T> ... _conjuncts)
-            {for (final Predicate<T> p : _conjuncts) conjuncts.add (p);}
-          public Conjunction (final Collection<Predicate<T>> _conjuncts) {conjuncts.addAll (_conjuncts);}
-
-          public boolean matches (final T value) {
-            for (final Predicate<T> p : conjuncts) if (! p.matches (value)) return false;
-            return true;
-          }
-
-          public Predicate<T> map (final Transformation<Predicate<T>> t) {
-            final Predicate<T> newPredicate = t.transform (this);
-            if (newPredicate == this) {
-              final List<Predicate<T>> newConjuncts = new LinkedList<Predicate<T>> ();
-              for (final Predicate<T> p : conjuncts) newConjuncts.add (t.transform (p));
-              return new Conjunction<T> (newConjuncts);
-            } else return newPredicate;
-          }
+          final Expression firstResult = t.transform (this);
+          if (firstResult == this) return create (e1.map (t), e2.map (t));
+          else                     return firstResult;
         }
-        :.
+      }
 
-      - Disjunction
-        Just like conjunction, predicates can also be disjoined ($Q \vee R$). Ideally, this and {\tt Conjunction} (see section \ref{sec:conjunction}) should be
-        factored into a single base class that implements a binary reduction on the predicates' outputs. However, the optimized traversal of sub-predicates
-        (that is, the fact that we stop computing once we know the final outcome) is valuable and would require a non-standard encoding of binary reduction.
+      class Sum extends BinaryExpression {
+        public Sum (final Expression _e1, final Expression _e2)
+          {super (_e1, _e2);}
+        public BinaryExpression create (final Expression _e1, final Expression _e2)
+          {return new Sum (_e1, _e2);}
+      }
 
-        :: java class=Disjunction package=cheloniidae.predicates
-        package cheloniidae;
+      class Product extends BinaryExpression {
+        public Product (final Expression _e1, final Expression _e2)
+          {super (_e1, _e2);}
+        public BinaryExpression create (final Expression _e1, final Expression _e2)
+          {return new Product (_e1, _e2);}
+      }
+      :.
 
-        import java.util.Collection;
-        import java.util.LinkedList;
-        import java.util.List;
+      Now let's write the transformation. The strategy is simple: Each time we arrive at a binary expression with two constant children, we perform the
+      operation on those children. There is no post-order traversal in the {\tt map} function we defined, so we'll have to keep running the transformation on
+      the expression tree until we get just a constant out of it.
 
-        public class Disjunction<T> implements Predicate<T> {
-          public final List<Predicate<T>> disjuncts = new LinkedList<Predicate<T>> ();
-          public Disjunction (final Predicate<T> ... _disjuncts)
-            {for (final Predicate<T> p : _disjuncts) disjuncts.add (p);}
-          public Disjunction (final Collection<Predicate<T>> _disjuncts) {disjuncts.addAll (_disjuncts);}
-
-          public boolean matches (final T value) {
-            for (final Predicate<T> p : disjuncts) if (p.matches (value)) return true;
-            return false;
-          }
-
-          public Predicate<T> map (final Transformation<Predicate<T>> t) {
-            final Predicate<T> newPredicate = t.transform (this);
-            if (newPredicate == this) {
-              final List<Predicate<T>> newDisjuncts = new LinkedList<Predicate<T>> ();
-              for (final Predicate<T> p : disjuncts) newDisjuncts.add (t.transform (p));
-              return new Disjunction<T> (newDisjuncts);
-            } else return newPredicate;
-          }
+      ::
+      class Evaluator implements Transformation<Expression> {
+        public Expression transform (final Expression e) {
+          if (e instanceof BinaryExpression) {
+            final BinaryExpression be = (BinaryExpression) e;
+            if (be.e1 instanceof Constant && be.e2 instanceof Constant)
+              if      (be instanceof Sum)     return new Constant (be.e1.x + be.e2.x);
+              else if (be instanceof Product) return new Constant (be.e1.x * be.e2.x);
+              else                            throw new Exception ("Unsupported operator");
+            else
+              return e;
+          } else
+            return e;
         }
-        :.
+      }
+      :.
 
-  - Transformation
-    - Basic Transforms
-    - Predicated Transforms
+      To invoke the transformation on an expression:
+
+      ::
+      Expression      e  = ...;
+      final Evaluator ev = new Evaluator ();
+      while (! e instanceof Constant) e = e.map (ev);
+      :.
+
+      So the {\tt map} method serves two purposes. One is to provide a top-level interface for transforming things (you shouldn't use the transformation's {\tt
+      transform} method directly), and the other is to give transformations a way to transform the pieces of complex objects in addition to transforming the
+      objects themselves.
+
+    - Basic Transformations
+      
+      - Identity
+
+    - Predicated Transformations
 
   - Replication
     - Splitting
@@ -1782,7 +1983,7 @@ meta::section('02-internals', <<'__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA')
   - Frames
     - SingleTurtleScene
     - CoreCommands
-__qYCPYudB4HayXsLa2MrnzrTgN5rH71OFTMuoNbmgOJA
+__l6qEPUgx7+GpcuCkpZpWNcKW2dnCcWALwnawL+4XPxM
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;

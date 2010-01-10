@@ -85,8 +85,8 @@ public abstract class CoreCommands {
   public static double random (final double scale)                 {return random () * scale;}
   public static double random (final double min, final double max) {return random (max - min) + min;}
 
-  public static Predicate<Turtle> turtleAttribute (final Predicate<Attribute> predicate) {
-    return new TurtleAttribute (predicate);
+  public static Predicate<Turtle> hasAttribute (final Predicate<Attribute> predicate) {
+    return new HasAttribute (predicate);
   }
 
   public static AddAttribute addAttribute (final Attribute a) {return new AddAttribute (a);}
