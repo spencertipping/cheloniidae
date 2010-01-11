@@ -363,9 +363,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__vUrLZPwp3fecH5wiByhiwBtdzXlCGIbZATcQUXHE3/k');
-/tmp/cheloniidae.EqCUzvVwP89RuDl6G9gWGx04o+PIHPQpWf4J8aZV3Mw/document.pdf
-__vUrLZPwp3fecH5wiByhiwBtdzXlCGIbZATcQUXHE3/k
+meta::data('pdf-output-file', <<'__vmG0RBz6/367ntkHu7yIMQsHVKpvUfm96kn5WBJCJXg');
+/tmp/cheloniidae.5NaR4-Ydo2pVigEg-0HREBquw1ByaNGWF2mnv+ubDd8/document.pdf
+__vmG0RBz6/367ntkHu7yIMQsHVKpvUfm96kn5WBJCJXg
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -919,7 +919,7 @@ meta::section('01-preface', <<'__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs');
   However, be forewarned that there is a lot of math.
 __MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs
 
-meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg');
+meta::section('02-internals', <<'__sAaV56VcfLS0O2bxz1UYuYtvcHjeAxZXy2Wwa7U2zK4');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -1535,6 +1535,22 @@ meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg')
       public interface NonDistributiveTurtleCommand extends TurtleCommand {}
       :.
 
+      :: java class=NonDistributiveProxy package=cheloniidae
+      package cheloniidae;
+
+      public class NonDistributiveProxy implements NonDistributiveTurtleCommand {
+        public final TurtleCommand wrapped;
+        public NonDistributiveProxy (final TurtleCommand _wrapped) {wrapped = _wrapped;}
+
+        public TurtleCommand applyTo (final Turtle t) {wrapped.applyTo (t); return this;}
+        public TurtleCommand map (final Transformation<TurtleCommand> t) {
+          final TurtleCommand newCommand = t.transform (this);
+          if (newCommand == this) return new NonDistributiveProxy (wrapped.map (t));
+          else                    return newCommand;
+        }
+      }
+      :.
+
     - TurtleState
       A turtle state is simply a snapshot of a turtle's configuration. Turtles are required to generate instances of turtle states via the {\tt serialize()}
       method, and they must also be able to restore their configuration from a state object via {\tt deserialize()}.
@@ -1562,6 +1578,56 @@ meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg')
       package cheloniidae;
       import java.io.Serializable;
       public interface TurtleState extends Serializable {}
+      :.
+
+      :: java class=ImmutableTurtleState package=cheloniidae
+      package cheloniidae;
+      public abstract class ImmutableTurtleState implements TurtleState, TurtleCommand {
+        public TurtleCommand map (final Transformation<TurtleCommand> t) {return this;}
+      }
+      :.
+
+    - TurtleStack
+      Sometimes you want to keep track of a series of turtle states and access them in LIFO order. One common case of this is a recursive algorithm that keeps
+      turtle states on a separate stack. The {\tt TurtleStack} class is provided to facilitate this, and provides two accessor commands {\tt push} and {\tt pop}
+      to pass to turtles. So, for example:
+
+      ::
+      TurtleStack ts = new TurtleStack ();
+      t.run (ts.push (), move (100), ts.pop ());
+      :.
+
+      \noindent will result in {\tt t} being back where it started.
+
+      :: java class=TurtleStack package=cheloniidae
+      package cheloniidae;
+
+      import java.util.Map;
+      import java.util.HashMap;
+      import java.util.Stack;
+
+      public class TurtleStack {
+        public class Push extends ImmutableTurtleState implements NonDistributiveTurtleCommand {
+          public TurtleCommand applyTo (final Turtle t) {
+            if (! states.containsKey (t)) states.put (t, new Stack<TurtleState> ());
+            states.get (t).push (t.serialize ());
+            return this;
+          }
+        }
+
+        public class Pop extends ImmutableTurtleState implements NonDistributiveTurtleCommand {
+          public TurtleCommand applyTo (final Turtle t) {
+            t.deserialize (states.get (t).pop ());
+            if (states.get (t).empty ()) states.remove (t);
+            return this;
+          }
+        }
+
+        protected final Map<Turtle, Stack<TurtleState>> states = new HashMap<Turtle, Stack<TurtleState>> ();
+
+        public TurtleCommand push () {return new Push ();}
+        public TurtleCommand pop  () {return new Pop ();}
+      }
       :.
 
     - Standard Commands
@@ -2725,6 +2791,33 @@ meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg')
       Internally there is some finagling to make this work; a new preloaded turtle is created (see \Ref{section}{sec:preloadedturtle}), and this new turtle
       contains the triangle. Also, the turtle you are running this on must have a location that makes sense in Cartesian space.
 
+      :: java class=PreloadedTurtle package=cheloniidae
+      package cheloniidae;
+
+      import java.util.Set;
+      import java.util.SortedSet;
+      import java.util.TreeSet;
+
+      public class PreloadedTurtle<T extends PreloadedTurtle> extends BasicTurtle<T> {
+        public final Set<RenderAction> actions;
+        public PreloadedTurtle (final Set<RenderAction> _actions) {actions = _actions;}
+
+        public SortedSet<RenderAction> actions (final Viewport v) {
+          final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
+          for (final RenderAction a : actions) if (v.shouldCancel ()) break;
+                                               else                   result.add (a);
+          return result;
+        }
+
+        public TurtleState serialize   ()                    {return null;}
+        public T           deserialize (final TurtleState t) {return (T) this;}
+
+        public T             create  ()               {return (T) this;}
+        public T             clone   ()               {return (T) this;}
+        public TurtleCommand applyTo (final Turtle t) {return this;}
+      }
+      :.
+
       :: java class=Triangle package=cheloniidae.commands
       package cheloniidae.commands;
 
@@ -2789,7 +2882,7 @@ meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg')
       each pair of turtles and construct quads to connect the last set of virtual lines with the new set.
 
       This interface is one of the most counterintuitive in Cheloniidae. For a more intuitive presentation, take a look at
-      \Ref{section}{sec:bandsplitreplicator} and the example using it in section \Ref{section}{sec:bandsplit}.
+      \Ref{section}{sec:bandsplitreplicator} and the example using it in the {\tt bandsplit.java} file.
 
       The {\tt TriangleEmitter} interface provides turtle commands to initialize and emit triangles.
 
@@ -2907,7 +3000,7 @@ meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg')
     - BandSplitReplicator
       This class hides a lot of the practical difficulties that arise when using {\tt PathwiseTriangleConnector}s. Instead of taking two pre-existing turtles,
       it operates on a single turtle, performs a split, initializes the copy, and then runs a series of commands. This enables you to use it inline, as in the
-      example file {\tt bandsplit} (\Ref{section}{sec:bandsplit}).
+      example file {\tt bandsplit.java}.
       
       :: java class=BandSplitReplicator package=cheloniidae.replicators
       package cheloniidae.replicators;
@@ -3261,6 +3354,11 @@ meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg')
       lines instead of the desired parallel lines. The way to fix it is to rewrite the sequences (including {\tt Repeat}) as {\tt NonDistributiveTurtleCommands}
       that apply themselves in parallel to all of the people/turtles managed by the proxy.
 
+      :: java class=SerialTurtleCommandComposition package=cheloniidae
+      package cheloniidae;
+      public interface SerialTurtleCommandComposition extends TurtleCommand {}
+      :.
+
       :: java class=Parallelize package=cheloniidae.transformations
       package cheloniidae.transformations;
 
@@ -3303,6 +3401,7 @@ meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg')
       + {\tt RenderAction} -- \Ref{section}{sec:renderaction}; implementations include {\tt CartesianLine} (\Ref{section}{sec:cartesianline}) and {\tt
         CartesianTriangle} (\Ref{section}{sec:cartesiantriangle})
       + {\tt HasPerspectiveProjection} -- \Ref{section}{sec:hasperspectiveprojection}
+      + {\tt PerspectiveComparator} -- \Ref{section}{sec:perspectivecomparator}
     ]e
 
     - Renderable
@@ -3346,6 +3445,31 @@ meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg')
       package cheloniidae;
       public interface HasPerspectiveProjection {
         public double depth (Viewport v);
+      }
+      :.
+
+    - PerspectiveComparator
+      This is the wrapper necessary to construct a {\tt SortedSet} of render actions, sorted in reverse by depth.
+
+      :: java class=PerspectiveComparator package=cheloniidae
+      package cheloniidae;
+
+      import java.util.Comparator;
+
+      public final class PerspectiveComparator implements Comparator<HasPerspectiveProjection> {
+        public final Viewport v;
+        public PerspectiveComparator (final Viewport _v) {v = _v;}
+
+        public final int compare (final HasPerspectiveProjection p1, final HasPerspectiveProjection p2) {
+          // A couple of notes about this. First, notice that we're comparing in reverse. This is intentional.
+          // We want to sort such that the objects farthest away from the point of view are at the beginning,
+          // since they should be rendered first. Second, notice that we never return equality. This is because
+          // a TreeSet is a proper set, not just a bag of elements. Items that compare equal belong to the same
+          // equivalence class, so they would be considered duplicates. Thus we make sure that the comparison
+          // never returns equality. (This was the cause of a weird bug.)
+
+          return p2.depth (v) < p1.depth (v) ? -1 : 1;
+        }
       }
       :.
 
@@ -3921,7 +4045,7 @@ meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg')
       1 - o = Ce^{-o} ~~~ \Rightarrow ~~~ C = {1 - o \over e^{-o}}
       $$
 
-      :: java class=IncidenceAngleComputation package=cheloniidae
+      :: java class=IncidentAngleComputation package=cheloniidae
       package cheloniidae;
 
       import java.awt.Color;
@@ -3956,11 +4080,299 @@ meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg')
       :.
 
   - Frames
-    - SingleTurtleScene
-    - CoreCommands
+    These classes exist to simplify turtle scene construction.
 
-- Examples
-__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg
+    - Resources
+      Over time, I would like to build up a standard library of resources for Cheloniidae. One of the more straightforward of these is a text rendering
+      interface, included here. Given a string it will return a sequence of commands that render each letter. Right now it supports lowercase letters and
+      spaces, though it can easily be extended.
+
+      Because the resulting sequence is split on letters and not on lines, you can do fun things with it; check out the {\tt text.java} example file for some
+      ideas.
+
+      :: java class=BasicTextRenderer package=cheloniidae.resources
+      package cheloniidae.resources;
+
+      import cheloniidae.*;
+      import cheloniidae.commands.*;
+
+      import static cheloniidae.frames.CoreCommands.*;
+
+      import java.util.*;
+
+      public class BasicTextRenderer {
+        public static final double diagonal = Math.sqrt (2);
+
+        public TurtleCommand line    (final double length) {return move (length);}
+        public TurtleCommand lateral (final double right)  {return sequence (turn (90), jump (right), turn (-90));}
+        public TurtleCommand right   ()                    {return sequence (turn ( 45), move (diagonal), turn ( 45));}
+        public TurtleCommand left    ()                    {return sequence (turn (-45), move (diagonal), turn (-45));}
+
+        public TurtleCommand wind    (final int ... xs) {
+          // 0 = change direction. By default, the direction is clockwise, or right.
+          final List<TurtleCommand> cs    = new LinkedList<TurtleCommand> ();
+          TurtleCommand             last  = null;
+          boolean                   right = true;
+
+          for (final int x : xs) if (x == 0) right ^= true;
+                                 else if (x > 0) {
+                                   cs.add (line (x));
+                                   cs.add (last = right ? right () : left ());
+                                 } else {
+                                   cs.add (jump (-x));
+                                   cs.add (last = right ? right () : left ());
+                                 }
+
+          if (last != null) cs.remove (last);
+          return seq (cs.toArray (new TurtleCommand[0]));
+        }
+
+        public TurtleCommand topLeft     () {return new Sequence (new Jump (9), new Turn (180));}
+        public TurtleCommand topRight    () {return new Sequence (new Jump (9), new Turn (90), new Jump (6), new Turn (90));}
+        public TurtleCommand bottomLeft  () {return new NullCommand ();}
+        public TurtleCommand bottomRight () {return new Sequence (new Turn (90), new Jump (6), new Turn (-90));}
+
+        public TurtleCommand seq (final TurtleCommand ... commands) {return new Sequence (commands);}
+
+        public TurtleCommand drawCharacter (final char c) {
+          switch (c) {
+            case 'a': return seq (wind (-5, 4, 4, 4, 1, 5), lateral (3), jump (1), turn (-90));
+            case 'b': return seq (topLeft (), wind (0, 8, 4, 4, 5), lateral (-6), turn (180), jump (7), turn (-90));
+            case 'c': return seq (lateral (6), jump (5), left (), wind (0, 4, 4, 4), left (), jump (-1), lateral (1));
+            case 'd': return seq (topRight (), wind (8, 4, 4, 5), lateral (6), jump (1), turn (-90));
+            case 'e': return seq (jump (3), turn (90), wind (0, 5, 1, 4, 4, 4), left (), jump (-1), lateral (1));
+            case 'f': return seq (wind (8, 4), right (), jump (3), turn (90), jump (1), line (5), lateral (-5), turn (90),
+                                  lateral (7));
+            case 'g': return seq (jump (-2), turn (180), left (), wind (0, 4, 7, 4, 4, 5), jump (1), turn (-90));
+            case 'h': return seq (topLeft (), line (9), jump (-5), turn (180), right (), wind (4, 5), turn (180),
+                                  lateral (1));
+            case 'i': return seq (turn (90), line (6), jump (-3), turn (-90), wind (0, 5, 1), lateral (-6), turn (90),
+                                  lateral (5));
+            case 'j': return seq (jump (-3), turn (90), wind (0, 2, 8), turn (-90), line (2), lateral (-6), turn (90),
+                                  lateral (5));
+            case 'k': return seq (line (6), jump (-3), turn (45), line (3 * diagonal), jump (-3 * diagonal), turn (90),
+                                  line (3 * diagonal), turn (-135), lateral (3));
+            case 'l': return seq (turn (90), line (6), jump (-3), turn (-90), wind (0, 8, 1), turn (90), jump (-9),
+                                  lateral (6));
+            case 'm': return seq (wind (5, 1, 5), turn (180), wind (5, 1, 5), turn (180), lateral (1));
+            case 'n': return seq (wind (5, 4, 5), turn (180), lateral (1));
+            case 'o': return seq (jump (1), wind (4, 4, 4, 4), right (), jump (-1), lateral (7));
+            case 'p': return seq (jump (-3), wind (8, 4, 4, 5), turn (90), lateral (7));
+            case 'q': return seq (jump (-3), lateral (6), wind (0, 8, 4, 4, 5), turn (-90), lateral (1));
+            case 'r': return seq (wind (5, 4), turn (-90), jump (-6), lateral (2));
+            case 's': return seq (turn (90), wind (0, 5, 1, 0, 4, 1, 5), turn (-90), jump (-6), lateral (1));
+            case 't': return seq (lateral (3), line (6), turn (90), jump (-3), line (6), lateral (6),
+                                  turn (-90), lateral (1));
+            case 'u': return seq (jump (6), turn (180), wind (0, 5, 4, 5), jump (-6), lateral (1));
+            case 'v': return seq (jump (6), turn (180), line (3), turn (-45), line (3 * diagonal), turn (-90),
+                                  line (3 * diagonal), turn (-45), line (3), jump (-6), lateral (1));
+            case 'w': return seq (jump (6), turn (180), wind (0, 5, 1, 5), turn (180), wind (0, 5, 1, 5), jump (-6),
+                                  lateral (1));
+            case 'x': return seq (turn (45), line (6 * diagonal), turn (-135), jump (6), turn (-135), line (6 * diagonal),
+                                  turn (-135), lateral (1));
+            case 'y': return seq (jump (6), turn (180), wind (0, 5, 5), turn (-90), jump (6), turn (180), wind (8, 5),
+                                  turn (90), jump (3), lateral (7));
+            case 'z': return seq (jump (6), turn (90), line (6), turn (135), line (6 * diagonal), turn (-135), line (6),
+                                  turn (-90), lateral (1));
+
+            case ' ': return lateral (7);
+            default:  return new NullCommand ();
+          }
+        }
+
+        public Sequence drawText (final String text) {
+          final List<TurtleCommand> cs = new LinkedList<TurtleCommand> ();
+          for (int i = 0; i < text.length (); ++i) cs.add (drawCharacter (text.charAt (i)));
+          return new Sequence (cs.toArray (new TurtleCommand[0]));
+        }
+      }
+      :.
+
+    - SingleTurtleScene
+      This automates the logic behind creating a scene with one turtle. There is some parameterization to allow a turtle group to be used as the turtle, but it
+      turns out to be somewhat difficult to use.
+
+      :: java class=SingleTurtleScene package=cheloniidae.frames
+      package cheloniidae.frames;
+
+      import cheloniidae.*;
+
+      public abstract class SingleTurtleScene<T extends Turtle> {
+        protected final TurtleWindow window;
+        protected final T            turtle;
+
+        protected final TurtleStack  stack = new TurtleStack ();
+
+        public abstract TurtleCommand commands ();
+
+        public SingleTurtleScene () {
+          window = createWindow ();
+          turtle = createTurtle ();
+          initialize ();
+          run ();
+        }
+
+        public T            createTurtle () {return (T) new StandardRotationalTurtle ();}
+        public TurtleWindow createWindow () {return new TurtleWindow ();}
+
+        public SingleTurtleScene<T> initialize () {
+          window.add (turtle).setVisible (true);
+          return this;
+        }
+
+        public SingleTurtleScene<T> run () {
+          turtle.run (this.commands ());
+          window.pause (0);
+          return this;
+        }
+      } 
+      :.
+
+    - DarkSingleTurtleScene
+      This is just like {\tt SingleTurtleScene}, except that it defaults to a dark background and light-colored lines.
+  
+      :: java class=DarkSingleTurtleScene package=cheloniidae.frames
+      package cheloniidae.frames;
+
+      import cheloniidae.Turtle;
+      import static cheloniidae.frames.CoreCommands.color;
+
+      import java.awt.Color;
+
+      public abstract class DarkSingleTurtleScene<T extends Turtle> extends SingleTurtleScene<T> {
+        public DarkSingleTurtleScene initialize () {
+          window.setBackground (new Color (0.05f, 0.06f, 0.08f));
+          turtle.run (color (new Color (0.8f, 0.8f, 0.9f, 0.3f)));
+          super.initialize ();
+          return this;
+        }
+      }
+      :.
+
+    - CoreCommands
+      These are constructors written for convenience. Instead of constructing turtle commands manually, e.g.~\verb|new Move (100)|, you can drop the {\tt new}
+      and write \verb|move (100)|. There are also shorthands to save typing when specifying colors and vectors, as the constructors for these can be implicitly
+      inferred.
+
+      :: java class=CoreCommands package=cheloniidae.frames
+      package cheloniidae.frames;
+
+      import cheloniidae.*;
+      import cheloniidae.attributes.*;
+      import cheloniidae.commands.*;
+      import cheloniidae.predicates.*;
+      import cheloniidae.replicators.*;
+      import cheloniidae.transformations.*;
+
+      import java.awt.Color;
+
+      import java.util.Random;
+
+      public abstract class CoreCommands {
+        private static final Random rng = new Random ();
+
+        public static Move move (final double distance) {return new Move (distance);}
+        public static Jump jump (final double distance) {return new Jump (distance);}
+
+        public static Turn  turn  (final double angle) {return new Turn (angle);}
+        public static Bank  bank  (final double angle) {return new Bank (angle);}
+        public static Pitch pitch (final double angle) {return new Pitch (angle);}
+
+        public static LineSize  size    (final double size)     {return new LineSize (size);}
+        public static LineColor color   (final Color color)     {return new LineColor (color);}
+        public static Visible   visible (final boolean visible) {return new Visible (visible);}
+
+        public static LineColor color   (final double r, final double g, final double b)
+          {return color (r, g, b, 1.0);}
+        public static LineColor color   (final double r, final double g, final double b, final double a)
+          {return color (new Color ((float) r, (float) g, (float) b, (float) a));}
+
+        public static Position  position  (final Vector position)  {return new Position (position);}
+        public static Direction direction (final Vector direction) {return new Direction (direction);}
+        public static DirectionComplement directionComplement (final Vector directionComplement)
+          {return new DirectionComplement (directionComplement);}
+
+        public static Position  position  (final double x, final double y, final double z)
+          {return position  (new Vector (x, y, z));}
+
+        public static Direction direction (final double x, final double y, final double z) 
+          {return direction (new Vector (x, y, z));}
+
+        public static DirectionComplement directionComplement (final double x, final double y, final double z)
+          {return directionComplement (new Vector (x, y, z));}
+
+        public static NullCommand pass  ()                  {return new NullCommand ();}
+        public static Debug       debug (final String text) {return new Debug (text);}
+
+        public static When     when     (final Predicate<Turtle> decisional, final TurtleCommand ... commands) {
+          return new When (decisional, commands);
+        }
+
+        public static When     unless   (final Predicate<Turtle> decisional, final TurtleCommand ... commands) {
+          return when (new Negation<Turtle> (decisional), commands);
+        }
+
+        public static Repeat   repeat   (final int repetitions, final TurtleCommand ... commands)
+          {return new Repeat (repetitions, commands);}
+
+        public static Sequence sequence (final TurtleCommand ... commands) {return new Sequence (commands);}
+
+        public static Triangle triangle (final SupportsPosition p1, final SupportsPosition p2) {return new Triangle (p1, p2);}
+        public static Triangle triangle (final TurtleCommand    c1, final TurtleCommand    c2) {return new Triangle (c1, c2);}
+
+        public static InductiveReplicator<StandardRotationalTurtle> inductiveReplicator
+            (final int copies, final TurtleCommand inductiveStep, final TurtleCommand ... replicatedActions) {
+          return new InductiveReplicator<StandardRotationalTurtle> (copies, inductiveStep, replicatedActions);
+        }
+
+        public static InductiveReplicator<StandardRotationalTurtle> copy (final TurtleCommand ... copiedActions) {
+          return inductiveReplicator (1, pass (), copiedActions);
+        }
+
+        public static BandSplitReplicator bandSplitReplicator (final TurtleCommand firstTurtlePrimer,
+                                                               final TurtleCommand ... replicatedActions) {
+          return new BandSplitReplicator (firstTurtlePrimer, replicatedActions);
+        }
+
+        public static RecursiveExpansion recursiveBlock (final String name, final TurtleCommand ... body) {
+          return new RecursiveExpansion (name, sequence (body));
+        }
+
+        public static RecursiveExpansion.Marker recurse (final String name, final int remainingExpansions,
+                                                         final Transformation<TurtleCommand> inductiveTransformation,
+                                                         final TurtleCommand ... baseCommands) {
+          return new RecursiveExpansion.Marker (name, remainingExpansions, inductiveTransformation, sequence (baseCommands));
+        }
+
+        public static Scale scale (final double factor)                              {return new Scale (factor);}
+        public static Scale scale (final double factor, final boolean scaleLineSize) {return new Scale (factor, scaleLineSize);}
+        public static Identity identity ()                                           {return new Identity ();}
+
+        public static <T> Compose<T> compose (final Transformation<T> ... transformations)
+          {return new Compose<T> (transformations);}
+
+        public static double random ()                                   {return rng.nextDouble ();}
+        public static double random (final double scale)                 {return random () * scale;}
+        public static double random (final double min, final double max) {return random (max - min) + min;}
+
+        public static Predicate<Turtle> hasAttribute (final Predicate<Attribute> predicate) {
+          return new HasAttribute (predicate);
+        }
+
+        public static AddAttribute addAttribute (final Attribute a) {return new AddAttribute (a);}
+        public static Named        named        (final String name) {return new Named (name);}
+        public static Pause        pause        (final long time)   {return new Pause (time);}
+
+        // Can't make this plural because then it would atomize a sequence and not the command that we want to atomize.
+        // To compensate, we could wrap each subcommand with a non-distributive proxy, but that sounds like a lot of
+        // work for such a simple function.
+        public static NonDistributiveProxy atomic (final TurtleCommand c) {return new NonDistributiveProxy (c);}
+
+        public static TriangleEmitter.Start triangleStart () {return new TriangleEmitter.Start ();}
+        public static TriangleEmitter.Emit  triangleEmit  () {return new TriangleEmitter.Emit  ();}
+      }
+      :.
+__sAaV56VcfLS0O2bxz1UYuYtvcHjeAxZXy2Wwa7U2zK4
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
