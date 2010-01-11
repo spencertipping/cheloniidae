@@ -363,9 +363,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__BKXU3ULSOouYClSI7TJPor0icGHry+jeNQJldjeAvqU');
-/tmp/cheloniidae.Z6g9vhxbA64lvWpl7MYTRF2cKB0FZNTAH8idwNq8L04/document.pdf
-__BKXU3ULSOouYClSI7TJPor0icGHry+jeNQJldjeAvqU
+meta::data('pdf-output-file', <<'__vUrLZPwp3fecH5wiByhiwBtdzXlCGIbZATcQUXHE3/k');
+/tmp/cheloniidae.EqCUzvVwP89RuDl6G9gWGx04o+PIHPQpWf4J8aZV3Mw/document.pdf
+__vUrLZPwp3fecH5wiByhiwBtdzXlCGIbZATcQUXHE3/k
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -919,7 +919,7 @@ meta::section('01-preface', <<'__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs');
   However, be forewarned that there is a lot of math.
 __MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs
 
-meta::section('02-internals', <<'__6brNYNuZ19Mp4Gsf4Z7dVES1vt8PoLiz4tA9cr3LneY');
+meta::section('02-internals', <<'__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -2905,6 +2905,9 @@ meta::section('02-internals', <<'__6brNYNuZ19Mp4Gsf4Z7dVES1vt8PoLiz4tA9cr3LneY')
       :.
 
     - BandSplitReplicator
+      This class hides a lot of the practical difficulties that arise when using {\tt PathwiseTriangleConnector}s. Instead of taking two pre-existing turtles,
+      it operates on a single turtle, performs a split, initializes the copy, and then runs a series of commands. This enables you to use it inline, as in the
+      example file {\tt bandsplit} (\Ref{section}{sec:bandsplit}).
       
       :: java class=BandSplitReplicator package=cheloniidae.replicators
       package cheloniidae.replicators;
@@ -3225,8 +3228,69 @@ meta::section('02-internals', <<'__6brNYNuZ19Mp4Gsf4Z7dVES1vt8PoLiz4tA9cr3LneY')
       }
       :.
 
-    - Parallelization
-      
+    - Parallelize
+      This isn't a turtle command {\em per se}; rather, it transforms turtle commands to work better with the {\tt PathwiseTriangleConnector}
+      (\Ref{section}{sec:pathwisetriangleconnector}). The fundamental problem that needs addressing is subtle and arises from the way {\tt TurtleGroup} handles
+      sequences and repetition.
+
+      To see the problem, imagine you have two people, each holding the end of a chalkline, standing next to each other and facing the same direction. All of
+      the commands you give to these people go through a proxy that issues your command first to the first person, and then to the second one. The commands you
+      give to the proxy are ``move'' and ``create a line,'' so you can get a series of lines fairly easily:
+
+      ::
+      proxy.run (move (10))
+           .run (createALine ())
+           .run (move (10))
+           ...
+      :.
+
+      The difficulty arises when you specify any complex command such as a repeat or sequence. In this case, the proxy receives the command as usual:
+
+      ::
+      proxy.run (repeat (2, move (10), createALine ()))
+      :.
+
+      \noindent and proceeds to translate it like this:
+
+      ::
+      person1.run (repeat (2, move (10), createALine ()));
+      person2.run (repeat (2, move (10), createALine ()));
+      :.
+
+      \noindent With this arrangement, all of the movement will be done by one person before the other person starts moving, resulting in a bunch of diagonal
+      lines instead of the desired parallel lines. The way to fix it is to rewrite the sequences (including {\tt Repeat}) as {\tt NonDistributiveTurtleCommands}
+      that apply themselves in parallel to all of the people/turtles managed by the proxy.
+
+      :: java class=Parallelize package=cheloniidae.transformations
+      package cheloniidae.transformations;
+
+      import cheloniidae.*;
+      import cheloniidae.predicates.*;
+
+      public class Parallelize implements Transformation<TurtleCommand> {
+        // Sometimes the order of execution of turtle commands matters. One example of this is when they're
+        // operating in parallel constructing triangles using a pathwise triangle connector. In this case,
+        // each turtle should move one step and then the emitter should be run. However, normally serial
+        // turtle command compositions distribute across turtle groups such as connectors. To fix this, we
+        // wrap those commands inside of non-distributive proxies.
+        //
+        // There's a slight catch here. When we grab a serial composition, we need to transform the
+        // original. Well, we can't just run it back through this transformation, since that would result in
+        // an infinite loop. Instead, we create a new child instance of this transformation that is primed
+        // to ignore the thing we're wrapping. This is why we have a private constructor.
+
+        private final TurtleCommand commandBeingWrapped;
+
+        public  Parallelize ()                                         {commandBeingWrapped = null;}
+        private Parallelize (final TurtleCommand _commandBeingWrapped) {commandBeingWrapped = _commandBeingWrapped;}
+
+        public TurtleCommand transform (final TurtleCommand c) {
+          if (c instanceof SerialTurtleCommandComposition && c != commandBeingWrapped)
+            return new NonDistributiveProxy (c.map (new Parallelize (c)));
+          else return c;
+        }
+      }
+      :.
 
 - Implementation
   - Displaying Scenes
@@ -3896,7 +3960,7 @@ meta::section('02-internals', <<'__6brNYNuZ19Mp4Gsf4Z7dVES1vt8PoLiz4tA9cr3LneY')
     - CoreCommands
 
 - Examples
-__6brNYNuZ19Mp4Gsf4Z7dVES1vt8PoLiz4tA9cr3LneY
+__rWrRpH0WrT2QVPUqCPNK7L2SAMwfXCW/g5RDpnfSUGg
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
