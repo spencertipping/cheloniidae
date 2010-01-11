@@ -246,8 +246,9 @@ begin
 \sloppy
 __pADbN5xRAC0lsKZa0ePPPG7lePWVU/w/Ye4zm07ddTE
 
-meta::data('header', <<'__2mv88LvJbTGwkiOcUzpHC4cr61260f6nfU+uMAhzMNM');
+meta::data('header', <<'__Dd5ugJ3OMpJtPgwQ0+fHvu2VZ5XdsspF1pg5FsQWAB0');
 \documentclass{report}
+\usepackage[utf8]{inputenc}
 \usepackage{amsmath,amssymb,pxfonts,listings,geometry,color}
 \usepackage[colorlinks]{hyperref}
 
@@ -266,7 +267,7 @@ meta::data('header', <<'__2mv88LvJbTGwkiOcUzpHC4cr61260f6nfU+uMAhzMNM');
            backgroundcolor=\color{gray95},
            basicstyle={\tt\scriptsize}}}
   {}
-__2mv88LvJbTGwkiOcUzpHC4cr61260f6nfU+uMAhzMNM
+__Dd5ugJ3OMpJtPgwQ0+fHvu2VZ5XdsspF1pg5FsQWAB0
 
 meta::data('intro', <<'__uirjwqAxCBH+vu23aaPBO6uNM7a7cUHAYKJo8gIJsGw');
 This is a TeX document generator.
@@ -362,9 +363,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__0E0I+0p0UItXtL3c1ibw3AtUeTVJToVk1s2cRebk8so');
-/tmp/cheloniidae.rhcC8evjzz2NDHNHy9WcHtzX3RdDLrZ1K19EypJ-rF4/document.pdf
-__0E0I+0p0UItXtL3c1ibw3AtUeTVJToVk1s2cRebk8so
+meta::data('pdf-output-file', <<'__BKXU3ULSOouYClSI7TJPor0icGHry+jeNQJldjeAvqU');
+/tmp/cheloniidae.Z6g9vhxbA64lvWpl7MYTRF2cKB0FZNTAH8idwNq8L04/document.pdf
+__BKXU3ULSOouYClSI7TJPor0icGHry+jeNQJldjeAvqU
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -918,7 +919,7 @@ meta::section('01-preface', <<'__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs');
   However, be forewarned that there is a lot of math.
 __MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs
 
-meta::section('02-internals', <<'__hpEoXly8AA58G0Tab8ikBOOnz41zMCp+IRruxxXbNNE');
+meta::section('02-internals', <<'__6brNYNuZ19Mp4Gsf4Z7dVES1vt8PoLiz4tA9cr3LneY');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -1326,13 +1327,13 @@ meta::section('02-internals', <<'__hpEoXly8AA58G0Tab8ikBOOnz41zMCp+IRruxxXbNNE')
                                                                                return (T) this;}
 
         public T pitch (final double angle) {final Vector axis   = direction.cross (directionComplement);
-                                             direction           = direction.rotateAbout           (axis, angle);
-                                             directionComplement = directionComplement.rotateAbout (axis, angle);
+                                             direction           = direction.rotatedAbout           (axis, angle);
+                                             directionComplement = directionComplement.rotatedAbout (axis, angle);
                                              return (T) this;}
         public T bank (final double angle)
-          {directionComplement = directionComplement.rotateAbout (direction, angle); return (T) this;}
+          {directionComplement = directionComplement.rotatedAbout (direction, angle); return (T) this;}
         public T turn (final double angle)
-          {direction = direction.rotateAbout (directionComplement, angle);           return (T) this;}
+          {direction = direction.rotatedAbout (directionComplement, angle);           return (T) this;}
 
         public State serialize () {return new State (attributes, position, size, color, direction, directionComplement);}
         public String toString () {return super.toString () + ", direction complement = " +
@@ -1562,6 +1563,445 @@ meta::section('02-internals', <<'__hpEoXly8AA58G0Tab8ikBOOnz41zMCp+IRruxxXbNNE')
       import java.io.Serializable;
       public interface TurtleState extends Serializable {}
       :.
+
+    - Standard Commands
+      Each command that makes an assumption about a turtle also needs to define an interface that lets a turtle indicate its support. Turtles that do support
+      these commands will implement the interfaces for them (see the {\tt SupportsX} interfaces on the {\tt EuclideanTurtle} in
+      \Ref{section}{sec:euclideanturtle}, for example).
+
+      For reasons that will become apparent in \Ref{chapter}{sec:transformation}, most of these commands ultimately inherit from {\tt AtomicCommand}.
+
+      - AtomicCommand
+        Commands that do not contain other commands are considered atomic. This class provides a basic {\tt map()} method for such commands.
+
+        :: java class=AtomicCommand package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Transformation;
+        import cheloniidae.TurtleCommand;
+
+        public abstract class AtomicCommand implements TurtleCommand {
+          public TurtleCommand map (final Transformation<TurtleCommand> t) {return t.transform (this);}
+        }
+        :.
+
+      - UnaryCommand
+        Most commands take only one value, and the mechanism for storing it is factored into a generic class called {\tt UnaryCommand}.
+
+        :: java class=UnaryCommand package=cheloniidae.commands
+        package cheloniidae.commands;
+        public abstract class UnaryCommand<T> extends AtomicCommand {
+          public final T value;
+          public UnaryCommand (final T _value) {value = _value;}
+        }
+        :.
+
+      - Move
+        This command invokes a turtle's {\tt move()} method, generally with the semantic that a turtle will move and generate a line from its previous location.
+
+        :: java class=Move package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public final class Move extends UnaryCommand<Double> {
+          public Move (final double value) {super (value);}
+          public Move applyTo (final Turtle t) {
+            if (t instanceof SupportsMove) ((SupportsMove) t).move (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsMove package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public interface SupportsMove<T extends Turtle> {
+          public T move (double distance);
+        }
+        :.
+
+      - Jump
+        This command invokes a turtle's {\tt jump()} method, generally with the semantic that a turtle will move without generating a line.
+
+        :: java class=Jump package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public class Jump extends UnaryCommand<Double> {
+          public Jump (final double value) {super (value);}
+          public Jump applyTo (final Turtle t) {
+            if (t instanceof SupportsJump) ((SupportsJump) t).jump (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsJump package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public interface SupportsJump<T extends Turtle> {
+          public T jump (double distance);
+        }
+        :.
+
+      - Turn
+        Invokes a turtle's {\tt turn()} method.
+
+        :: java class=Turn package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public class Turn extends UnaryCommand<Double> {
+          public Turn (final double value) {super (value);}
+          public Turn applyTo (final Turtle t) {
+            if (t instanceof SupportsTurn) ((SupportsTurn) t).turn (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsTurn package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public interface SupportsTurn<T extends Turtle> {
+          public T turn (double angle);
+        }
+        :.
+
+      - Pitch
+        :: java class=Pitch package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public class Pitch extends UnaryCommand<Double> {
+          public Pitch (final double value) {super (value);}
+          public Pitch applyTo (final Turtle t) {
+            if (t instanceof SupportsPitch) ((SupportsPitch) t).pitch (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsPitch package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public interface SupportsPitch<T extends Turtle> {
+          public T pitch (double angle);
+        }
+        :.
+
+      - Bank
+        :: java class=Bank package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public class Bank extends UnaryCommand<Double> {
+          public Bank (final double value) {super (value);}
+          public Bank applyTo (final Turtle t) {
+            if (t instanceof SupportsBank) ((SupportsBank) t).bank (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsBank package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public interface SupportsBank<T extends Turtle> {
+          public T bank (double angle);
+        }
+        :.
+
+      - Position
+        This command sets the turtle's position. In doing so it assumes that the turtle has some way of converting its position from Cartesian coordinates if it
+        resides in a different coordinate space.
+
+        For convenience, we also provide the {\tt position()} accessor in the {\tt SupportsPosition} interface -- this lets us make the assumption that the
+        turtle can locate itself, which becomes significant for rendering triangles (see \Ref{section}{sec:triangles}).
+
+        :: java class=Position package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Turtle;
+        import cheloniidae.Vector;
+
+        public class Position extends UnaryCommand<Vector> {
+          public Position (final Vector value) {super (value);}
+          public Position applyTo (final Turtle t) {
+            if (t instanceof SupportsPosition) ((SupportsPosition) t).position (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsPosition package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Turtle;
+        import cheloniidae.Vector;
+
+        public interface SupportsPosition<T extends Turtle> {
+          public Vector position ();
+          public T      position (Vector _position);
+        }
+        :.
+
+      - Direction
+        Sets the direction of a turtle.
+
+        :: java class=Direction package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Turtle;
+        import cheloniidae.Vector;
+
+        public class Direction extends UnaryCommand<Vector> {
+          public Direction (final Vector value) {super (value);}
+          public Direction applyTo (final Turtle t) {
+            if (t instanceof SupportsDirection) ((SupportsDirection) t).direction (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsDirection package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Turtle;
+        import cheloniidae.Vector;
+
+        public interface SupportsDirection<T extends Turtle> {
+          public Vector direction ();
+          public T      direction (Vector _direction);
+        }
+        :.
+
+      - DirectionComplement
+        Sets the {\tt directionComplement} of a turtle (see \Ref{section}{sec:rotationalcartesianturtle} for an example of a turtle that supports this).
+
+        :: java class=DirectionComplement package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Turtle;
+        import cheloniidae.Vector;
+
+        public class DirectionComplement extends UnaryCommand<Vector> {
+          public DirectionComplement (final Vector value) {super (value);}
+          public DirectionComplement applyTo (final Turtle t) {
+            if (t instanceof SupportsDirectionComplement) ((SupportsDirectionComplement) t).directionComplement (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsDirectionComplement package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Turtle;
+        import cheloniidae.Vector;
+
+        public interface SupportsDirectionComplement<T extends Turtle> {
+          public Vector directionComplement ();
+          public T      directionComplement (Vector _directionComplement);
+        }
+        :.
+
+      - Visible
+        Changes the visibility of a turtle. Most of the time, a turtle will set its visibility by adding or failing to add a representation of itself to its
+        list of render actions.
+
+        :: java class=Visible package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public class Visible extends UnaryCommand<Boolean> {
+          public Visible (final boolean value) {super (value);}
+          public Visible applyTo (final Turtle t) {
+            if (t instanceof SupportsVisible) ((SupportsVisible) t).visible (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsVisible package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public interface SupportsVisible<T extends Turtle> {
+          public boolean visible ();
+          public T       visible (boolean _visible);
+        }
+        :.
+
+      - BodyColor
+        Changes the body color of a turtle. This won't impact the color of lines that are rendered; it just determines the color of the turtle's visual
+        representation.
+
+        :: java class=BodyColor package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Turtle;
+        import java.awt.Color;
+
+        public class BodyColor extends UnaryCommand<Color> {
+          public BodyColor (final Color value) {super (value);}
+          public BodyColor applyTo (final Turtle t) {
+            if (t instanceof SupportsBodyColor) ((SupportsBodyColor) t).bodyColor (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsBodyColor package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Turtle;
+        import java.awt.Color;
+
+        public interface SupportsBodyColor<T extends Turtle> {
+          public Color bodyColor ();
+          public T     bodyColor (Color c);
+        }
+        :.
+
+      - LineColor
+        Sets the color of lines (and presumably other things, including triangles) generated by the turtle.
+
+        :: java class=LineColor package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Turtle;
+        import java.awt.Color;
+
+        public class LineColor extends UnaryCommand<Color> {
+          public LineColor (final Color value) {super (value);}
+          public LineColor applyTo (final Turtle t) {
+            if (t instanceof SupportsLineColor) ((SupportsLineColor) t).lineColor (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsLineColor package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Turtle;
+        import java.awt.Color;
+
+        public interface SupportsLineColor<T extends Turtle> {
+          public Color lineColor ();
+          public T     lineColor (Color c);
+        }
+        :.
+
+      - LineSize
+        Sets the thickness of lines generated by the turtle.
+
+        :: java class=LineSize package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public class LineSize extends UnaryCommand<Double> {
+          public LineSize (final double value) {super (value);}
+          public LineSize applyTo (final Turtle t) {
+            if (t instanceof SupportsLineSize) ((SupportsLineSize) t).lineSize (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsLineSize package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public interface SupportsLineSize<T extends Turtle> {
+          public double lineSize ();
+          public T      lineSize (double size);
+        }
+        :.
+
+      - NullCommand
+        This command does nothing. It becomes useful much later on, especially for inductive replication (\Ref{section}{sec:inductive-replication}). Naturally,
+        it works on all turtles.
+
+        :: java class=NullCommand package=cheloniidae.commands
+        package cheloniidae.commands;
+
+        import cheloniidae.Turtle;
+        import cheloniidae.TurtleCommand;
+
+        public class NullCommand extends AtomicCommand {
+          public NullCommand applyTo (final Turtle t) {return this;}
+        }
+        :.
+
+    - Utility Commands
+      Some commands don't directly influence the behavior of a turtle, but rather are helpful for debugging or attribute-marking (see
+      \Ref{section}{sec:attributes}).
+
+      - Debug
+        Causes the turtle to print its {\tt toString()} to standard output. You can provide a string to prepend to the message to identify the source of the
+        debugging command. Because this command doesn't do any special interfacing with the turtle, there is no {\tt SupportsDebug} interface; this command
+        works with all turtles.
+
+        :: java class=Debug package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public class Debug extends UnaryCommand<String> {
+          public Debug (final String value) {super (value);}
+          public Debug applyTo (final Turtle t) {
+            System.err.println (value + " " + t.toString ());
+            return this;
+          }
+        }
+        :.
+
+      - Pause
+        It can be very helpful to see a scene materialize slowly. The {\tt Pause} command causes the turtle to take a short break, showing the intermediate
+        results on the window. The only thing a turtle needs to do is support the {\tt window()} method, allowing the command access to its window.
+
+        Note that this command is specific to the {\tt TurtleWindow} (\Ref{section}{sec:turtlewindow}) viewport class; it is not portable.
+
+        :: java class=Pause package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.Turtle;
+        public final class Pause extends UnaryCommand<Long> {
+          public Pause (final long value) {super (value);}
+          public Pause applyTo (final Turtle t) {
+            if (t instanceof SupportsWindow) ((SupportsWindow) t).window ().pause (value);
+            return this;
+          }
+        }
+        :.
+
+        :: java class=SupportsWindow package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.TurtleWindow;
+        public interface SupportsWindow {
+          public TurtleWindow window ();
+        }
+        :.
+
+      - AddAttribute
+        Adds an attribute to a turtle. See \Ref{section}{sec:attributes} for more information about this.
+
+        :: java class=AddAttribute package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.*;
+        public class AddAttribute extends UnaryCommand<Attribute> {
+          public AddAttribute (final Attribute _value) {super (_value);}
+          public TurtleCommand applyTo (final Turtle t) {
+            t.attributes ().add (value);
+            return this;
+          }
+        }
+        :.
+
+      - RemoveAttribute
+        Removes an attribute from a turtle.
+
+        :: java class=RemoveAttribute package=cheloniidae.commands
+        package cheloniidae.commands;
+        import cheloniidae.*;
+        public class RemoveAttribute extends UnaryCommand<Attribute> {
+          public RemoveAttribute (final Attribute _value) {super (_value);}
+          public TurtleCommand applyTo (final Turtle t) {
+            t.attributes ().remove (value);
+            return this;
+          }
+        }
+        :.
 
   - Predicates
     Predicates exist to let you define logical propositions for objects. They could be useful in any number of different ways, including matching against a
@@ -2134,7 +2574,7 @@ meta::section('02-internals', <<'__hpEoXly8AA58G0Tab8ikBOOnz41zMCp+IRruxxXbNNE')
         :.
 
         So at each point the turtle splits off into two new turtles, and each one performs the next iteration. This design pattern is called splitting, and is
-        described in \Ref{section}{sec:splitting}.
+        described in \Ref{section}{sec:splitting}. For a more advanced use, see \Ref{section}{sec:bandsplitreplicator}.
 
       - Making a circle of things
         Let's suppose you have a square initially:
@@ -2265,6 +2705,246 @@ meta::section('02-internals', <<'__hpEoXly8AA58G0Tab8ikBOOnz41zMCp+IRruxxXbNNE')
 
       ::
       t.run (copy (<commands>));
+      :.
+
+  - Triangles
+    Unlike most regular turtles, turtles in Cheloniidae can produce triangles. This isn't as straightforward as producing lines because it usually involves a
+    split of some sort, but there are several different models that simplify the process.
+
+    - Using the {\tt Triangle} Turtle Command
+      This is the simplest way to produce a triangle. The command takes two other turtle commands and works like this:
+
+      e[
+        + Take the current turtle position -- this is the first vertex of the triangle.
+        + Copy the turtle and run the first turtle command on the copy. The location of the copy is the second vertex of the triangle.
+        + Copy the original and run the second turtle command on the copy. The location of this copy is the third vertex of the triangle.
+      ]e
+
+      Alternately, you can pass in two other turtles and the command will generate a triangle connecting them.
+
+      Internally there is some finagling to make this work; a new preloaded turtle is created (see \Ref{section}{sec:preloadedturtle}), and this new turtle
+      contains the triangle. Also, the turtle you are running this on must have a location that makes sense in Cartesian space.
+
+      :: java class=Triangle package=cheloniidae.commands
+      package cheloniidae.commands;
+
+      import java.awt.Color;
+      import java.util.Set;
+      import java.util.HashSet;
+
+      import cheloniidae.*;
+
+      public class Triangle implements TurtleCommand {
+        public final SupportsPosition p1;
+        public final SupportsPosition p2;
+
+        public final TurtleCommand c1;
+        public final TurtleCommand c2;
+
+        public Triangle (final SupportsPosition _p1, final SupportsPosition _p2) {
+          p1 = _p1; p2 = _p2;
+          c1 = c2 = null;
+        }
+
+        public Triangle (final TurtleCommand _c1, final TurtleCommand _c2) {
+          p1 = p2 = null;
+          c1 = _c1; c2 = _c2;
+        }
+
+        public TurtleCommand applyTo (final Turtle t) {
+          if (t instanceof SupportsPosition && t instanceof SupportsLineColor) {
+            final SupportsPosition  p3      = (SupportsPosition) t;
+            final Color             color   = ((SupportsLineColor) t).lineColor ();
+            final Set<RenderAction> actions = new HashSet<RenderAction> ();
+
+            if (p1 != null) actions.add (new CartesianTriangle (p1.position (), p2.position (), p3.position (), color));
+            else {
+              // Construct positions by creating temporary clones of the turtle.
+              final Turtle clone1 = t.clone ().run (c1);
+              final Turtle clone2 = t.clone ().run (c2);
+
+              actions.add (new CartesianTriangle (((SupportsPosition) clone1).position (),
+                                                  ((SupportsPosition) clone2).position (),
+                                                  p3.position (), color));
+            }
+
+            t.window ().add (new PreloadedTurtle (actions));
+          }
+
+          return this;
+        }
+
+        public TurtleCommand map (final Transformation<TurtleCommand> t) {
+          final TurtleCommand newCommand = t.transform (this);
+          if (newCommand == this && c1 != null) return new Triangle (c1.map (t), c2.map (t));
+          else                                  return newCommand;
+        }
+      }
+      :.
+
+    - PathwiseTriangleConnector
+      The pathwise triangle connector connects a group of turtles together and constructs quads between them. It is a low-level interface (a higher-level
+      interface more suited to standard use is the {\tt BandSplitReplicator} in \Ref{section}{sec:bandsplitreplicator}). The idea is fairly straightforward:
+      Given $n$ turtles, track their positions and draw virtual lines between them. Each time {\tt emit()} is called, draw a new set of virtual lines between
+      each pair of turtles and construct quads to connect the last set of virtual lines with the new set.
+
+      This interface is one of the most counterintuitive in Cheloniidae. For a more intuitive presentation, take a look at
+      \Ref{section}{sec:bandsplitreplicator} and the example using it in section \Ref{section}{sec:bandsplit}.
+
+      The {\tt TriangleEmitter} interface provides turtle commands to initialize and emit triangles.
+
+      :: java class=TriangleEmitter package=cheloniidae
+      package cheloniidae;
+
+      import cheloniidae.commands.AtomicCommand;
+
+      public interface TriangleEmitter<T extends Turtle> {
+        public static class Start extends AtomicCommand implements NonDistributiveTurtleCommand {
+          public Start () {}
+          public TurtleCommand applyTo (final Turtle t) {
+            if (t instanceof TriangleEmitter) ((TriangleEmitter) t).start ();
+            return this;
+          }
+        }
+
+        public static class Emit extends AtomicCommand implements NonDistributiveTurtleCommand {
+          public Emit () {}
+          public TurtleCommand applyTo (final Turtle t) {
+            if (t instanceof TriangleEmitter) ((TriangleEmitter) t).emit ();
+            return this;
+          }
+        }
+
+        public T start ();
+        public T emit ();
+      }
+      :.
+
+      A quick note about pathwise triangle connectors: There is some seriously gnarly stuff that has to happen to get sequences and repeats to work properly.
+      All of the logic to do this is in the {\tt Parallelize} transformation implemented in \Ref{section}{sec:parallelize}, and this is ultimately why the {\tt
+      SerialTurtleCommandComposition} interface exists.
+
+      :: java class=PathwiseTriangleConnector package=cheloniidae
+      package cheloniidae;
+
+      import cheloniidae.transformations.Parallelize;
+
+      import java.util.ArrayList;
+      import java.util.Collection;
+      import java.util.LinkedList;
+      import java.util.List;
+      import java.util.SortedSet;
+      import java.util.TreeSet;
+
+      public class PathwiseTriangleConnector<T extends EuclideanTurtle>
+           extends TurtleGroup<T>
+        implements TriangleEmitter<PathwiseTriangleConnector<T>> {
+
+        public final List<Vector>            points    = new ArrayList<Vector> ();
+        public final List<CartesianTriangle> triangles = new LinkedList<CartesianTriangle> ();
+
+        public PathwiseTriangleConnector (final T ...         _turtles) {super (_turtles); start ();}
+        public PathwiseTriangleConnector (final Collection<T> _turtles) {super (_turtles); start ();}
+
+        public SortedSet<RenderAction> actions (final Viewport v) {
+          final SortedSet<RenderAction> result = super.actions (v);
+          for (final CartesianTriangle t : triangles) if (v.shouldCancel ()) break;
+                                                      else                   result.add (t);
+          return result;
+        }
+
+        public PathwiseTriangleConnector<T> create () {
+          final PathwiseTriangleConnector<T> result = new PathwiseTriangleConnector<T> ();
+          for (final T t : turtles) result.add ((T) t.clone ());
+          result.start ();
+          return result;
+        }
+
+        public PathwiseTriangleConnector<T> add (final T turtle) {
+          super.add (turtle);
+          points.add (turtle.position ().clone ());
+          return this;
+        }
+
+        public PathwiseTriangleConnector start () {
+          // Keep track of all of the locations of all of the turtles.
+          points.clear ();
+          for (final EuclideanTurtle t : turtles) points.add (t.position ().clone ());
+          return this;
+        }
+
+        public PathwiseTriangleConnector emit () {
+          // Emit triangles connecting all of the turtles. For n turtles, there will be O(n^2) triangles.
+          for (int i = 0; i < turtles.size () - 1; ++i)
+            for (int j = i + 1; j < turtles.size (); ++j) {
+              final EuclideanTurtle t1  = turtles.get (i);
+              final EuclideanTurtle t2  = turtles.get (j);
+              final Vector          tv1 = t1.position ();
+              final Vector          tv2 = t2.position ();
+              final Vector          sv1 = points.get (i);
+              final Vector          sv2 = points.get (j);
+
+              // If the triangle's area is below a certain amount, then we don't add the triangle.
+              // This is to prevent degenerate triangles from slowing the scene render operations,
+              // which might occur if the user moved one turtle but not the other.
+              if (tv1.clone ().subtract (sv1).cross (sv2.clone ().subtract (sv1)).lengthSquared () > 1.0e-10)
+                triangles.add (new CartesianTriangle (tv1, sv1, sv2, t1.color ()));
+
+              if (tv1.clone ().subtract (tv2).cross (sv2.clone ().subtract (tv2)).lengthSquared () > 1.0e-10)
+                triangles.add (new CartesianTriangle (tv1, tv2, sv2, t2.color ()));
+            }
+
+          return start ();
+        }
+
+        public PathwiseTriangleConnector<T> run (final TurtleCommand c) {
+          super.run (c.map (new Parallelize ()));
+          return this;
+        }
+      }
+      :.
+
+    - BandSplitReplicator
+      
+      :: java class=BandSplitReplicator package=cheloniidae.replicators
+      package cheloniidae.replicators;
+
+      import cheloniidae.*;
+      import cheloniidae.commands.*;
+
+      public class BandSplitReplicator extends Replicator {
+        public final TurtleCommand firstTurtlePrimer;
+        public final Sequence      actions;
+
+        public BandSplitReplicator (final TurtleCommand _firstTurtlePrimer, final TurtleCommand ... _actions)
+          {firstTurtlePrimer = _firstTurtlePrimer; actions = new Sequence (_actions);}
+
+        public TurtleGroup<Turtle> replicate (final Turtle turtle) {
+          if (turtle instanceof EuclideanTurtle)
+            // We have to wrap the pathwise connector in a new turtle group because of type annotations.
+            // Specifying a generic with <EuclideanTurtle> makes it unassignable to anything specified
+            // with <Turtle> because Java doesn't know whether the type will be in a contravariant position.
+            // (In this case it isn't, but Java can't prove that.) The best we can do is wrap it.
+            return new TurtleGroup<Turtle> (
+                     new PathwiseTriangleConnector<EuclideanTurtle> ()
+                       .add ((EuclideanTurtle) turtle.clone ().run (firstTurtlePrimer))
+                       .add ((EuclideanTurtle) turtle.clone ()));
+          else return null;
+        }
+
+        public TurtleCommand applyTo (final Turtle turtle) {
+          final TurtleGroup<Turtle> copies = this.replicate (turtle);
+          turtle.window ().add (copies);      // Very important! Otherwise the copies will have no way of producing visible lines.
+          copies.run (actions);
+          return this;
+        }
+
+        public TurtleCommand map (final Transformation<TurtleCommand> t) {
+          final TurtleCommand newCommand = t.transform (this);
+          if (newCommand == this) return new BandSplitReplicator (firstTurtlePrimer.map (t), actions.map (t));
+          else                    return newCommand;
+        }
+      }
       :.
 
   - Commands 2
@@ -2546,20 +3226,592 @@ meta::section('02-internals', <<'__hpEoXly8AA58G0Tab8ikBOOnz41zMCp+IRruxxXbNNE')
       :.
 
     - Parallelization
+      
 
 - Implementation
   - Displaying Scenes
+    These components, in descending order of dependency, make up Cheloniidae's rendering framework:
+
+    e[
+      + {\tt TurtleWindow} -- \Ref{section}{sec:turtlewindow}
+      + {\tt Viewport} -- \Ref{section}{sec:viewport}
+      + {\tt Renderable} -- \Ref{section}{sec:renderable}
+      + {\tt RenderAction} -- \Ref{section}{sec:renderaction}; implementations include {\tt CartesianLine} (\Ref{section}{sec:cartesianline}) and {\tt
+        CartesianTriangle} (\Ref{section}{sec:cartesiantriangle})
+      + {\tt HasPerspectiveProjection} -- \Ref{section}{sec:hasperspectiveprojection}
+    ]e
+
     - Renderable
+      Objects that provide visual output should implement the {\tt Renderable} interface. Turtles do this because they draw stuff to the screen.
+
+      :: java class=Renderable package=cheloniidae
+      package cheloniidae;
+      import java.util.SortedSet;
+      public interface Renderable {
+        public SortedSet<RenderAction> actions (Viewport v);
+      }
+      :.
+
     - RenderAction
+      Turtles display their output by providing a set of {\tt RenderAction}s. A render action must support two basic operations:
+
+      e[
+        + It must be able to draw itself to a Java graphics context.
+        + It must provide its distance from the camera.
+      ]e
+
+      The second requirement exists so that objects can be rendered from back-to-front in the viewspace (see \Ref{section}{sec:hasperspectiveprojection}).
+
+      The two render actions currently defined are {\tt CartesianLine} (\Ref{section}{sec:cartesianline}) and {\tt CartesianTriangle}
+      (\Ref{section}{sec:cartesiantriangle}). Some turtles also define render actions to display themselves; these can be found in the definition of those
+      turtle classes in \Ref{chapter}{sec:turtles}. (All of these render actions, by convention, are nested classes called {\tt View}.)
+
+      :: java class=RenderAction package=cheloniidae
+      package cheloniidae;
+      public interface RenderAction extends HasPerspectiveProjection {
+        public void render (Viewport viewport);
+      }
+      :.
+
     - HasPerspectiveProjection
+      Depth-sorting ensures that objects are rendered in a reasonable order. Particularly, we want objects that are far away from the camera to be rendered
+      first, followed by objects that are close to the camera. This is important because it allows closer objects to occlude more distant ones, which is what
+      happens in real life. The viewport provides methods to transform points into camera-space (see \Ref{section}{sec:viewport}).
+
+      :: java class=HasPerspectiveProjection package=cheloniidae
+      package cheloniidae;
+      public interface HasPerspectiveProjection {
+        public double depth (Viewport v);
+      }
+      :.
+
     - TurtleWindow
+      This is where all of the graphical stuff happens. The structure is not too complex, either. Each {\tt RenderAction} provided by a turtle is given the
+      graphics context of the window, and is allowed to draw on it arbitrarily. So the turtle window is really just a shell that delegates the actual drawing to
+      the render actions specified by its turtles.
 
-  - Renderables
+      :: java class=TurtleWindow package=cheloniidae
+      package cheloniidae;
+
+      import java.awt.image.BufferedImage;
+      import java.awt.event.*;
+
+      import java.awt.Color;
+      import java.awt.Frame;
+      import java.awt.Graphics;
+      import java.awt.Graphics2D;
+      import java.awt.RenderingHints;
+
+      import java.util.SortedSet;
+      import java.util.Iterator;
+      import java.util.Random;
+
+      public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
+        public class RenderOperation extends Thread {
+          protected final Viewport viewport;
+          public RenderOperation (final Viewport v) {viewport = v;}
+
+          public void run () {
+            final Graphics2D c = context ();
+            c.setColor (getBackground ());
+            c.fillRect (0, 0, getWidth (), getHeight ());
+
+            final SortedSet<RenderAction> actions        = turtles.actions (viewport);
+            final Iterator<RenderAction>  actionIterator = actions.iterator ();
+
+            int objectsDrawnSoFar = 0;
+            while (! shouldCancel && actionIterator.hasNext ()) {
+              actionIterator.next ().render (viewport);
+              if (++objectsDrawnSoFar % drawingRefreshInterval == 0) repaint ();
+            }
+
+            if (! shouldCancel) {
+              if (shouldShowObjectCount) setTitle ("Cheloniidae (" + objectsDrawnSoFar + " objects)");
+              repaint ();
+            }
+          }
+        }
+
+        public class IntermediateRenderOperation extends Thread {
+          public void run () {
+            final Graphics2D c          = context ();
+            final int        pointColor = (~ getBackground ().getRGB ()) & 0xffffff;
+            c.setColor (getBackground ());
+            c.fillRect (0, 0, getWidth (), getHeight ());
+
+            for (int i = 0; ! shouldCancel && i < intermediatePointCloud.length; ++i)
+              if (intermediatePointCloud[i] != null) {
+                final Vector tp = transformPoint (intermediatePointCloud[i]);
+                if (tp.z > 0.0) {
+                  final Vector pp = projectPoint (tp);
+                  if (pp.x >= 0.0 && pp.x < getWidth () && pp.y >= 0.0 && pp.y < getHeight ())
+                    offscreen.setRGB ((int) pp.x, (int) pp.y, pointColor);
+                }
+              }
+
+            repaint ();
+          }
+        }
+
+        protected int            drawingRefreshInterval    = 1000;
+        protected boolean        shouldShowObjectCount     = true;
+
+        protected BufferedImage  offscreen                 = null;
+        protected Graphics2D     cachedContext             = null;
+        protected TurtleGroup<T> turtles                   = new TurtleGroup<T> ();
+
+        protected Vector         virtualPOV                = new Vector (0, 0, -500.0);
+        protected Vector         virtualPOVUp              = new Vector (0, 1, 0);
+        protected Vector         virtualPOVForward         = new Vector (0, 0, 1);
+
+        protected Vector         minimumExtent             = new Vector (0, 0, 0);
+        protected Vector         maximumExtent             = new Vector (0, 0, 0);
+
+        protected Vector[]       intermediatePointCloud    = new Vector[5000];
+
+        protected int            mouseDownX                = 0;
+        protected int            mouseDownY                = 0;
+        protected boolean        mouseDown                 = false;
+        protected Thread         graphicsRequestRunner     = null;
+        protected boolean        graphicsRequestCancelFlag = false;
+        protected boolean        fisheye3D                 = false;
+        protected long           lastChange                = 0;
+        protected boolean        shouldCancel              = false;
+        
+        public TurtleWindow () {initialize ();}
+
+        public int          drawingRefreshInterval     () {return drawingRefreshInterval;}
+        public TurtleWindow drawingRefreshInterval     (final int _drawingRefreshInterval) 
+          {drawingRefreshInterval = _drawingRefreshInterval; return this;}
+
+        public boolean      shouldShowObjectCount      () {return shouldShowObjectCount;}
+        public TurtleWindow shouldShowObjectCount      (final boolean _shouldShowObjectCount)
+          {shouldShowObjectCount = _shouldShowObjectCount; return this;}
+
+        public int          intermediatePointCloudSize () {return intermediatePointCloud.length;}
+        public TurtleWindow intermediatePointCloudSize (final int _intermediatePointCloudSize)
+          {intermediatePointCloud = new Vector[_intermediatePointCloudSize]; return this;}
+
+        protected void handleResize () {
+          offscreen     = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
+          cachedContext = null;
+          enqueueGraphicsRefreshRequest (new RenderOperation (this));
+        }
+
+        protected void initialize () {
+          final TurtleWindow t = this;
+
+          super.addWindowListener (new WindowListener ()
+            {public void windowClosing     (final WindowEvent e) {dispose ();}
+             public void windowActivated   (final WindowEvent e) {}
+             public void windowClosed      (final WindowEvent e) {}
+             public void windowDeactivated (final WindowEvent e) {}
+             public void windowDeiconified (final WindowEvent e) {}
+             public void windowIconified   (final WindowEvent e) {}
+             public void windowOpened      (final WindowEvent e) {}});
+
+          super.addComponentListener (new ComponentListener ()
+            {public void componentResized (final ComponentEvent e) {handleResize ();}
+             public void componentMoved   (final ComponentEvent e) {}
+             public void componentHidden  (final ComponentEvent e) {}
+             public void componentShown   (final ComponentEvent e) {}});
+
+          super.addMouseListener (new MouseListener () {public void mouseReleased (final MouseEvent e)
+                                                          {mouseDown = false;
+                                                           lastChange = System.currentTimeMillis ();
+                                                           enqueueGraphicsRefreshRequest (new RenderOperation (t));}
+
+                                                        public void mousePressed  (final MouseEvent e)
+                                                          {mouseDown = true;
+                                                           mouseDownX = e.getX ();
+                                                           mouseDownY = e.getY ();}
+
+                                                        public void mouseClicked  (final MouseEvent e) {}
+                                                        public void mouseEntered  (final MouseEvent e) {}
+                                                        public void mouseExited   (final MouseEvent e) {}});
+
+          super.addMouseMotionListener (new MouseMotionListener () {
+            public void mouseDragged (final MouseEvent e) {
+              if (mouseDown) {
+                final Vector virtualPOVRight = virtualPOVForward.cross (virtualPOVUp);
+                final Vector center          = new Vector (maximumExtent).multiply (0.5).
+                                                                          addScaled (minimumExtent, 0.5);
+                final double factor          = e.isControlDown () ? 0.1 : 1.0;
+
+                // A normal drag translates the view locally.
+                if (! e.isShiftDown ())
+                  virtualPOV.addScaled (virtualPOVUp,    factor * (mouseDownY - e.getY ())).
+                             addScaled (virtualPOVRight, factor * (e.getX () - mouseDownX));
+                else {
+                  final double pitchAngle = (e.getY () - mouseDownY) * factor;
+                  final double turnAngle  = (e.getX () - mouseDownX) * factor;
+
+                  virtualPOV = virtualPOV.subtract (center).rotatedAbout (virtualPOVUp,    turnAngle).
+                                                            rotatedAbout (virtualPOVRight, pitchAngle).add (center);
+
+                  virtualPOVForward = virtualPOVForward.rotatedAbout (virtualPOVUp,    turnAngle).
+                                                        rotatedAbout (virtualPOVRight, pitchAngle).normalize ();
+                  virtualPOVUp      = virtualPOVUp.rotatedAbout      (virtualPOVRight, pitchAngle).normalize ();
+                }
+
+                lastChange = System.currentTimeMillis ();
+
+                mouseDownX = e.getX ();
+                mouseDownY = e.getY ();
+                enqueueGraphicsRefreshRequest (new IntermediateRenderOperation ());
+              }
+            }
+            public void mouseMoved (final MouseEvent e) {}
+          });
+
+          super.addMouseWheelListener (new MouseWheelListener  () {
+            public void mouseWheelMoved (final MouseWheelEvent e) {
+              virtualPOV.addScaled (virtualPOVForward, (e.isControlDown () ? -1 : -10) * e.getWheelRotation ());
+              lastChange = System.currentTimeMillis ();
+              enqueueGraphicsRefreshRequest (new IntermediateRenderOperation ());
+            }});
+
+          super.setSize       (600, 372);
+          super.setTitle      ("Cheloniidae");
+          super.setVisible    (true);
+          super.setBackground (Color.WHITE);
+
+          handleResize ();
+        }
+
+        public void update (final Graphics g) {paint (g);}
+        public void paint  (final Graphics g) {g.drawImage (offscreen, 0, 0, null);}
+
+        public TurtleWindow add (final T t) {turtles.turtles ().add (t); t.window (this); return this;}
+
+        public void enqueueGraphicsRefreshRequest (final Thread t) {
+          if (offscreen != null) {
+            if (graphicsRequestRunner != null && graphicsRequestRunner.isAlive ()) {
+              cancel ();
+              try {graphicsRequestRunner.join ();}
+              catch (final InterruptedException e) {}
+            }
+
+            shouldCancel = false;
+            (graphicsRequestRunner = t).start ();
+          }
+        }
+
+        public TurtleWindow pause (final long milliseconds) {
+          enqueueGraphicsRefreshRequest (new RenderOperation (this));
+          try {Thread.sleep (milliseconds);}
+          catch (final InterruptedException e) {}
+          return this;
+        }
+
+        public TurtleWindow cancel () {shouldCancel = true; return this;}
+
+        public boolean shouldCancel () {return shouldCancel;}
+        public long    lastChange   () {return lastChange;}
+        public double  scaleFactor  () {return getHeight ();}
+
+        public TurtleWindow representativePoint (final Vector v) {
+          final int index = Math.abs (new Random ().nextInt ()) % intermediatePointCloud.length;
+          if (intermediatePointCloud[index] == null || new Random ().nextDouble () > 0.97) intermediatePointCloud[index] = v;
+          minimumExtent.componentwiseMinimum (v);
+          maximumExtent.componentwiseMaximum (v);
+          return this;
+        }
+
+        public Vector transformPoint (final Vector v)
+          {return new Vector (v).subtract (virtualPOV).toCoordinateSpace (
+            virtualPOVUp.cross (virtualPOVForward), virtualPOVUp, virtualPOVForward);}
+
+        public Vector projectPoint (final Vector v)
+          {return (fisheye3D ? new Vector (v).normalize () :
+                               new Vector (v).divide (v.z)).multiply (
+                                 super.getHeight ()).add (new Vector (super.getWidth () >> 1, super.getHeight () >> 1, 0));}
+
+        public Graphics2D context () {
+          if (cachedContext != null) return cachedContext;
+          else {
+            final Graphics2D     g  = (Graphics2D) offscreen.getGraphics ();
+            final RenderingHints rh = g.getRenderingHints ();
+            rh.put (rh.KEY_ANTIALIASING, rh.VALUE_ANTIALIAS_ON);
+            g.setRenderingHints (rh);
+            return g;
+          }
+        }
+      }
+      :.
+
+    - Viewport
+      A subset of the {\tt TurtleWindow} is used to interface with render actions; this is called a {\tt Viewport}. It's an abstraction to allow generalization
+      of the user interface, one of the options I'm considering taking advantage of with Cheloniidae 4.0.
+
+      Most of these methods should be self-explanatory (see \Ref{section}{sec:viewport-caching} for an explanation of {\tt lastChange}), but one deserves some
+      attention. The {\tt representativePoint} method appears to do nothing; it just returns the viewport. However, it is provided to update the viewport's
+      state. It is intended to let render actions specify points that they consider to be significant; this enables a faster point-cloud display to be used for
+      intermediate renders instead of rendering a subset of actions from the turtles. The {\tt TurtleWindow} class (see \Ref{section}{sec:turtlewindow}) also
+      uses these points to compute a bounding box for the scene, enabling the camera to rotate around the middle of the scene instead of just around the origin.
+
+      :: java class=Viewport package=cheloniidae
+      package cheloniidae;
+
+      import java.awt.Graphics2D;
+
+      public interface Viewport {
+        public boolean    shouldCancel        ();
+        public Graphics2D context             ();
+        public double     scaleFactor         ();
+        public Vector     transformPoint      (Vector v);
+        public Vector     projectPoint        (Vector v);
+        public Viewport   representativePoint (Vector v);
+        public long       lastChange          ();
+      }
+      :.
+
+  - Render Actions
     - Vector
-    - CartesianLine
-    - CartesianTriangle
-    - Incidence Angles
+      A vector is Cheloniidae's mechanism for representing a three-dimensional point. It includes a bunch of helpful vector mathematics methods, most of which
+      modify the point somehow and then return it. A notable exception to this rule is {\tt rotatedAbout}, which creates a new vector. In general, methods which
+      are phrased in the present tense will modify the vector, and methods phrased in past tense will return a new one.
 
+      :: java class=Vector package=cheloniidae
+      package cheloniidae;
+
+      import java.io.Serializable;
+
+      public final class Vector implements Serializable, Cloneable, Comparable<Vector> {
+        public double x = 0.0;
+        public double y = 0.0;
+        public double z = 0.0;
+
+        public Vector ()                                               {}
+        public Vector (final Vector existing)                          {this (existing.x, existing.y, existing.z);}
+        public Vector (final double all)                               {this (all, all, all);}
+        public Vector (final double x, final double y, final double z) {this.assign (x, y, z);}
+
+        public Vector clone     ()                   {return new Vector (this);}
+        public int    compareTo (final Vector other) {return Double.compare (lengthSquared (), other.lengthSquared ());}
+        public String toString  ()                   {return "<" + Double.toString (x) + ", " +
+                                                                   Double.toString (y) + ", " +
+                                                                   Double.toString (z) + ">";}
+
+        public Vector assign (final Vector v)                                    {return this.assign (v.x, v.y, v.z);}
+        public Vector assign (final double nx, final double ny, final double nz) {x = nx; y = ny; z = nz; return this;}
+        public Vector center ()                                                  {return this.assign (0, 0, 0);}
+
+        public Vector addScaled (final Vector other, final double factor) {x += other.x * factor;
+                                                                           y += other.y * factor;
+                                                                           z += other.z * factor;
+                                                                           return this;}
+
+        public Vector add      (final Vector other)  {x += other.x; y += other.y; z += other.z; return this;}
+        public Vector subtract (final Vector other)  {x -= other.x; y -= other.y; z -= other.z; return this;}
+        public Vector multiply (final Vector other)  {x *= other.x; y *= other.y; z *= other.z; return this;}
+        public Vector multiply (final double factor) {x *= factor;  y *= factor;  z *= factor;  return this;}
+        public Vector divide   (final Vector other)  {x /= other.x; y /= other.y; z /= other.z; return this;}
+        public Vector divide   (final double factor) {x /= factor;  y /= factor;  z /= factor;  return this;}
+
+        public Vector componentwiseMinimum (final Vector other) {return this.assign (other.x < this.x ? other.x : this.x,
+                                                                                     other.y < this.y ? other.y : this.y,
+                                                                                     other.z < this.z ? other.z : this.z);}
+        public Vector componentwiseMaximum (final Vector other) {return this.assign (other.x > this.x ? other.x : this.x,
+                                                                                     other.y > this.y ? other.y : this.y,
+                                                                                     other.z > this.z ? other.z : this.z);}
+
+        public double dot (final Vector other) {return x * other.x + y * other.y + z * other.z;}
+        public double length ()                {return Math.sqrt (x*x + y*y + z*z);}
+        public double lengthSquared ()         {return x*x + y*y + z*z;}
+
+        public Vector proj (final Vector base) {return new Vector (base).multiply (this.dot (base) / base.lengthSquared ());}
+        public Vector orth (final Vector base) {return this.proj (base).multiply (-1.0).add (this);}
+
+        public Vector normalize () {return divide (length ());}
+
+        public double distanceFrom (final Vector other) {return Math.sqrt ((x - other.x) * (x - other.x) +
+                                                                           (y - other.y) * (y - other.y) +
+                                                                           (z - other.z) * (z - other.z));}
+
+        public Vector cross (final Vector other) {return new Vector (y * other.z - z * other.y,
+                                                                     z * other.x - x * other.z,
+                                                                     x * other.y - y * other.x);}
+
+        public Vector toCoordinateSpace (final Vector v1, final Vector v2, final Vector v3)
+          {return new Vector (this.dot (v1) / v1.length (), this.dot (v2) / v2.length (), this.dot (v3) / v3.length ());}
+
+        public Vector fromCoordinateSpace (final Vector v1, final Vector v2, final Vector v3)
+          {return new Vector (v1).multiply (x).addScaled (v2, y).addScaled (v3, z);}
+
+        public Vector rotatedAbout (final Vector v, final double degrees) {
+          final Vector b1 = new Vector (v).normalize ();
+          final Vector b2 = this.orth (b1).normalize ();
+          final Vector b3 = b1.cross (b2);                  // The cross product of orthogonal unit vectors is a unit vector.
+          final double l  = this.orth (b1).length ();
+
+          return this.proj (b1).addScaled (b2, Math.cos (degrees * Math.PI / 180.0) * l).
+                                addScaled (b3, Math.sin (degrees * Math.PI / 180.0) * l);
+        }
+      }
+      :.
+
+    - CartesianLine
+      This object represents a Euclidean line whose endpoints have Cartesian coordinates. It knows how to approximate the incidence angle relative to the
+      viewpoint (this can be inferred by using the viewport to transform the endpoints and midpoint), and uses this to shade the line according to the
+      calculations for thickness-based shading (see \Ref{section}{sec:incidence-angles}).
+
+      :: java class=CartesianLine package=cheloniidae
+      package cheloniidae;
+
+      import java.awt.BasicStroke;
+      import java.awt.Color;
+      import java.awt.Graphics2D;
+
+      public class CartesianLine extends ViewportCaching implements HasPerspectiveProjection, RenderAction {
+        public final Vector v1;
+        public final Vector v2;
+        public final double width;
+        public final Color  color;
+        public final Vector midpoint;
+
+        public CartesianLine (final Vector _v1, final Vector _v2, final double _width, final Color _color) {
+          v1       = new Vector (_v1);
+          v2       = new Vector (_v2);
+          width    = _width;
+          color    = _color;
+          midpoint = v1.clone ().multiply (0.5).addScaled (v2, 0.5);
+        }
+
+        public double computeDepth (final Viewport v) {return v.transformPoint (midpoint).length ();}
+
+        public void render (final Viewport v) {
+          final Vector tv1 = v.transformPoint (v1);
+          final Vector tv2 = v.transformPoint (v2);
+
+          // If either point is behind the POV, then solve for z = 1.0. If both points are behind,
+          // then the line does not get rendered.
+          if (tv1.z > 0 || tv2.z > 0) {
+            v.representativePoint (midpoint).representativePoint (v1).representativePoint (v2);
+
+            if (tv1.z <= 0) {
+              final double factor = (1.0 - tv1.z) / (tv2.z - tv1.z);
+              tv1.multiply (1.0 - factor).addScaled (tv2, factor);
+            } else if (tv2.z <= 0) {
+              final double factor = (1.0 - tv2.z) / (tv1.z - tv2.z);
+              tv2.multiply (1.0 - factor).addScaled (tv1, factor);
+            }
+
+            final double     thickness = 2.0 * v.scaleFactor () / (tv1.z + tv2.z);
+            final Vector     pv1       = v.projectPoint (tv1);
+            final Vector     pv2       = v.projectPoint (tv2);
+            final Graphics2D g         = v.context ();
+
+            final Vector transformedMidpoint = v.transformPoint (midpoint);
+            final Vector transformedNormal   = tv1.clone ().subtract (tv2);
+            final Color  newColor            = IncidentAngleComputation.adjustForThickness (color,
+                                                IncidentAngleComputation.cylindricalThickness (
+                                                  transformedNormal, transformedMidpoint));
+
+            g.setStroke (new BasicStroke ((float) Math.abs (thickness * width)));
+            g.setColor  (newColor);
+            g.drawLine  ((int) pv1.x, (int) pv1.y, (int) pv2.x, (int) pv2.y);
+          }
+        }
+      }
+      :.
+
+    - CartesianTriangle
+      This represents a Euclidean triangle whose vertices are represented by Cartesian coordinates. Like the {\tt CartesianLine}
+      (\Ref{section}{sec:cartesianline}), it is shaded according to the perceived incidence angle.
+
+      :: java class=CartesianTriangle package=cheloniidae
+      package cheloniidae;
+
+      import java.awt.Color;
+      import java.awt.Graphics2D;
+      import java.awt.Polygon;
+
+      public class CartesianTriangle extends ViewportCaching implements HasPerspectiveProjection, RenderAction {
+        public final Vector v1;
+        public final Vector v2;
+        public final Vector v3;
+        public final Color  color;
+        public final Vector midpoint;
+
+        public CartesianTriangle (final Vector _v1, final Vector _v2, final Vector _v3, final Color _color) {
+          v1       = new Vector (_v1);
+          v2       = new Vector (_v2);
+          v3       = new Vector (_v3);
+          color    = _color;
+          midpoint = v1.clone ().multiply (1.0 / 3.0).addScaled (v2, 1.0 / 3.0).addScaled (v3, 1.0 / 3.0);
+        }
+
+        public double computeDepth (final Viewport v) {return v.transformPoint (midpoint).length ();}
+
+        public void render (final Viewport v) {
+          final Vector tv1 = v.transformPoint (v1);
+          final Vector tv2 = v.transformPoint (v2);
+          final Vector tv3 = v.transformPoint (v3);
+
+          v.representativePoint (midpoint).representativePoint (v1).representativePoint (v2).representativePoint (v3);
+
+          // Render the triangle only when all three points are in front of the camera.
+          // I'm being lazy here -- there is a way to solve for the points' projections to
+          // z = 1 like we did for Cartesian lines, but the number of cases is much larger.
+          if (tv1.z > 0 && tv2.z > 0 && tv3.z > 0) {
+            final Vector     pv1 = v.projectPoint (tv1);
+            final Vector     pv2 = v.projectPoint (tv2);
+            final Vector     pv3 = v.projectPoint (tv3);
+            final Graphics2D g   = v.context ();
+
+            final int[] xs = new int[] {(int) pv1.x, (int) pv2.x, (int) pv3.x};
+            final int[] ys = new int[] {(int) pv1.y, (int) pv2.y, (int) pv3.y};
+
+            // Render only real triangles. If they become degenerate when projected into 2D,
+            // then we ignore them.
+            if (! (xs[0] == xs[1] && ys[0] == ys[1] ||
+                   xs[1] == xs[2] && ys[1] == ys[2] ||
+                   xs[0] == xs[2] && ys[0] == ys[2])) {
+              final Vector transformedMidpoint    = v.transformPoint (midpoint);
+              final Vector transformedNormal      = tv1.clone ().subtract (tv2).cross (tv3.clone ().subtract (tv2));
+              final Color  newColor               = IncidentAngleComputation.adjustForThickness (color,
+                                                      IncidentAngleComputation.planarThickness (
+                                                        transformedNormal, transformedMidpoint));
+              g.setColor (newColor);
+              g.fill     (new Polygon (xs, ys, 3));
+            }
+          }
+        }
+      }
+      :.
+
+    - Viewport Caching
+      This is a hack for optimization purposes. When the render actions are depth-sorted, $O(n \log n)$ comparisons will be done between render actions'
+      computed depths.\footnote{See the {\tt HasPerspectiveProjection} interface in \Ref{section}{sec:hasperspectiveprojection}.} If done naïvely, this would
+      result in $O(n \log n)$ distance computations for $n$ objects. However, the distance of an object is unlikely to change during a depth-sort operation, so
+      the naïve algorithm will be a factor of $\log n$ slower than it could be.
+
+      This is where viewport caching comes in. The viewport maintains a timestamp of the last state change (only state changes that would affect the
+      depth-sorting are considered), and objects that inherit from the {\tt ViewportCaching} class have the optimization that they recompute their distance only
+      if the viewport's timestamp is after their last recomputation.
+
+      :: java class=ViewportCaching package=cheloniidae
+      package cheloniidae;
+
+      public abstract class ViewportCaching {
+        private Viewport cachedViewport   = null;
+        private long     cachedLastChange = 0;
+        private double   cachedDepth      = 0.0;
+
+        public abstract double computeDepth (Viewport v);
+
+        public double depth (final Viewport v) {
+          final double result = (cachedViewport == v && v.lastChange () == cachedLastChange) ?
+                                cachedDepth : (cachedDepth = computeDepth (v));
+          cachedViewport   = v;
+          cachedLastChange = v.lastChange ();
+          return result;
+        }
+      }
+      :.
+
+    - Incidence Angles
       Incident angle computation is about finding out how much light passes through a translucent material based on the angle. Here's why the angle matters.
       Suppose you have a one-inch thick sheet of smoked glass:
 
@@ -2644,7 +3896,7 @@ meta::section('02-internals', <<'__hpEoXly8AA58G0Tab8ikBOOnz41zMCp+IRruxxXbNNE')
     - CoreCommands
 
 - Examples
-__hpEoXly8AA58G0Tab8ikBOOnz41zMCp+IRruxxXbNNE
+__6brNYNuZ19Mp4Gsf4Z7dVES1vt8PoLiz4tA9cr3LneY
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
