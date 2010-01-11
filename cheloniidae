@@ -246,12 +246,13 @@ begin
 \sloppy
 __pADbN5xRAC0lsKZa0ePPPG7lePWVU/w/Ye4zm07ddTE
 
-meta::data('header', <<'__t/ou+xU9YMovOSHTApqt8gwf3umPN+Y3rWeSlz3AZaU');
+meta::data('header', <<'__2mv88LvJbTGwkiOcUzpHC4cr61260f6nfU+uMAhzMNM');
 \documentclass{report}
 \usepackage{amsmath,amssymb,pxfonts,listings,geometry,color}
 \usepackage[colorlinks]{hyperref}
 
 \definecolor{gray95}{rgb}{0.95,0.95,0.95}
+\definecolor{slate}{rgb}{0.2,0.2,0.2}
 
 \newcommand{\Ref}[2]{\hyperref[#2]{#1 \ref*{#2}}}
 
@@ -265,7 +266,7 @@ meta::data('header', <<'__t/ou+xU9YMovOSHTApqt8gwf3umPN+Y3rWeSlz3AZaU');
            backgroundcolor=\color{gray95},
            basicstyle={\tt\scriptsize}}}
   {}
-__t/ou+xU9YMovOSHTApqt8gwf3umPN+Y3rWeSlz3AZaU
+__2mv88LvJbTGwkiOcUzpHC4cr61260f6nfU+uMAhzMNM
 
 meta::data('intro', <<'__uirjwqAxCBH+vu23aaPBO6uNM7a7cUHAYKJo8gIJsGw');
 This is a TeX document generator.
@@ -361,9 +362,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__Rch9zRcOxD77TtaHzYg4lRmlAQ77lcgl36pu8E/uZGA');
-/tmp/cheloniidae.46QNUgdIU24mj9IZoFluHZp2USVjIkw1H8XhnwVAZgI/document.pdf
-__Rch9zRcOxD77TtaHzYg4lRmlAQ77lcgl36pu8E/uZGA
+meta::data('pdf-output-file', <<'__0E0I+0p0UItXtL3c1ibw3AtUeTVJToVk1s2cRebk8so');
+/tmp/cheloniidae.rhcC8evjzz2NDHNHy9WcHtzX3RdDLrZ1K19EypJ-rF4/document.pdf
+__0E0I+0p0UItXtL3c1ibw3AtUeTVJToVk1s2cRebk8so
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -917,7 +918,7 @@ meta::section('01-preface', <<'__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs');
   However, be forewarned that there is a lot of math.
 __MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs
 
-meta::section('02-internals', <<'__MefnSDzDkiGWHVb1ik+uoLTUCE69YVVcHqia/24wShE');
+meta::section('02-internals', <<'__hpEoXly8AA58G0Tab8ikBOOnz41zMCp+IRruxxXbNNE');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -2559,12 +2560,91 @@ meta::section('02-internals', <<'__MefnSDzDkiGWHVb1ik+uoLTUCE69YVVcHqia/24wShE')
     - CartesianTriangle
     - Incidence Angles
 
+      Incident angle computation is about finding out how much light passes through a translucent material based on the angle. Here's why the angle matters.
+      Suppose you have a one-inch thick sheet of smoked glass:
+
+      \setlength{\unitlength}{1in}
+      \begin{center}
+      \begin{picture}(4,1.5)(0,0)
+        \color{slate}
+        \put(0,0.2){\framebox(4,0.6)}
+        \put(1,0){\line(0,1){1.5}}
+        \put(2,0){\line(1,2){0.75}}
+
+        \put(1.1,1.4){\sffamily Ray \#1}
+        \put(2.85,1.4){\sffamily Ray \#2}
+
+        \put(1.1,0.9){\sffamily 90 degrees}
+        \put(2.6,0.9){\sffamily 60 degrees}
+      \end{picture}
+      \end{center}
+
+      Looking through it vertically (ray \#1) results in the attenuation from one inch of smoked glass. However, if we look through it from a different angle
+      (ray \#2), the ray will pass through more glass. In each case, the amount of glass traveled through is the secant of the ray's incident angle, so for ray
+      1 it would be $\sec 90\degrees = 1$, and for ray 2 it would be $\sec 60\degrees = {2 \over \sqrt 3}$. Conveniently, the secant of the angle is simply the
+      reciprocal of the dot product of the ray's direction and the surface normal of the glass. (That is, $\sec\theta = (\vec r \cdot \vec N)^{-1}$, where
+      $\theta$ is the incidence angle, $\vec r$ is the ray's direction, and $\vec N$ is the surface normal vector.)
+
+      Slightly more difficult is figuring out how much light is left after traveling through $x$ amount of material. Doing this requires a separable
+      differential equation:
+
+      $$
+      {dL \over dx} = - o L
+      $$
+
+      \noindent where $L(x)$ is the amount of light after traveling through $x$ amount of glass, and $o$ is the opacity of the glass. Solving yields:
+
+      $$
+      L(x) = C e^{-o x}
+      $$
+
+      \noindent Solving for $C$ is simple if we make the assumption that ray \#1 should perceive $o$ opacity from one inch of glass. So we can solve with that
+      constraint:
+
+      $$
+      1 - o = Ce^{-o} ~~~ \Rightarrow ~~~ C = {1 - o \over e^{-o}}
+      $$
+
+      :: java class=IncidenceAngleComputation package=cheloniidae
+      package cheloniidae;
+
+      import java.awt.Color;
+      import static java.lang.Math.*;
+
+      public abstract class IncidentAngleComputation {
+        public static final double lightTransmission (final double thickness, final double opacity) {
+          final double c = (1.0 - opacity) / exp (-opacity);
+          return c * exp (-thickness * opacity);
+        }
+
+        public static final Color adjustForThickness (final Color original, final double thickness) {
+          final double originalOpacity  = original.getAlpha () / 255.0;
+          final double perceivedOpacity = 1.0 - lightTransmission (thickness, originalOpacity);
+          final double clippedOpacity   = perceivedOpacity > 1.0 ? 1.0 :
+                                          perceivedOpacity < 0.0 ? 0.0 : perceivedOpacity;
+
+          return new Color (original.getRed (), original.getGreen (), original.getBlue (), (int) (clippedOpacity * 255.0));
+        }
+
+        public static final double planarThickness (final Vector surfaceNormal, final Vector v) {
+          // This is a simplified way to compute the secant of the scalar angle between the two vectors.
+          return surfaceNormal.length () * v.length () / abs (surfaceNormal.dot (v));
+        }
+
+        public static final double cylindricalThickness (final Vector axis, final Vector v) {
+          final double cosineTheta = axis.dot (v) / (axis.length () * v.length ());
+          final double sineTheta   = sqrt (1.0 - cosineTheta * cosineTheta);
+          return 1.0 / sineTheta;
+        }
+      }
+      :.
+
   - Frames
     - SingleTurtleScene
     - CoreCommands
 
 - Examples
-__MefnSDzDkiGWHVb1ik+uoLTUCE69YVVcHqia/24wShE
+__hpEoXly8AA58G0Tab8ikBOOnz41zMCp+IRruxxXbNNE
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
