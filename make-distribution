@@ -23,7 +23,7 @@ popd
 
 # Compile the literate code. This generates both a PDF and the source tree.
 ./cheloniidae compile
-cp $(./cheloniidae pdf-output-file) cheloniidae.pdf
+cp $(./cheloniidae pdf-output-file) doc/cheloniidae-literate.pdf
 
 cp -r src/cheloniidae/* $basedir/cheloniidae/
 cp examples/*.java $basedir/
