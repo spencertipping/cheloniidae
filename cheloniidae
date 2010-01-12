@@ -363,9 +363,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__vmG0RBz6/367ntkHu7yIMQsHVKpvUfm96kn5WBJCJXg');
-/tmp/cheloniidae.5NaR4-Ydo2pVigEg-0HREBquw1ByaNGWF2mnv+ubDd8/document.pdf
-__vmG0RBz6/367ntkHu7yIMQsHVKpvUfm96kn5WBJCJXg
+meta::data('pdf-output-file', <<'__l3mdLxso2gqTaeCKowBpWXyVm7pYkcsytMS3rY3MnrU');
+/tmp/cheloniidae.tKw6Vbrzrbf01WFkTya93hYsVBjakbF9-iOuBMKr9wU/document.pdf
+__l3mdLxso2gqTaeCKowBpWXyVm7pYkcsytMS3rY3MnrU
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -895,9 +895,8 @@ if ($line =~ /^(\s*)- (.*)$/) {
 }
 __39uz93wRI7d9PaiU6AHPOFU42AvT9qYjBBsQ/iL9AdY
 
-meta::section('01-preface', <<'__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs');
+meta::section('01-preface', <<'__eGrgc7g6f4bpa6w7Yn6XnhqgRGsj7NzqGVjj/me+yrg');
   \chapter*{Preface}
-  \addcontentsline{toc}{chapter}{Preface}
 
   Cheloniidae is the product of two orthogonal goals. One is to write the highest-capacity turtle graphics system possible, and the other is to write Java code
   with the elegance of Lisp or Haskell. I'm not sure whether I've managed to achieve these goals yet, but this paper explains the thoughtwork behind the code
@@ -916,10 +915,14 @@ meta::section('01-preface', <<'__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs');
     + Writing mathematical systems in Java
   ]e
 
-  However, be forewarned that there is a lot of math.
-__MCJ2qXEqhtyYDm38jKuu6yMMdENQfmYSKxNZMSLcprs
+  \section*{Website}
+  The Cheloniidae website is \url{http://spencertipping.com#section=cheloniidae}. This website includes the downloadable distribution, some examples, and a
+  place to download older versions of the software.
 
-meta::section('02-internals', <<'__sAaV56VcfLS0O2bxz1UYuYtvcHjeAxZXy2Wwa7U2zK4');
+  Any suggestions for improvements are welcome and should be directed to {\tt spencer@spencertipping.com}.
+__eGrgc7g6f4bpa6w7Yn6XnhqgRGsj7NzqGVjj/me+yrg
+
+meta::section('02-internals', <<'__/ahYts3LkeNzufnoOcrauUPIeWN3COm2PApvQR1Wlc0');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -1528,7 +1531,7 @@ meta::section('02-internals', <<'__sAaV56VcfLS0O2bxz1UYuYtvcHjeAxZXy2Wwa7U2zK4')
     - NonDistributiveTurtleCommand
       This is a marker interface that indicates that a turtle command should not be sent to grouped turtles, but instead should act on the turtle group proxy as
       a whole. It ends up coming in handy for serialization (notice that \verb|TurtleGroup.State| implements it), and later on it is useful to control the order
-      of turtle movements for triangle rendering (\Ref{section}{sec:parallelization}).
+      of turtle movements for triangle rendering (\Ref{section}{sec:parallelize}).
 
       :: java class=NonDistributiveTurtleCommand package=cheloniidae
       package cheloniidae;
@@ -2788,8 +2791,8 @@ meta::section('02-internals', <<'__sAaV56VcfLS0O2bxz1UYuYtvcHjeAxZXy2Wwa7U2zK4')
 
       Alternately, you can pass in two other turtles and the command will generate a triangle connecting them.
 
-      Internally there is some finagling to make this work; a new preloaded turtle is created (see \Ref{section}{sec:preloadedturtle}), and this new turtle
-      contains the triangle. Also, the turtle you are running this on must have a location that makes sense in Cartesian space.
+      Internally there is some finagling to make this work; a new preloaded turtle is created (see below), and this new turtle contains the triangle. Also, the
+      original turtle must have a location that makes sense in Cartesian space (indicated by implementing the {\tt SupportsPosition} interface).
 
       :: java class=PreloadedTurtle package=cheloniidae
       package cheloniidae;
@@ -3053,7 +3056,7 @@ meta::section('02-internals', <<'__sAaV56VcfLS0O2bxz1UYuYtvcHjeAxZXy2Wwa7U2zK4')
       another. It has shown up in some classes already, often to bundle a sequence of commands into a single {\tt TurtleCommand} object.
 
       Notice the {\tt SerialTurtleCommandComposition} interface. This is a flag indicating that sequences string together a bunch of logical operations.
-      \Ref{Section}{sec:parallelization} explains why this is important.
+      \Ref{Section}{sec:parallelize} explains why this is important.
 
       :: java class=Sequence package=cheloniidae.commands
       package cheloniidae.commands;
@@ -3730,7 +3733,7 @@ meta::section('02-internals', <<'__sAaV56VcfLS0O2bxz1UYuYtvcHjeAxZXy2Wwa7U2zK4')
 
     - Viewport
       A subset of the {\tt TurtleWindow} is used to interface with render actions; this is called a {\tt Viewport}. It's an abstraction to allow generalization
-      of the user interface, one of the options I'm considering taking advantage of with Cheloniidae 4.0.
+      of the user interface, one of the options I'm considering taking advantage of with Cheloniidae 4.
 
       Most of these methods should be self-explanatory (see \Ref{section}{sec:viewport-caching} for an explanation of {\tt lastChange}), but one deserves some
       attention. The {\tt representativePoint} method appears to do nothing; it just returns the viewport. However, it is provided to update the viewport's
@@ -4372,7 +4375,7 @@ meta::section('02-internals', <<'__sAaV56VcfLS0O2bxz1UYuYtvcHjeAxZXy2Wwa7U2zK4')
         public static TriangleEmitter.Emit  triangleEmit  () {return new TriangleEmitter.Emit  ();}
       }
       :.
-__sAaV56VcfLS0O2bxz1UYuYtvcHjeAxZXy2Wwa7U2zK4
+__/ahYts3LkeNzufnoOcrauUPIeWN3COm2PApvQR1Wlc0
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
