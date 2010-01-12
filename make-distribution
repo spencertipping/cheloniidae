@@ -21,9 +21,13 @@ pushd doc
 latex cheloniidae.tex && latex cheloniidae.tex && pdflatex cheloniidae.tex
 popd
 
+# Compile the literate code. This generates both a PDF and the source tree.
+./cheloniidae compile
+cp $(./cheloniidae pdf-output-file) cheloniidae.pdf
+
 cp -r src/cheloniidae/* $basedir/cheloniidae/
 cp examples/*.java $basedir/
-#cp doc/{cheloniidae.tex,cheloniidae.pdf,CHANGELOG,README} $basedir/
+cp doc/{cheloniidae.tex,cheloniidae.pdf,CHANGELOG,README} $basedir/
 cp doc/{CHANGELOG,README} $basedir/
 
 # Now compile all of the Java files and examples.

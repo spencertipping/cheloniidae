@@ -1,3 +1,13 @@
+- Version 3.2:
+  - Fixes to the transformation model -- previously, there were cases where
+    transformations didn't apply correctly to a tree of turtle commands.
+
+  - Ported the code to a literate documentation system.
+
+- Version 3.1:
+  - Added support for rendering faces via the CartesianTriangle object.
+  - Added incidence angle computation for shading.
+
 - Version 3.0:
   - Improved responsiveness during a line-retrieval operation by making that step
     interruptible.
