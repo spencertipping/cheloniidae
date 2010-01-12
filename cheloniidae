@@ -375,9 +375,9 @@ meta::data('pdftex', <<'__aHolEJEGN4wnHiydZyVzwRrETVuJhJOGo/nKL9tsLRY');
 pdflatex -output-directory=__TEMPORARY_DIRECTORY__ __INPUT_FILE__
 __aHolEJEGN4wnHiydZyVzwRrETVuJhJOGo/nKL9tsLRY
 
-meta::data('source-directory', <<'__6LWkZJSOFm8d76O9WGT2KrUBnNx936I9+gu3p3z9hLs');
-/tmp/src
-__6LWkZJSOFm8d76O9WGT2KrUBnNx936I9+gu3p3z9hLs
+meta::data('source-directory', <<'__VkDVzaXOmnQE8XmKW8k6UWWufiR1o0n4yrKYQjtyh7w');
+./src
+__VkDVzaXOmnQE8XmKW8k6UWWufiR1o0n4yrKYQjtyh7w
 
 meta::data('table-of-contents', <<'__a4ayc/80/OGda4BO/1o/V0etpOqiLx1JwB5S3beHW0s');
 1
