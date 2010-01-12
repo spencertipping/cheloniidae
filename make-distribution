@@ -27,7 +27,7 @@ cp $(./cheloniidae pdf-output-file) doc/cheloniidae-literate.pdf
 
 cp -r src/cheloniidae/* $basedir/cheloniidae/
 cp examples/*.java $basedir/
-cp doc/{cheloniidae.tex,cheloniidae.pdf,CHANGELOG,README} $basedir/
+cp doc/{cheloniidae.tex,cheloniidae.pdf,cheloniidae-literate.pdf,CHANGELOG,README} $basedir/
 cp doc/{CHANGELOG,README} $basedir/
 
 # Now compile all of the Java files and examples.

@@ -12,3 +12,10 @@ To recompile the Cheloniidae core classes, just run:
   javac cheloniidae/*.java cheloniidae/*/*.java
 
 This may be necessary depending on your Java environment.
+
+See the PDF files included with Cheloniidae:
+
+  cheloniidae.pdf           (a short introduction)
+  cheloniidae-literate.pdf  (a tour of the source code)
+
+for a more complete guide to getting started.
