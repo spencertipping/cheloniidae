@@ -3,9 +3,11 @@
 use File::Temp  'tempfile';
 use Carp        'carp';
 use Digest::SHA 'sha256_base64';
-use File::Path  'mkpath';
+
+$|++;
 
 my %data;
+my %transient;
 my %externalized_functions;
 my @data_types;
 my @script_args;
@@ -68,6 +70,16 @@ meta::define_form 'internal_function', sub {
 };
 __heBxmlI7O84FgR+9+ULeiCTWJ4hqd079Z02rZnl9Ong
 
+meta::meta('datatypes::library', <<'__Uu9nRiHABRn+x19zBWmHpJF8gbfMA5v5MlpNoSE8MqE');
+meta::define_form 'library', sub {
+  my ($name, $value) = @_;
+  eval $value;
+  $externalized_functions{$name} = "library::$name";
+  *{$name} = sub {edit("library::$name")};
+  warn $@ if $@;
+};
+__Uu9nRiHABRn+x19zBWmHpJF8gbfMA5v5MlpNoSE8MqE
+
 meta::meta('datatypes::line_filter', <<'__/k1BhEweDsgaEdqrALbIEjvKhsVrk/hv//e/KPydA6A');
 meta::define_form 'line_filter', sub {
   my ($name, $value) = @_;
@@ -75,6 +87,38 @@ meta::define_form 'line_filter', sub {
   carp $@ if $@;
 };
 __/k1BhEweDsgaEdqrALbIEjvKhsVrk/hv//e/KPydA6A
+
+meta::meta('datatypes::list-type', <<'__OKczvJ+6wi8VPNFcZ9ohlXjw+ychodWCfcELdli9p+w');
+meta::define_form '_list_type', sub {
+  my ($outer_name, $outer_value) = @_;
+  $externalized_functions{$outer_name} = "_list_type::$outer_name";
+  
+  *{$outer_name} = sub {
+    associate("${outer_value}::$_", '') for @_;
+  };
+
+  meta::define_form $outer_value, sub {
+    my ($name, $value) = @_;
+    $externalized_functions{$name} = "${outer_value}::$name";
+    *{$name} = sub {
+      my ($command, @xs) = @_;
+      my $xs = join "\n", @xs;
+      return grep length, split /\n/, retrieve("${outer_value}::$name")               if $command eq 'items';
+      associate("${outer_value}::$name", retrieve("${outer_value}::$name") . "\n$xs") if $command eq 'add' || $command eq '<<';
+      edit("${outer_value}::$name")                                                   if $command eq 'edit';
+      return retrieve("${outer_value}::$name");
+    };
+  };
+};
+__OKczvJ+6wi8VPNFcZ9ohlXjw+ychodWCfcELdli9p+w
+
+meta::meta('datatypes::note', <<'__TGOjJwmj+QJp1giUQqg2bEaQe8RvqnrFEqyZhIpSC34');
+meta::define_form 'note', sub {
+  my ($name, undef) = @_;
+  $externalized_functions{$name} = "note::$name";
+  *{$name} = sub {edit("note::$name")};
+};
+__TGOjJwmj+QJp1giUQqg2bEaQe8RvqnrFEqyZhIpSC34
 
 meta::meta('datatypes::section', <<'__dyHqM5u2qiIza2BZZUe8tCJbUbz1UmJwCpsYozFvBmc');
 meta::define_form 'section', sub {};
@@ -88,19 +132,29 @@ meta::define_form 'unlit_converter', sub {
 };
 __2X1thh9LQ0oUWCfeWj297YwiGJA/klB7hVI2sWEFtEE
 
+meta::meta('datatypes::vim-highlighter', <<'__vsGBLVDC3S+pX/k/zl5CgXeAQz2QjpBkLgx0CJ4vcn0');
+meta::define_form 'vim_highlighter', \&meta::bootstrap::implementation;
+__vsGBLVDC3S+pX/k/zl5CgXeAQz2QjpBkLgx0CJ4vcn0
+
 meta::meta('internal::runtime', <<'__Nd6Dp1A6nL7yAGeoRfeZETeaW8vnPN8HI9Diqo66vDA');
 meta::define_form 'internal', \&meta::meta::implementation;
 __Nd6Dp1A6nL7yAGeoRfeZETeaW8vnPN8HI9Diqo66vDA
 
-meta::bootstrap('initialization', <<'__xQuS4r+gfA+l/zXJmfJyENBo2dJ3XIe+8uunULvqTR0');
+meta::_list_type('list', <<'__ozA5XMClOtEgdzZUav/0c1lAk3Vku/dc4e2tQHgNkTk');
+list
+__ozA5XMClOtEgdzZUav/0c1lAk3Vku/dc4e2tQHgNkTk
+
+meta::bootstrap('initialization', <<'__plktoDCjGQioE48vwfrH0xL3ulcYnTWp+fUvaFwRnnc');
 #!/usr/bin/perl
 
 use File::Temp  'tempfile';
 use Carp        'carp';
 use Digest::SHA 'sha256_base64';
-use File::Path  'mkpath';
+
+$|++;
 
 my %data;
+my %transient;
 my %externalized_functions;
 my @data_types;
 my @script_args;
@@ -123,7 +177,7 @@ meta::define_form 'meta', sub {
   carp $@ if $@;
 };
 
-__xQuS4r+gfA+l/zXJmfJyENBo2dJ3XIe+8uunULvqTR0
+__plktoDCjGQioE48vwfrH0xL3ulcYnTWp+fUvaFwRnnc
 
 meta::bootstrap('pod', <<'__0h2CBA2cqa4qd6nox9dul6Jn9hcJFHw3uPdC89Xim7o');
 
@@ -152,7 +206,9 @@ something most people will normally do. In the future there may be a locking mec
 =cut
 __0h2CBA2cqa4qd6nox9dul6Jn9hcJFHw3uPdC89Xim7o
 
-meta::code_filter('java', <<'__km8AT8pI4j2S4H4ASYZElvfY9LhnjRiW1BuYQb5LowI');
+meta::code_filter('java', <<'__PT32XU9AIJR/3AH1pwb3r9HBTeOP13/eF1u57+7KwNI');
+use File::Path 'mkpath';
+
 my ($line, %settings) = @_;
 
 my $settings = $settings{'name'};
@@ -180,7 +236,7 @@ if ($settings =~ /\sjava(\s|$)/) {
 }
 
 return $line;
-__km8AT8pI4j2S4H4ASYZElvfY9LhnjRiW1BuYQb5LowI
+__PT32XU9AIJR/3AH1pwb3r9HBTeOP13/eF1u57+7KwNI
 
 meta::code_filter('verbatim', <<'__AON9bxWzZOMpERGSJVrit8dkijYb5Re8IIg2PEC5i1s');
 my ($line, %settings) = @_;
@@ -363,9 +419,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__HuIEr4c4puftJI0v1vkDmRcLpzCTJe8DOZ1SJOaRXRk');
-/tmp/cheloniidae.-LF5l+GW7NcwhCJLItpoBRHogP3SW4gHLYu6srTZbJQ/document.pdf
-__HuIEr4c4puftJI0v1vkDmRcLpzCTJe8DOZ1SJOaRXRk
+meta::data('pdf-output-file', <<'__V2Cz0dkFDT8QGrbcoVBiWcIPHE1LJp1e5O+Nf29Plxw');
+/tmp/cheloniidae.tNRsH17bEWn5JuooYyrvgQUAv6GOuVC8+phxJHu0jbk/document.pdf
+__V2Cz0dkFDT8QGrbcoVBiWcIPHE1LJp1e5O+Nf29Plxw
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -476,11 +532,16 @@ messages::error("No such attribute $from") unless $data{$from};
 $data{$from};
 __yn1SQkcEk6o+gnuCy3QGVFtQb2piaCoUdJPGUkLjpD4
 
-meta::function('create', <<'__4e/yca7FeKtJK0U61l9uCtsCPTiznglZlwh6U3iRLvY');
+meta::function('create', <<'__YDNTuzkJSNUIk4tbdwxep6/rT8uGnceIj7rljM9gusc');
 my ($name, $value) = @_;
 messages::error("Attribute $name already exists.") if grep {$_ eq $name} keys %data;
-associate($name, $value || join('', <STDIN>) || "\n");
-__4e/yca7FeKtJK0U61l9uCtsCPTiznglZlwh6U3iRLvY
+if ($value) {
+  associate($name, $value);
+} else {
+  associate($name,'');
+  edit ($name);
+}
+__YDNTuzkJSNUIk4tbdwxep6/rT8uGnceIj7rljM9gusc
 
 meta::function('e', <<'__VOcQy5WG275NZGlFODdYHYBe3oJ7/CHmTT/L9O1I6t0');
 edit('data::document', extension => '.tex');
@@ -512,15 +573,38 @@ my $name = shift;
 grep {$_ eq $name} keys %data;
 __bxU1sDtIh3+P1x0HuuY0f7sKHr9qNZUEl64m2fvwmDk
 
+meta::function('export', <<'__I4eRG7HtLDZhFgrlr0QDrQO5MRwJYGFlotQsWQIE/d8');
+# Exports data into a text file.
+#   export attr1 attr2 attr3 ... file.txt
+
+my $name = pop @_;
+my @attributes = @_;
+
+if (@attributes) {
+  my $file = join "\n", map {cat($_)} @attributes;
+  file::write ($name, $file);
+} else {
+  messages::error ("Not enough arguments");
+}
+__I4eRG7HtLDZhFgrlr0QDrQO5MRwJYGFlotQsWQIE/d8
+
 meta::function('grab', <<'__sXs1aeJVBERH6nWE7ZpWiIO5Cg7fSBWcoscDg1DHzD8');
 my ($filename, @attribute_names) = @_;
 associate("implementation::$_", `$filename cat $_`) for @attribute_names;
 __sXs1aeJVBERH6nWE7ZpWiIO5Cg7fSBWcoscDg1DHzD8
 
-meta::function('import', <<'__oK2Kj5RYHcEUK0Iyiqu8w7zipbg+QNF4VO4hm7BkUNA');
-my ($name) = @_;
-associate($name, join('', <STDIN>));
-__oK2Kj5RYHcEUK0Iyiqu8w7zipbg+QNF4VO4hm7BkUNA
+meta::function('import', <<'__7f1Q36AcIJ8/OaaYPGUq10PPFTKnEF0CMxS56DRsjKk');
+my $name  = pop @_;
+my @files = @_;
+
+if (@files) {
+  my $files = join "", map {file::read ($_)} @files;
+  associate ($name, $files); 
+}
+else {
+  associate($name, join('', <STDIN>));
+}
+__7f1Q36AcIJ8/OaaYPGUq10PPFTKnEF0CMxS56DRsjKk
 
 meta::function('install-vim-highlighters', <<'__qKwDdQ1bDPFx6t/oiiEMc3lmCgfcKHOtNFym4bY/nFg');
 my $home = $ENV{'HOME'};
@@ -545,13 +629,28 @@ my (undef, undef, $mode) = stat $0;
 chmod $mode & 0555, $0;
 __pqf/HijyN91BWpnS+uWYip/mFhHhcd+M9/YdlYsvv9Y
 
-meta::function('ls', <<'__M3wGXSw8/xm3RiNq0uLWke1dHm2OWQbvJpHkngdPafg');
-join("\n", sort keys %externalized_functions);
-__M3wGXSw8/xm3RiNq0uLWke1dHm2OWQbvJpHkngdPafg
+meta::function('ls', <<'__OlQOgKhp6VUThx34wxmM3MFkwsHfR/c8dqvu07z059E');
+my $criteria = join '|', @_;
+my @lines = grep /$criteria/, sort keys %externalized_functions;
+my $length = 0;
+$length >= length($_) or $length = length($_) for @lines;
 
-meta::function('ls-a', <<'__6jKXRDXpIkzIOkcLtB2FOSTuZxqjBLyLZsF1vEmVn18');
-join("\n", map {"  $_"} sort keys %data) . "\n";
-__6jKXRDXpIkzIOkcLtB2FOSTuZxqjBLyLZsF1vEmVn18
+my @new_lines = map($_ . ' ' x ($length + 2 - length($_)) . $externalized_functions{$_}, @lines);
+join("\n", sort @new_lines);
+__OlQOgKhp6VUThx34wxmM3MFkwsHfR/c8dqvu07z059E
+
+meta::function('ls-a', <<'__S5EydJRu+YIfcFmTMz1ZHX0cANJq32bU5JnYCe1tWdk');
+my $criteria = join '|', @_;
+my @lines    = grep(/$criteria/, sort keys %data);
+my $length   = 0;
+
+my %inverses;
+$inverses{$externalized_functions{$_}} = $_ for keys %externalized_functions;
+
+$length >= length($_) or $length = length($_) for @lines;
+my @new_lines = map($_ . ' ' x ($length + 2 - length($_)) . ($inverses{$_} || ''), @lines);
+join "\n", @new_lines;
+__S5EydJRu+YIfcFmTMz1ZHX0cANJq32bU5JnYCe1tWdk
 
 meta::function('make', <<'__8mAUcwqcvcEhgs6tEjHaIx3uF9QOC+9DAI7NmulvJ74');
 compile();
@@ -559,16 +658,26 @@ view();
 clean();
 __8mAUcwqcvcEhgs6tEjHaIx3uF9QOC+9DAI7NmulvJ74
 
-meta::function('mv', <<'__PY7iwIY+6QtPN4V5hV4MOImRJVAKDkMmEKtkN34cv5Y');
+meta::function('mv', <<'__ijyNZ8r34FVK0Ki9/Q0Irx5k9U0pZ+/frrdlu+qkEP4');
 my ($from, $to) = @_;
 messages::error("The '$from' attribute does not exist.") unless grep $from, keys %data;
-$data{$to} = $data{$from};
-delete $data{$from};
-__PY7iwIY+6QtPN4V5hV4MOImRJVAKDkMmEKtkN34cv5Y
+associate($to, retrieve($from));
+rm($from);
+__ijyNZ8r34FVK0Ki9/Q0Irx5k9U0pZ+/frrdlu+qkEP4
 
 meta::function('new', <<'__FQjehdFg7T3T2iHPMlGp6nAnrKAsQUIK5CXW02wNnos');
 clone(@_);
 __FQjehdFg7T3T2iHPMlGp6nAnrKAsQUIK5CXW02wNnos
+
+meta::function('perl', <<'__Ojd593Fa9fx1Yx2XuPzK6WTUyxO70Nbmlbl9YRodUWA');
+my $result = eval($_[0]);
+$@ ? $@ : $result;
+__Ojd593Fa9fx1Yx2XuPzK6WTUyxO70Nbmlbl9YRodUWA
+
+meta::function('pop-state', <<'__eqnCLsMapvq2sYSx82KCxh25zmff+JIXFMYUan2kGKM');
+%data = %{pop @{$transient{'states'}}} if @{$transient{'states'}};
+reload();
+__eqnCLsMapvq2sYSx82KCxh25zmff+JIXFMYUan2kGKM
 
 meta::function('pull', <<'__ZU6uOu7dBdjjoNdEL/U7yrjicOQR5OLFQAacjrKqSCg');
 my ($class_name) = @_;
@@ -582,6 +691,12 @@ for (@attributes) {
 }
 __ZU6uOu7dBdjjoNdEL/U7yrjicOQR5OLFQAacjrKqSCg
 
+meta::function('push-state', <<'__ik0ofu7R8gHAKSmMjek79V+yfgdjdK5Jmtwf7h8SpJk');
+push @{$transient{'states'} = $transient{'states'} || []}, {%data};
+my $state_count = scalar @{$transient{'states'}};
+"There are now $state_count states on the stack.";
+__ik0ofu7R8gHAKSmMjek79V+yfgdjdK5Jmtwf7h8SpJk
+
 meta::function('reload', <<'__GwQjnnfuj0xQlervDJ9EVWzdmdz+XL3Gq0i9rdejvzM');
 execute($_) for (grep {! (/^internal::/ || /^bootstrap::/)} keys %data);
 __GwQjnnfuj0xQlervDJ9EVWzdmdz+XL3Gq0i9rdejvzM
@@ -594,7 +709,7 @@ for my $to_be_deleted (@_) {
 delete @data{@_};
 __7BVECTVo/mcT5+edC70WPc6S1xCbzAeyUCfCjkKWlww
 
-meta::function('save', <<'__HuNR2A6/zt/GGZDRiR1x82a4nBxpAlIR1QGc4kUySto');
+meta::function('save', <<'__uWXGnrQr+A7Cl0zcsDuiokbWAw1XdMdjeq9gDcTMJIw');
 my $serialized_data = serialize();
 my $final_state     = state();
 
@@ -608,10 +723,13 @@ if ($observed_state ne $final_state) {
   messages::error("The state of this object ($final_state) is inconsistent with the state of $temporary_filename ($observed_state).\n" .
                   "$0 has not been updated.");
 } else {
-  file::write($0, $serialized_data);
-  unlink $temporary_filename;
+  eval {file::write($0, $serialized_data)};
+  warn $@ if $@;
+  my $observed_self_state = `perl $0 state`;
+  chomp $observed_self_state;
+  unlink $temporary_filename if $observed_self_state eq $final_state;
 }
-__HuNR2A6/zt/GGZDRiR1x82a4nBxpAlIR1QGc4kUySto
+__uWXGnrQr+A7Cl0zcsDuiokbWAw1XdMdjeq9gDcTMJIw
 
 meta::function('serialize', <<'__KGiI48MlyG6RAVW5QYRK8y97y8tx+jeAwPlY5eDtMTw');
 my @keys_without_internals = grep(!/^internal::/, sort keys %data);
@@ -622,34 +740,44 @@ join "\n", $data{'bootstrap::initialization'},
            "__END__";
 __KGiI48MlyG6RAVW5QYRK8y97y8tx+jeAwPlY5eDtMTw
 
-meta::function('shell', <<'__1pX0YiaO1Jx8AIJ3/w6tbrNGcmnuuZfIo6840aq4bU4');
+meta::function('shell', <<'__mzNaDzdnJhpI/Va1/nY8LTN9BQtfr77CFKIeK2GdIC0');
 use Term::ReadLine;
 
 my $term = new Term::ReadLine "$0 shell";
 $term->ornaments(0);
-my $prompt = name() . '$ ';
+my $prompt = &{'name'}() . '$ ';
 my $OUT = $term->OUT || \*STDOUT;
+
+$term->Attribs->{attempted_completion_function} = \&complete;
 
 while (defined ($_ = $term->readline($prompt))) {
   my $command_line = $_;
-  my @args = split /\s+/;
+  my @args = grep length, split /\s+|("[^"\\]*(?:\\.)?")/o;
   my $function_name = shift @args;
 
   return if $function_name eq 'exit';
 
-  if ($externalized_functions{$function_name}) {
-    my $result = eval {&{$function_name}(@args)};
-    messages::warning($@) if $@;
-    chomp $result;
-    print $OUT $result, "\n" unless $@;
-  } else {
-    messages::warning("Command not found: $function_name");
+  s/^"(.*)"$/\1/o, s/\\\\"/"/go for @args;
+
+  if ($function_name) {
+    if ($externalized_functions{$function_name}) {
+      my $result = eval {&{$function_name}(@args)};
+      messages::warning($@) if $@;
+      chomp $result;
+      print $OUT $result, "\n" unless $@;
+    } else {
+      messages::warning("Command not found: $function_name");
+    }
   }
 
-  $term->addhistory($command_line) if $command_line;
-  $prompt = name() . '$ ';
+  for my $watch (@{$transient{'watch_list'}}) {
+    print $OUT eval($watch), "\n";
+    print $OUT "Error evaluating watched expression $watch: $@\n" if $@;
+  }
+
+  $prompt = &{'name'}() . '$ ';
 }
-__1pX0YiaO1Jx8AIJ3/w6tbrNGcmnuuZfIo6840aq4bU4
+__mzNaDzdnJhpI/Va1/nY8LTN9BQtfr77CFKIeK2GdIC0
 
 meta::function('size', <<'__lDGr6yVnDwcDWLkJH16MNukltjG2ypBSk/ktYb80h80');
 length(serialize());
@@ -722,6 +850,36 @@ my (undef, undef, $mode) = stat $0;
 chmod $mode | 0200, $0;
 __08PohCY8fcNe+pWCO6ic6XOOKv48NkrxpNMmTOUIFdA
 
+meta::function('update-from', <<'__jJ2tfSk/Quz8/1PiYxIwQjBRt/hYg51iJhAdxcdaHkM');
+# Upgrade all attributes that aren't customized. In this case, we want everything except for configuration::, code::, and attribute::.
+return "That is a really bad idea." if $0 =~ /\.\/(.*)/ && $_[0] eq $1 || $_[0] eq $0;
+
+my @attributes = map {s/\s+.*//; $_} split(/\n/, qx|$_[0] ls-a|);
+
+terminal::message('info', 'Replicating state...');
+&{'push-state'}();
+terminal::message('info', 'Updating meta attributes...');
+for my $attribute (grep length && /^meta::/, @attributes) {
+  associate($attribute, join('', qx|$_[0] cat $attribute|));
+  reload();
+  print '.';
+}
+
+print "\n";
+terminal::message('info', 'Updating non-meta attributes...');
+for my $attribute (grep length && ! (/^configuration::/ || /^code::/ || /^attribute::/ || /^function::pop-state$/ ||
+                                     /^list::/ || /^issue::/ || /^data::/ || /^meta::datatypes/), @attributes) {
+  associate($attribute, join('', qx|$_[0] cat $attribute|));
+  reload();     # Necessary to activate new datatypes.
+  print '.';
+}
+
+print "\n";
+terminal::message('info', 'Reloading new configuration');
+reload();
+terminal::message('info', "Imported from $_[0]. Run pop-state to undo this change.");
+__jJ2tfSk/Quz8/1PiYxIwQjBRt/hYg51iJhAdxcdaHkM
+
 meta::function('update-vimrc', <<'__VJ/A7S8PvUf38Tb82V3BFnW1BEfYw6HXtqb8Vqo8Yk0');
 open my $fh, '>>', "$ENV{'HOME'}/.vimrc";
 print $fh "au BufRead,BufNewFile *.cltex   set filetype=cltex\n";
@@ -743,6 +901,11 @@ chomp $pdf_reader;
 system("$pdf_reader '$pdf_output_file'");
 __wEtlK5H0ttR24UvcFUsgg5Es1V/VbjMJlU+SKiO2jKs
 
+meta::function('vim', <<'__1EcCMR8Tks8HBoOg+zAKJ4LlrRIY8nvLs4M1VTr2Zec');
+# Installs VIM highlighters.
+file::write("$ENV{'HOME'}/.vim/syntax/$_.vim", retrieve("vim_highlighter::$_")) for map {s/^vim_highlighter:://o; $_} grep /^vim_highlighter::/, sort keys %data;
+__1EcCMR8Tks8HBoOg+zAKJ4LlrRIY8nvLs4M1VTr2Zec
+
 meta::internal_function('associate', <<'__D8BKmEFp/adiPPqPnXyMOzlsBMCmuZi62UpJWdoFg/0');
 my ($name, $value, %options) = @_;
 my $namespace = namespace($name);
@@ -757,12 +920,47 @@ $name =~ s/^[^:]*:://;
 $name;
 __T4JEqOUYjMzssdVwV/rdgAhvr0Vz9TQUo0noTdeBLxw
 
-meta::internal_function('execute', <<'__FfzmdPKSa4vnT4WNSN3uCxnwrUFKfkQbS6auoIa/SgE');
+meta::internal_function('complete', <<'__lhlD80z2kvEUEeHPqLFw6JE8xUdXr6J5Q1gXHg4beHg');
+my @functions  = sort keys %externalized_functions;
+my @attributes = sort keys %data;
+
+sub match {
+  my ($text, @options) = @_;
+  my @matches = sort grep /^$text/, @options;
+
+  if    (@matches == 0) {return undef;}
+  elsif (@matches == 1) {return $matches [0];}
+  elsif (@matches >  1) {return ((longest ($matches [0], $matches [@matches - 1])), @matches);}
+}
+
+sub longest {
+  my ($s1, $s2) = @_; 
+  return substr ($s1, 0, length $1) if ($s1 ^ $s2) =~ /^(\0*)/;
+  return ''; 
+}
+
+# This is another way to implement autocompletion.
+#
+# my $attribs = $term->Attribs;
+# $attribs->{completion_entry_function} = $attribs->{list_completion_function};
+# $attribs->{completion_word} = [sort keys %data, sort keys %externalized_functions];
+
+my ($text, $line) = @_;
+if ($line =~ / /) {
+  # Start matching attribute names.
+  match ($text, @attributes);
+} else {
+  # Start of line, so it's a function.
+  match ($text, @functions);
+}
+__lhlD80z2kvEUEeHPqLFw6JE8xUdXr6J5Q1gXHg4beHg
+
+meta::internal_function('execute', <<'__Ge94WTpmLuqsMDappj5G/G2BKILAE0GjeCqAeHLW6fQ');
 my ($name, %options) = @_;
 my $namespace = namespace($name);
 eval {&{"meta::$namespace"}(basename($name), retrieve($name))};
-carp $@ if $@ && $options{'carp'};
-__FfzmdPKSa4vnT4WNSN3uCxnwrUFKfkQbS6auoIa/SgE
+warn $@ if $@ && $options{'carp'};
+__Ge94WTpmLuqsMDappj5G/G2BKILAE0GjeCqAeHLW6fQ
 
 meta::internal_function('file::read', <<'__ZxBqZsMZZRuLMQp8Sy//ZsoAvriDebjYLGAX7p7AxXg');
 my $name = shift;
@@ -815,10 +1013,9 @@ $name =~ s/::.*$//;
 $name;
 __D7UfKyyYZ1slZZyaS28hIt8a68jkI3ELBaddROXOHug
 
-meta::internal_function('retrieve', <<'__h2PeSpk/pPmrzLRTTofdLTbhj06IWUw5WWke6ggUsdk');
-my ($name) = @_;
-$data{$name};
-__h2PeSpk/pPmrzLRTTofdLTbhj06IWUw5WWke6ggUsdk
+meta::internal_function('retrieve', <<'__Erqqkp11FEHKsitr0DEJZ6OCGDYAs+U6BSu4UvLvsFM');
+@data{@_};
+__Erqqkp11FEHKsitr0DEJZ6OCGDYAs+U6BSu4UvLvsFM
 
 meta::internal_function('serialize::single', <<'__lDBHaXpbrfER2envI2Ipy77IcdjUnlZou+rggaxsAWE');
 my $name               = shift || $_;
@@ -835,6 +1032,31 @@ my $noise  = $name || state();
 $noise =~ s/\//-/g;
 "$0.$noise";
 __zNSrihAkMKJG5spRYgcFdoNArFKig1u12gIp6gJ8pZw
+
+meta::library('terminal', <<'__bakqo5o+Exi5Kw4onujvi9Pu3zR9lQA8cPKfYj6L74Q');
+# Functions for nice-looking terminal output.
+
+package terminal;
+
+use constant black  => "0;0";
+use constant red    => "1;31";
+use constant yellow => "1;33";
+use constant green  => "1;32";
+use constant blue   => "1;34";
+use constant purple => "1;35";
+use constant cyan   => "1;36";
+
+my %default_colors = (info => green);
+my $longest_prefix = 0;
+$longest_prefix = $longest_prefix < $_ ? $_ : $longest_prefix for map length, keys %default_colors;
+
+sub message {
+  my ($prefix, $message) = @_;
+  my $color = $default_colors{$prefix};
+  my $padding = ' ' x ($longest_prefix - length $prefix);
+  print "${padding}[\033[${color}m$prefix\033[0;0m] $message\n";
+}
+__bakqo5o+Exi5Kw4onujvi9Pu3zR9lQA8cPKfYj6L74Q
 
 meta::line_filter('convert_header_info', <<'__1jqqbjBcdOqh/3nTKZSDbW1AgEo4kg0dQ5HdRAgxyzE');
 my ($line) = @_;
@@ -922,7 +1144,7 @@ meta::section('01-preface', <<'__eGrgc7g6f4bpa6w7Yn6XnhqgRGsj7NzqGVjj/me+yrg');
   Any suggestions for improvements are welcome and should be directed to {\tt spencer@spencertipping.com}.
 __eGrgc7g6f4bpa6w7Yn6XnhqgRGsj7NzqGVjj/me+yrg
 
-meta::section('02-internals', <<'__g+4PcqtavcHhT0pRga388SKWfFT8aT4L89fu0c4KIOs');
+meta::section('02-internals', <<'__d5KmSmCIeiUUXApSNgvi3w4F9eESqD2+QCPthVVUv8o');
 - Conceptual Basis
   - Design Patterns
     - Public Final
@@ -1208,10 +1430,8 @@ meta::section('02-internals', <<'__g+4PcqtavcHhT0pRga388SKWfFT8aT4L89fu0c4KIOs')
         public T move (final double distance) {final Vector oldPosition = position.clone ();
                                                return line (oldPosition,
                                                             position.addScaled (this.direction (), distance));}
-
         public T line (final Vector p1, final Vector p2)
           {lines.add (new CartesianLine (p1, p2, size, color)); return (T) this;}
-
 
         public SortedSet<RenderAction> actions (final Viewport v) {
           final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
@@ -4380,7 +4600,7 @@ meta::section('02-internals', <<'__g+4PcqtavcHhT0pRga388SKWfFT8aT4L89fu0c4KIOs')
         public static TriangleEmitter.Emit  triangleEmit  () {return new TriangleEmitter.Emit  ();}
       }
       :.
-__g+4PcqtavcHhT0pRga388SKWfFT8aT4L89fu0c4KIOs
+__d5KmSmCIeiUUXApSNgvi3w4F9eESqD2+QCPthVVUv8o
 
 meta::unlit_converter('create_sections', <<'__sUEcZkQbKEhRUbj5hKceGP4VevPCE9+rz0yea91XZVc');
 my ($document) = @_;
