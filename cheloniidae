@@ -419,9 +419,9 @@ meta::data('output-dir', <<'__6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ');
 /tmp
 __6WcazSRIScVxZ8ZY+i+Wl1IEj3qxhKPc9cRstNVq4SQ
 
-meta::data('pdf-output-file', <<'__V2Cz0dkFDT8QGrbcoVBiWcIPHE1LJp1e5O+Nf29Plxw');
-/tmp/cheloniidae.tNRsH17bEWn5JuooYyrvgQUAv6GOuVC8+phxJHu0jbk/document.pdf
-__V2Cz0dkFDT8QGrbcoVBiWcIPHE1LJp1e5O+Nf29Plxw
+meta::data('pdf-output-file', <<'__Wz2a3Gi11l/eSwMCz41shbgwKXhf6ecEcDtHiry3wWg');
+/tmp/cheloniidae.aNnyjJt6GB52u0mAFeNbtL4bswNMzlE+Lj-R-Zz2S5o/document.pdf
+__Wz2a3Gi11l/eSwMCz41shbgwKXhf6ecEcDtHiry3wWg
 
 meta::data('pdf-reader', <<'__BlFO10Obn0hAHVxLShDpKtlpv0BTeJ7iqm1v7vjCM+A');
 evince
@@ -700,6 +700,21 @@ __ik0ofu7R8gHAKSmMjek79V+yfgdjdK5Jmtwf7h8SpJk
 meta::function('reload', <<'__GwQjnnfuj0xQlervDJ9EVWzdmdz+XL3Gq0i9rdejvzM');
 execute($_) for (grep {! (/^internal::/ || /^bootstrap::/)} keys %data);
 __GwQjnnfuj0xQlervDJ9EVWzdmdz+XL3Gq0i9rdejvzM
+
+meta::function('render', <<'__jJ1XfqvsNfDJJPLA/89tG0djJHQ2usFZMJR+KCkrAKw');
+use File::Copy 'copy';
+compile();
+
+my $pdf       = &{'pdf-output-file'}();
+my $tex       = $pdf;
+my $directory = &{'source-directory'}();
+my $name      = name();
+
+$tex =~ s/\.pdf$/.tex/;
+copy($pdf, "$directory/$name.pdf") or die "Copy failed: $!";
+copy($tex, "$directory/$name.tex") or die "Copy failed: $!";
+
+__jJ1XfqvsNfDJJPLA/89tG0djJHQ2usFZMJR+KCkrAKw
 
 meta::function('rm', <<'__7BVECTVo/mcT5+edC70WPc6S1xCbzAeyUCfCjkKWlww');
 for my $to_be_deleted (@_) {

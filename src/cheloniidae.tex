@@ -1,0 +1,3507 @@
+\documentclass{report}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,pxfonts,listings,geometry,color}
+\usepackage[colorlinks]{hyperref}
+
+\definecolor{gray95}{rgb}{0.95,0.95,0.95}
+\definecolor{slate}{rgb}{0.2,0.2,0.2}
+
+\newcommand{\Ref}[2]{\hyperref[#2]{#1 \ref*{#2}}}
+
+\newcommand{\degrees}{^\circ}
+
+\setcounter{tocdepth}{1}
+
+\lstnewenvironment{javacode}
+  {\lstset{language=java,frame=l,columns=fixed,basewidth=0.5em,
+           numbers=left,
+           backgroundcolor=\color{gray95},
+           basicstyle={\tt\scriptsize}}}
+  {}
+\title{Cheloniidae}
+\author{Spencer Tipping}
+\begin{document}\maketitle\tableofcontents
+
+\sloppy
+  \chapter*{Preface}
+
+  Cheloniidae is the product of two orthogonal goals. One is to write the highest-capacity turtle graphics system possible, and the other is to write Java code
+  with the elegance of Lisp or Haskell. I'm not sure whether I've managed to achieve these goals yet, but this paper explains the thoughtwork behind the code
+  with a linear approach.
+
+  There are a number of ideas that as far as I know originated with this project. One is the notion of having turtles navigate a three-dimensional space instead
+  of a two-dimensional one. Another is using turtles to render polygons, and the necessary mathematical constructs required for that to make sense. A third
+  notion is the algebra underlying turtle commands and the Lisp-like model used to transform them.
+
+  I recommend reading through this paper if you are interested in:
+
+\begin{enumerate}
+\item Using Java as a functional programming language
+\item Techniques for writing very concise code
+\item Extending Cheloniidae
+\item Writing mathematical systems in Java
+\end{enumerate}
+
+  \section*{Website}
+  The Cheloniidae website is \url{http://spencertipping.com#section=cheloniidae}. This website includes the downloadable distribution, some examples, and a
+  place to download older versions of the software.
+
+  Any suggestions for improvements are welcome and should be directed to {\tt spencer@spencertipping.com}.
+
+\part {Conceptual Basis} \label{sec:conceptual-basis}
+\chapter {Design Patterns} \label{sec:design-patterns}
+\section {Public Final} \label{sec:public-final}
+      In languages like Haskell it is perfectly acceptable to pass exposed data around because it is immutable. The danger of neglecting to enforce access in
+      other languages is generally not that someone will rely on implementation details (though sometimes it is), but rather that someone will change a value
+      without your permission. One way around this is to write accessor methods, which normally are implemented this way:
+
+\begin{verbatim}
+private int x;
+public int  getX ()       {return x;}
+public void setX (int _x) {x = _x;}
+\end{verbatim}
+
+      The advantage of a set of accessor methods is twofold:
+
+\begin{enumerate}
+\item Access, particularly mutation, has a thread-path and can be traced easily, e.g.
+\begin{verbatim}
+public void setX (int _x) {
+  new Exception ("X set to " + _x).printStackTrace ();
+  x = _x;
+}
+\end{verbatim}
+
+\item The implementation details of the class are hidden, allowing internal refactoring without breaking other code.
+\end{enumerate}
+
+      Cheloniidae takes an alternate approach to instance data. All instance data is initialized in the constructor, and all fields are public and final. This
+      ensures that an object is initialized atomically, and that it is immutable after initialization.
+
+      Along with the public-final design pattern, I also adhere to the practice that all local variables, with very few exceptions, are declared as final. This
+      lays the groundwork for a functional and mathematical model of coding.
+
+\section {Interfaces as Sets} \label{sec:interfaces-as-sets}
+      The primary method of categorization in mathematics is grouping objects into sets. Some of these sets reflect intrinsic attributes of objects -- one
+      example is the statement that $x \in \mathbb R$.\footnote{Not really, but let's eliminate complex and Hamiltonian numbers for the sake of example.} Other
+      sets can be seen as objects for which a proposition holds; e.g.~$x \in \mathbb N$ iff $x > 0$ and $x \in \mathbb Z$.
+
+      Java reflects the first use of sets -- we can tag classes to say that their instances have certain intrinsic properties. To simulate the second use of
+      sets, I've defined a framework of predicates in \Ref{chapter}{sec:predicates}.
+
+      The interface-as-a-set design pattern states two things:
+
+\begin{enumerate}
+\item Every conceptually distinct use of an object should define an interface for that purpose. Often this interface will be empty.
+\item The {\tt Object} type should never be used.
+\end{enumerate}
+
+\section {No Void Methods} \label{sec:no-void-methods}
+      Very few methods should ever return void. Better is to return the object to which the method applies.\footnote{Sometimes it is necessary to return void to
+        work around deficiencies in Java's type checker. In a language with covariance and contravariance annotations, such as Scala, this would probably not be
+        the case.} This way, you can chain method calls along and perform object mutation in one statement as opposed to several. This contributes to code
+      readability, since mutations on the same object are grouped, and it also contributes to brevity.
+
+      Most classes in Cheloniidae are stateless, but one exception is the {\tt Vector} class defined in \Ref{section}{sec:vector}. Methods in this class, such as
+      {\tt addScaled} and {\tt multiply}, modify the original vector in-place and return a self-reference. This allows you to write code such as this:
+
+\begin{verbatim}
+// v1 becomes the average of v1 and v2
+some_function (v1.multiply (0.5).addScaled (v2, 0.5));
+\end{verbatim}
+
+\chapter {Turtles} \label{sec:turtles}
+    Like mathematical axiom systems, Cheloniidae is minimalistic in what it assumes about the implementation of a model. This approach can lead to some
+    confusion because of what we take for granted. For instance, most turtle graphics systems implement a turtle as being a member of a two-dimensional plane,
+    so the turtle has a location and a heading angle. Many allow the turtle to vary in its color and line size, so these too are part of a turtle model.
+
+    These things are not assumed in Cheloniidae. In fact, not even the coordinate model is assumed. A turtle (\Ref{section}{sec:turtle}) is an object with the
+    following properties:
+
+\begin{enumerate}
+\item It can generate a list of {\tt RenderAction}s (\Ref{section}{sec:renderaction}) to reflect things it has drawn.
+\item It can save and restore its state (\Ref{section}{sec:turtlestate}).
+\item It can be cloned (\Ref{chapter}{sec:replication}).
+\item It can be tagged with one or more attributes (\Ref{section}{sec:attributes}).
+\item It can execute turtle commands (chapters \ref{sec:commands-1} and \ref{sec:commands-2}).
+\item It has a window that receives its output (\Ref{section}{sec:turtlewindow}).
+\end{enumerate}
+
+    The result of such a general setup is that turtles can reside in non-Euclidean spaces, draw curved lines, or define custom commands for themselves. Also, a
+    ``turtle'' can represent multiple turtles (\Ref{section}{sec:turtlegroup}) or static objects.
+
+\section {Turtle} \label{sec:turtle}
+      This interface, like many others in Cheloniidae, has a type parameter that is set to the class that implements it. This notion corresponds to a convention
+      among Haskell typeclasses:
+
+\begin{verbatim}
+class Eq a where
+  (==) :: a -> a -> Bool
+\end{verbatim}
+
+      \noindent wherein the implementation's type is a restriction on the parameters. In the case of {\tt Turtle}, it is a restriction on the return types of
+      the methods, since often we will want to chain method invocations along and we don't want Java to demote the type of the returned self-reference to a
+      regular {\tt Turtle}. When you run across this style of code in the Cheloniidae code base, you can interpret a return type of {\tt T} as a signal that a
+      method should return {\tt this}.
+
+\begin{javacode}
+package cheloniidae;
+public interface Turtle<T extends Turtle>
+         extends Renderable, Cloneable, HasAttributes {
+  public TurtleState serialize   ();
+  public T           deserialize (TurtleState t);
+
+  public T run   (TurtleCommand c);
+  public T clone ();
+
+  public TurtleWindow window ();
+  public T            window (TurtleWindow _window);
+}
+\end{javacode}
+
+\section {BasicTurtle} \label{sec:basicturtle}
+      The {\tt BasicTurtle} class provides default implementations for the functionality that is likely to be invariant with the type of turtle used.
+      Specifically, it implements the following assumptions made by the {\tt Turtle} interface:
+
+\begin{enumerate}
+\item Basic handling of attributes
+\item Belonging to a window
+\item Default behavior for running a turtle command
+\item Default implementation of the {\tt map} method, used for acting as a turtle command for propagating state to other turtles
+\end{enumerate}
+
+      Most turtles are subclasses of {\tt BasicTurtle} because these defaults usually work. However, there are exceptions; {\tt TurtleGroup}
+      (\Ref{section}{sec:turtlegroup}), for instance, provides its own implementation of {\tt run()} to support command distribution across turtles that belong
+      to that group.
+
+\begin{javacode}
+package cheloniidae;
+import cheloniidae.commands.*;
+import java.util.*;
+
+public abstract class BasicTurtle<T extends BasicTurtle>
+              extends Replicable<T>
+           implements Turtle<T>, SupportsWindow {
+
+  public static class State
+              extends ImmutableTurtleState
+           implements TurtleState, TurtleCommand {
+
+    public final Set<Attribute> attributes = new TreeSet<Attribute> ();
+    public State (final Set<Attribute> _attributes) {attributes.addAll (_attributes);}
+
+    public State applyTo (final Turtle t) {
+      t.attributes ().addAll (attributes);
+      return this;
+    }
+  }
+
+  public final Set<Attribute> attributes = new TreeSet<Attribute> ();
+
+  protected TurtleWindow window = null;
+
+  public Set<Attribute> attributes ()                           {return attributes;}
+  public T              attribute  (final Attribute _attribute) {attributes.add (_attribute);
+                                                                 return (T) this;}
+
+  public TurtleWindow   window     ()                           {return window;}
+  public T              window     (final TurtleWindow _window) {window = _window; return (T) this;}
+
+  public TurtleState serialize () {return new State (attributes);}
+
+  public T run (final TurtleCommand c) {
+    c.applyTo (this);
+    return (T) this;
+  }
+
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {
+    final TurtleState serialized = this.serialize ();
+    if (serialized instanceof TurtleCommand) return ((TurtleCommand) serialized).map (t);
+    else                                     return null;
+  }
+}
+\end{javacode}
+      
+\section {EuclideanTurtle} \label{sec:euclideanturtle}
+      Euclidean turtles make the assumption that they reside in a space with Euclidean geometry and travel in straight lines. Things that can be reasonably
+      concluded from this include:
+
+\begin{enumerate}
+\item The turtle's position can be described in Cartesian coordinates. This implies that all lines generated by the turtle will have endpoints with
+          Cartesian coordinates, so a {\tt CartesianLine} (\Ref{section}{sec:cartesianline}) is a reasonable representation for the output.
+\item The lines generated by the turtle can have thicknesses (referred to as ``size'' in this class) and solid colors. In theory we could implement
+          gradients and such, but I haven't gotten around to that yet.
+\item Since the turtle moves in straight lines, it makes sense to talk about a direction. However, it is not yet clear how that direction should be
+          computed, so it is abstract.
+\end{enumerate}
+
+      Two nested classes are defined: \verb|EuclideanTurtle.View| and \verb|EuclideanTurtle.State|. {\tt View} is a {\tt RenderAction} that draws a circle and a
+      line indicating the turtle's position and direction. When the turtle is asked for its list of render actions, it includes an instance of {\tt View} in its
+      result.
+
+      The {\tt State} class stores the extra state for a Euclidean turtle. To keep the code compact, the inheritance chain of turtle states mirrors the
+      inheritance chain of turtles whenever possible.
+
+\begin{javacode}
+package cheloniidae;
+
+import cheloniidae.commands.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.Set;
+
+public abstract class EuclideanTurtle<T extends EuclideanTurtle>
+              extends BasicTurtle<T>
+           implements SupportsPosition<T>, SupportsMove<T>, SupportsJump<T>, SupportsLineSize<T>,
+                      SupportsLineColor<T>, SupportsVisible<T>, TurtleCommand {
+
+  public static class View extends ViewportCaching implements RenderAction {
+    public final EuclideanTurtle turtle;
+    public View (final EuclideanTurtle _turtle) {turtle = _turtle;}
+
+    public double computeDepth (final Viewport v)
+      {return v.transformPoint (turtle.position ()).length ();}
+
+    public void render (final Viewport v) {
+      final Vector tp = v.transformPoint (turtle.position ());
+      final Vector td = v.transformPoint (turtle.position ().clone ().add (turtle.direction ()));
+      if (tp.z > 0 && td.z > 0) {
+        final double scale = 4.0 * v.scaleFactor () / tp.z;
+
+        // pp = perceived position, pd = perceived direction.
+        // These are the position and direction as seen by the user.
+        final Vector pp = v.projectPoint (tp);
+        final Vector pd = v.projectPoint (td);
+
+        final Graphics2D g = v.context ();
+        g.setStroke (new BasicStroke ((float) (scale / 16.0)));
+        g.setColor  (turtle.color ());
+        g.drawOval  ((int) (pp.x - scale), (int) (pp.y - scale), (int) (scale * 2.0), (int) (scale * 2.0));
+        g.drawLine  ((int) pp.x, (int) pp.y, (int) pd.x, (int) pd.y);
+      }
+    }
+  }
+
+  public static class State extends BasicTurtle.State implements TurtleState, TurtleCommand {
+    public final Vector position;
+    public final double size;
+    public final Color  color;
+
+    public State (final Set<Attribute> _attributes, final Vector _position,
+                  final double _size, final Color _color)
+      {super (_attributes); position = _position.clone (); size = _size; color = _color;}
+
+    public State applyTo (final Turtle t) {
+      super.applyTo (t);
+      new Sequence (new Position  (position),
+                    new LineSize  (size),
+                    new LineColor (color)).applyTo (t);
+      return this;
+    }
+  }
+
+  protected final List<CartesianLine> lines    = new ArrayList<CartesianLine> ();
+  protected final View                view     = new View (this);
+  protected final Vector              position = new Vector ();
+  protected       double              size     = 0.25;
+  protected       Color               color    = new Color (0.2f, 0.3f, 0.3f, 0.3f);
+  protected       boolean             visible  = true;
+
+  public Vector                  position  ()                       {return position;}
+  public T                       position  (final Vector _position) {position.assign (_position);
+                                                                     return (T) this;}
+  public double                  size      ()                       {return size;}
+  public T                       size      (final double _size)     {size = _size; return (T) this;}
+  public double                  lineSize  ()                       {return size ();}
+  public T                       lineSize  (final double _size)     {return size (_size);}
+  public Color                   color     ()                       {return color;}
+  public T                       color     (final Color _color)     {color = _color; return (T) this;}
+  public Color                   lineColor ()                       {return color ();}
+  public T                       lineColor (final Color _color)     {return color (_color);}
+  public boolean                 visible   ()                       {return visible;}
+  public T                       visible   (final boolean _visible) {visible = _visible; return (T) this;}
+
+  public abstract Vector direction ();
+
+  public T jump (final double distance) {position.addScaled (this.direction (), distance); return (T) this;}
+  public T move (final double distance) {final Vector oldPosition = position.clone ();
+                                         return line (oldPosition,
+                                                      position.addScaled (this.direction (), distance));}
+  public T line (final Vector p1, final Vector p2)
+    {lines.add (new CartesianLine (p1, p2, size, color)); return (T) this;}
+
+  public SortedSet<RenderAction> actions (final Viewport v) {
+    final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
+    if (visible) result.add (view);
+    for (final RenderAction r : lines) if (v.shouldCancel ()) break;
+                                       else                   result.add (r);
+    return result;
+  }
+
+  public State serialize   ()                    {return new State (attributes, position, size, color);}
+  public T     deserialize (final TurtleState t) {if (t instanceof TurtleCommand)
+                                                    ((TurtleCommand) t).applyTo (this);
+                                                  return (T) this;}
+  public T applyTo (final Turtle t) {
+    serialize ().applyTo (t);
+    return (T) this;
+  }
+
+  public String toString () {return "Euclidean turtle: location = " + position ().toString () +
+                                                   ", direction = " + direction ().toString ();}
+}
+\end{javacode}
+
+\section {CartesianTurtle} \label{sec:cartesianturtle}
+      The new assumption made by the Cartesian turtle (perhaps a misnomer from a mathematical perspective) is that the direction is a persistent vector with
+      Cartesian coordinates. That is, it is invariant with the position of the turtle.
+
+      Making this assumption is subtly different from stating that the turtle always travels in straight lines. While it is true that the limit of the turtle's
+      movement is guaranteed to be straight in a Cartesian direction model (this was not true in the Euclidean model), no matter how small the distance
+      traveled, the weaker Euclidean statement that any single turtle movement will yield a straight path holds in both cases. Once using a Cartesian model, in
+      other words, we are guaranteed that a movement of distance $x$ followed by a movement of distance $y$ will yield the same turtle position as a movement of
+      distance $x + y$.
+
+\begin{javacode}
+package cheloniidae;
+
+import cheloniidae.commands.*;
+
+import java.awt.Color;
+import java.util.Set;
+
+public abstract class CartesianTurtle<T extends CartesianTurtle> extends EuclideanTurtle<T>
+implements SupportsDirection<T> {
+
+  public static class State extends EuclideanTurtle.State {
+    public final Vector direction;
+    
+    public State (final Set<Attribute> _attributes, final Vector _position, final double _size,
+                  final Color _color, final Vector _direction) {
+      super (_attributes, _position, _size, _color);
+      direction = _direction.clone ();
+    }
+
+    public State applyTo (final Turtle t) {
+      new Direction (direction).applyTo (t);
+      super.applyTo (t);
+      return this;
+    }
+  }
+
+  protected Vector direction = new Vector (0, 1, 0);
+
+  public Vector direction ()                        {return new Vector (direction);}
+  public T      direction (final Vector _direction) {direction.assign (_direction); return (T) this;}
+
+  public State serialize () {return new State (attributes, position, size, color, direction);}
+}
+\end{javacode}
+
+\section {RotationalCartesianTurtle} \label{sec:rotationalcartesianturtle}
+      The rotational Cartesian turtle, as the name suggests, uses a rotational model to manipulate the Cartesian direction unit vector. To do this, three
+      methods are provided:
+
+\begin{enumerate}
+\item \verb|turn()|: Rotates the direction about the turtle's ``up'' vector. Intuitively, this is like turning a car.
+\item \verb|bank()|: Rotates the turtle's ``up'' vector about the turtle's direction. Intuitively, this corresponds to tilting.
+\item \verb|pitch()|: Rotates both the turtle's direction and its ``up'' vector about the cross product of the two. This corresponds to an airplane diving
+          or pulling up.
+\end{enumerate}
+
+      OK, so what is the ``up'' vector? It's an extra piece of information that is stored with the turtle so that it knows how to turn properly. In this
+      implementation it's called {\tt directionComplement}. When the turtle is initialized, its {\tt directionComplement} points directly towards the camera and
+      its {\tt direction} points straight up (towards the top of the screen). These two vectors should always be at right angles to one another.
+
+\begin{javacode}
+package cheloniidae;
+
+import cheloniidae.commands.*;
+
+import java.awt.Color;
+import java.util.Set;
+
+public abstract class RotationalCartesianTurtle<T extends RotationalCartesianTurtle> extends CartesianTurtle<T>
+implements SupportsDirectionComplement<T>, SupportsPitch<T>, SupportsBank<T>, SupportsTurn<T> {
+
+  public static class State extends CartesianTurtle.State {
+    public final Vector directionComplement;
+
+    public State (final Set<Attribute> _attributes, final Vector _position, final double _size, final Color _color,
+                  final Vector _direction, final Vector _directionComplement) {
+      super (_attributes, _position, _size, _color, _direction);
+      directionComplement = _directionComplement.clone ();
+    }
+
+    public State applyTo (final Turtle t) {
+      new DirectionComplement (directionComplement).applyTo (t);
+      super.applyTo (t);
+      return this;
+    }
+  }
+
+  protected Vector directionComplement = new Vector (0, 0, -1);
+
+  public Vector directionComplement ()                                  {return directionComplement;}
+  public T      directionComplement (final Vector _directionComplement) {directionComplement = _directionComplement;
+                                                                         return (T) this;}
+
+  public T pitch (final double angle) {final Vector axis   = direction.cross (directionComplement);
+                                       direction           = direction.rotatedAbout           (axis, angle);
+                                       directionComplement = directionComplement.rotatedAbout (axis, angle);
+                                       return (T) this;}
+  public T bank (final double angle)
+    {directionComplement = directionComplement.rotatedAbout (direction, angle); return (T) this;}
+  public T turn (final double angle)
+    {direction = direction.rotatedAbout (directionComplement, angle);           return (T) this;}
+
+  public State serialize () {return new State (attributes, position, size, color, direction, directionComplement);}
+  public String toString () {return super.toString () + ", direction complement = " +
+                                    directionComplement ().toString ();}
+}
+\end{javacode}
+
+\section {StandardRotationalTurtle} \label{sec:standardrotationalturtle}
+      This is just a class to provide a shorthand for creating a rotational Cartesian turtle. Its purpose is to fill in the parameterized type. I suppose it
+      could be a standard practice to provide these ``endpoint'' classes that self-parameterize; that way people using your turtle can instantiate it without
+      parameterizing it explicitly:
+
+\begin{verbatim}
+new MyTurtle<MyTurtle> ()
+\end{verbatim}
+
+      \noindent seems redundant; most people would expect
+
+\begin{verbatim}
+new MyTurtle ()
+\end{verbatim}
+
+      \noindent as a library interface. It is important to ultimately specify the type for method chaining (e.g.~\verb|t.move (100).turn (90)|), which you will
+      probably want unless you are using turtle commands.
+
+\begin{javacode}
+package cheloniidae;
+public class StandardRotationalTurtle extends RotationalCartesianTurtle<StandardRotationalTurtle> {
+  public StandardRotationalTurtle create () {return new StandardRotationalTurtle ();}
+}
+\end{javacode}
+
+\chapter {Commands 1} \label{sec:commands-1}
+    A turtle command is a functional abstraction of the methods that a turtle provides. It can be thought of as a first-class way of referring to some turtle
+    method such as {\tt move} or {\tt turn}. This lets you assemble sequences of commands at runtime and then issue them to one or more turtles.
+
+    When defining various turtle classes, most notably {\tt EuclideanTurtle} (\Ref{section}{sec:euclideanturtle}), you may have noticed the implementation of
+    interfaces such as {\tt SupportsMove}, {\tt SupportsTurn}, etc. These interfaces indicate that a turtle is able to understand certain turtle commands. So,
+    for instance, if you have a Euclidean turtle {\tt t}, then you could say this:
+
+\begin{verbatim}
+t.move (100);
+\end{verbatim}
+
+    \noindent or, equivalently:
+
+\begin{verbatim}
+t.run (new Move (100));
+\end{verbatim}
+
+    Because {\tt Move} is a regular Java class, instances are first-class objects; thus they can be stored and transformed (see
+    \Ref{chapter}{sec:transformation}). They can also be composed more easily than explicit method calls:
+
+\begin{verbatim}
+for (int i = 0; i < 4; ++i) t.move (100).turn (90);
+\end{verbatim}
+
+    \noindent can also be written as:
+
+\begin{verbatim}
+t.run (new Repeat (4, new Move (100), new Turn (90)));
+\end{verbatim}
+
+    The word {\tt new} obscures the meaning here, so the {\tt CoreCommands} class (\Ref{section}{sec:corecommands}) defines shorthand methods to allow us to
+    write this equivalent statement:
+
+\begin{verbatim}
+t.run (repeat (4, move (100), turn (90)));
+\end{verbatim}
+
+    The {\tt Repeat} command is discussed further in \Ref{section}{sec:repetition}.
+
+\begin{javacode}
+package cheloniidae;
+import java.io.Serializable;
+public interface TurtleCommand extends Transformable<TurtleCommand>, Serializable {
+  public TurtleCommand applyTo (Turtle t);
+}
+\end{javacode}
+
+\section {Application to Turtles} \label{sec:application-to-turtles}
+      There are two internal steps involved in a command invocation. The first is the turtle's logic for receiving the command (in the {\tt run()} method),
+      which varies depending on whether the turtle is representing just itself or other turtles. The second is the command's logic for applying itself to a
+      turtle (the {\tt applyTo()} method), which actually carries out the action involved.
+
+      Most normal turtles specify a pass-through {\tt run()} method, so that invoking \verb|t.run (move (100))| translates almost directly into
+      \verb|t.move (100)|. However, some turtles act as proxies for other turtles (see \Ref{section}{sec:turtlegroup} for one such example). In that case, they
+      pass the commands on, so a call to \verb|t.run (move (100))| might translate to something like this:
+
+\begin{verbatim}
+for (final Turtle t1 : turtles) t1.move (100);
+\end{verbatim}
+
+\section {TurtleGroup} \label{sec:turtlegroup}
+      A turtle group acts as a distributive proxy for talking to a bunch of turtles at once. It maintains a list of sub-turtles and issues each command you give
+      it to each sub-turtle. It also provides its own command interface for adding a turtle, so you can add new turtles at runtime with the command interface.
+
+      Most of the complexity of this class has to do with figuring out which commands are intended to address the turtle group itself, and which ones are
+      supposed to be distributed to the grouped turtles. For this purpose there is a marker interface called {\tt NonDistributiveTurtleCommand}, described in
+      \Ref{section}{sec:nondistributiveturtlecommand}.
+
+\begin{javacode}
+package cheloniidae;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+public class TurtleGroup<T extends Turtle>
+     extends BasicTurtle<TurtleGroup<T>>
+  implements Turtle<TurtleGroup<T>>, TurtleCommand {
+
+  public static class State extends ImmutableTurtleState implements NonDistributiveTurtleCommand {
+    // Turtle states are stored positionally instead of by some form of map because of replication.
+    // We need to be able to produce a turtle state object that can apply itself to a cloned group,
+    // and the cloned group won't share object identity with the original.
+    public final List<TurtleState> states = new ArrayList<TurtleState> ();
+    public State (final TurtleGroup group) {
+      for (final Turtle t : (List<Turtle>) group.turtles ()) states.add (t.serialize ());
+    }
+
+    public State applyTo (final Turtle t) {
+      t.deserialize (this);
+      return this;
+    }
+  }
+
+  public TurtleGroup (final T ...         _turtles) {for (final T t : _turtles) turtles.add (t);}
+  public TurtleGroup (final Collection<T> _turtles) {turtles.addAll (_turtles);}
+
+  protected List<T> turtles = new ArrayList<T> ();
+
+  public TurtleGroup<T> create () {
+    final TurtleGroup<T> result = new TurtleGroup<T> ();
+    for (final Turtle t : turtles ()) result.turtles ().add ((T) t.clone ());
+    return result;
+  }
+
+  public List<T>        turtles ()                           {return turtles;}
+  public TurtleGroup<T> turtles (final List<T> _turtles)     {turtles = _turtles; return this;}
+  public TurtleGroup<T> window  (final TurtleWindow _window) {super.window (_window);
+                                                              for (final T t : turtles) t.window (window);
+                                                              return this;}
+  public TurtleGroup<T> add (final T turtle) {
+    turtles.add (turtle);
+    turtle.window (window ());
+    return this;
+  }
+
+  public TurtleCommand adder () {
+    return new TurtleCommand () {
+      public TurtleCommand applyTo (final Turtle t) {
+        add ((T) t);
+        return this;
+      }
+
+      public TurtleCommand map (Transformation<TurtleCommand> t) {return this;}
+    };
+  }
+
+  public SortedSet<RenderAction> actions (final Viewport v) {
+    final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
+    for (final T t : turtles) for (final RenderAction r : t.actions (v)) if (v.shouldCancel ()) break;
+                                                                         else                   result.add (r);
+    return result;
+  }
+
+  public State          serialize   () {return new State (this);}
+  public TurtleGroup<T> deserialize (final TurtleState state) {
+    if (state instanceof State) {
+      final List<TurtleState> stateList = ((State) state).states;
+      for (int i = 0; i < stateList.size (); ++i) turtles ().get (i).deserialize (stateList.get (i));
+    }
+    return this;
+  }
+
+  public TurtleGroup<T> applyTo (final Turtle t) {
+    serialize ().applyTo (t);
+    return this;
+  }
+
+  public TurtleGroup<T> run (final TurtleCommand c) {
+    if (c instanceof NonDistributiveTurtleCommand) c.applyTo (this);
+    else for (final T t : turtles) t.run (c);
+    return this;
+  }
+}
+\end{javacode}
+
+\section {NonDistributiveTurtleCommand} \label{sec:nondistributiveturtlecommand}
+      This is a marker interface that indicates that a turtle command should not be sent to grouped turtles, but instead should act on the turtle group proxy as
+      a whole. It ends up coming in handy for serialization (notice that \verb|TurtleGroup.State| implements it), and later on it is useful to control the order
+      of turtle movements for triangle rendering (\Ref{section}{sec:parallelize}).
+
+\begin{javacode}
+package cheloniidae;
+public interface NonDistributiveTurtleCommand extends TurtleCommand {}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae;
+
+public class NonDistributiveProxy implements NonDistributiveTurtleCommand {
+  public final TurtleCommand wrapped;
+  public NonDistributiveProxy (final TurtleCommand _wrapped) {wrapped = _wrapped;}
+
+  // This needs to call applyTo instead of t.run because otherwise the turtle will see
+  // the (presumably distributive) wrapped command and distribute it normally.
+  public TurtleCommand applyTo (final Turtle t) {wrapped.applyTo (t); return this;}
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {
+    final TurtleCommand newCommand = t.transform (this);
+    if (newCommand == this) {
+      final TurtleCommand transformedWrapped = wrapped.map (t);
+      return transformedWrapped instanceof NonDistributiveTurtleCommand ? transformedWrapped :
+                                                                          new NonDistributiveProxy (transformedWrapped);
+    } else return newCommand;
+  }
+}
+\end{javacode}
+
+\section {TurtleState} \label{sec:turtlestate}
+      A turtle state is simply a snapshot of a turtle's configuration. Turtles are required to generate instances of turtle states via the {\tt serialize()}
+      method, and they must also be able to restore their configuration from a state object via {\tt deserialize()}.
+
+      Normally there wouldn't be very much complexity to this idea, but it turns out that with a little bit of generalization we can get a lot of flexibility. A
+      turtle state object can be combined with a turtle in only one meaningful way; that combination results in the turtle restoring its state. So it makes
+      sense for many turtle states to also be turtle commands. We see this in the definition of {\tt BasicTurtle} in \Ref{section}{sec:basicturtle}.
+
+      Further, turtles themselves can be seen as state-propagation commands; for instance, if I say this:
+
+\begin{verbatim}
+t1.run (t2);
+\end{verbatim}
+
+      \noindent what I might mean is this:
+
+\begin{verbatim}
+t1.deserialize (t2.serialize ());
+\end{verbatim}
+
+      \noindent Thus turtles themselves can be turtle commands that, when issued to other turtles, synchronize their state. However, all that is explicitly
+      required of a {\tt TurtleState} object is that it supports Java's object-stream serialization.
+
+\begin{javacode}
+package cheloniidae;
+import java.io.Serializable;
+public interface TurtleState extends Serializable {}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae;
+public abstract class ImmutableTurtleState implements TurtleState, TurtleCommand {
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {return this;}
+}
+\end{javacode}
+
+\section {TurtleStack} \label{sec:turtlestack}
+      Sometimes you want to keep track of a series of turtle states and access them in LIFO order. One common case of this is a recursive algorithm that keeps
+      turtle states on a separate stack. The {\tt TurtleStack} class is provided to facilitate this, and provides two accessor commands {\tt push} and {\tt pop}
+      to pass to turtles. So, for example:
+
+\begin{verbatim}
+TurtleStack ts = new TurtleStack ();
+t.run (ts.push (), move (100), ts.pop ());
+\end{verbatim}
+
+      \noindent will result in {\tt t} being back where it started.
+
+\begin{javacode}
+package cheloniidae;
+
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Stack;
+
+public class TurtleStack {
+  public class Push extends ImmutableTurtleState implements NonDistributiveTurtleCommand {
+    public TurtleCommand applyTo (final Turtle t) {
+      if (! states.containsKey (t)) states.put (t, new Stack<TurtleState> ());
+      states.get (t).push (t.serialize ());
+      return this;
+    }
+  }
+
+  public class Pop extends ImmutableTurtleState implements NonDistributiveTurtleCommand {
+    public TurtleCommand applyTo (final Turtle t) {
+      t.deserialize (states.get (t).pop ());
+      if (states.get (t).empty ()) states.remove (t);
+      return this;
+    }
+  }
+
+  protected final Map<Turtle, Stack<TurtleState>> states = new HashMap<Turtle, Stack<TurtleState>> ();
+
+  public TurtleCommand push () {return new Push ();}
+  public TurtleCommand pop  () {return new Pop ();}
+}
+\end{javacode}
+
+\section {Standard Commands} \label{sec:standard-commands}
+      Each command that makes an assumption about a turtle also needs to define an interface that lets a turtle indicate its support. Turtles that do support
+      these commands will implement the interfaces for them (see the {\tt SupportsX} interfaces on the {\tt EuclideanTurtle} in
+      \Ref{section}{sec:euclideanturtle}, for example).
+
+      For reasons that will become apparent in \Ref{chapter}{sec:transformation}, most of these commands ultimately inherit from {\tt AtomicCommand}.
+
+\subsection {AtomicCommand} \label{sec:atomiccommand}
+        Commands that do not contain other commands are considered atomic. This class provides a basic {\tt map()} method for such commands.
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Transformation;
+import cheloniidae.TurtleCommand;
+
+public abstract class AtomicCommand implements TurtleCommand {
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {return t.transform (this);}
+}
+\end{javacode}
+
+\subsection {UnaryCommand} \label{sec:unarycommand}
+        Most commands take only one value, and the mechanism for storing it is factored into a generic class called {\tt UnaryCommand}.
+
+\begin{javacode}
+package cheloniidae.commands;
+public abstract class UnaryCommand<T> extends AtomicCommand {
+  public final T value;
+  public UnaryCommand (final T _value) {value = _value;}
+}
+\end{javacode}
+
+\subsection {Move} \label{sec:move}
+        This command invokes a turtle's {\tt move()} method, generally with the semantic that a turtle will move and generate a line from its previous location.
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public final class Move extends UnaryCommand<Double> {
+  public Move (final double value) {super (value);}
+  public Move applyTo (final Turtle t) {
+    if (t instanceof SupportsMove) ((SupportsMove) t).move (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public interface SupportsMove<T extends Turtle> {
+  public T move (double distance);
+}
+\end{javacode}
+
+\subsection {Jump} \label{sec:jump}
+        This command invokes a turtle's {\tt jump()} method, generally with the semantic that a turtle will move without generating a line.
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public class Jump extends UnaryCommand<Double> {
+  public Jump (final double value) {super (value);}
+  public Jump applyTo (final Turtle t) {
+    if (t instanceof SupportsJump) ((SupportsJump) t).jump (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public interface SupportsJump<T extends Turtle> {
+  public T jump (double distance);
+}
+\end{javacode}
+
+\subsection {Turn} \label{sec:turn}
+        Invokes a turtle's {\tt turn()} method.
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public class Turn extends UnaryCommand<Double> {
+  public Turn (final double value) {super (value);}
+  public Turn applyTo (final Turtle t) {
+    if (t instanceof SupportsTurn) ((SupportsTurn) t).turn (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public interface SupportsTurn<T extends Turtle> {
+  public T turn (double angle);
+}
+\end{javacode}
+
+\subsection {Pitch} \label{sec:pitch}
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public class Pitch extends UnaryCommand<Double> {
+  public Pitch (final double value) {super (value);}
+  public Pitch applyTo (final Turtle t) {
+    if (t instanceof SupportsPitch) ((SupportsPitch) t).pitch (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public interface SupportsPitch<T extends Turtle> {
+  public T pitch (double angle);
+}
+\end{javacode}
+
+\subsection {Bank} \label{sec:bank}
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public class Bank extends UnaryCommand<Double> {
+  public Bank (final double value) {super (value);}
+  public Bank applyTo (final Turtle t) {
+    if (t instanceof SupportsBank) ((SupportsBank) t).bank (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public interface SupportsBank<T extends Turtle> {
+  public T bank (double angle);
+}
+\end{javacode}
+
+\subsection {Position} \label{sec:position}
+        This command sets the turtle's position. In doing so it assumes that the turtle has some way of converting its position from Cartesian coordinates if it
+        resides in a different coordinate space.
+
+        For convenience, we also provide the {\tt position()} accessor in the {\tt SupportsPosition} interface -- this lets us make the assumption that the
+        turtle can locate itself, which becomes significant for rendering triangles (see \Ref{section}{sec:triangles}).
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Turtle;
+import cheloniidae.Vector;
+
+public class Position extends UnaryCommand<Vector> {
+  public Position (final Vector value) {super (value);}
+  public Position applyTo (final Turtle t) {
+    if (t instanceof SupportsPosition) ((SupportsPosition) t).position (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Turtle;
+import cheloniidae.Vector;
+
+public interface SupportsPosition<T extends Turtle> {
+  public Vector position ();
+  public T      position (Vector _position);
+}
+\end{javacode}
+
+\subsection {Direction} \label{sec:direction}
+        Sets the direction of a turtle.
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Turtle;
+import cheloniidae.Vector;
+
+public class Direction extends UnaryCommand<Vector> {
+  public Direction (final Vector value) {super (value);}
+  public Direction applyTo (final Turtle t) {
+    if (t instanceof SupportsDirection) ((SupportsDirection) t).direction (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Turtle;
+import cheloniidae.Vector;
+
+public interface SupportsDirection<T extends Turtle> {
+  public Vector direction ();
+  public T      direction (Vector _direction);
+}
+\end{javacode}
+
+\subsection {DirectionComplement} \label{sec:directioncomplement}
+        Sets the {\tt directionComplement} of a turtle (see \Ref{section}{sec:rotationalcartesianturtle} for an example of a turtle that supports this).
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Turtle;
+import cheloniidae.Vector;
+
+public class DirectionComplement extends UnaryCommand<Vector> {
+  public DirectionComplement (final Vector value) {super (value);}
+  public DirectionComplement applyTo (final Turtle t) {
+    if (t instanceof SupportsDirectionComplement) ((SupportsDirectionComplement) t).directionComplement (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Turtle;
+import cheloniidae.Vector;
+
+public interface SupportsDirectionComplement<T extends Turtle> {
+  public Vector directionComplement ();
+  public T      directionComplement (Vector _directionComplement);
+}
+\end{javacode}
+
+\subsection {Visible} \label{sec:visible}
+        Changes the visibility of a turtle. Most of the time, a turtle will set its visibility by adding or failing to add a representation of itself to its
+        list of render actions.
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public class Visible extends UnaryCommand<Boolean> {
+  public Visible (final boolean value) {super (value);}
+  public Visible applyTo (final Turtle t) {
+    if (t instanceof SupportsVisible) ((SupportsVisible) t).visible (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public interface SupportsVisible<T extends Turtle> {
+  public boolean visible ();
+  public T       visible (boolean _visible);
+}
+\end{javacode}
+
+\subsection {BodyColor} \label{sec:bodycolor}
+        Changes the body color of a turtle. This won't impact the color of lines that are rendered; it just determines the color of the turtle's visual
+        representation.
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Turtle;
+import java.awt.Color;
+
+public class BodyColor extends UnaryCommand<Color> {
+  public BodyColor (final Color value) {super (value);}
+  public BodyColor applyTo (final Turtle t) {
+    if (t instanceof SupportsBodyColor) ((SupportsBodyColor) t).bodyColor (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Turtle;
+import java.awt.Color;
+
+public interface SupportsBodyColor<T extends Turtle> {
+  public Color bodyColor ();
+  public T     bodyColor (Color c);
+}
+\end{javacode}
+
+\subsection {LineColor} \label{sec:linecolor}
+        Sets the color of lines (and presumably other things, including triangles) generated by the turtle.
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Turtle;
+import java.awt.Color;
+
+public class LineColor extends UnaryCommand<Color> {
+  public LineColor (final Color value) {super (value);}
+  public LineColor applyTo (final Turtle t) {
+    if (t instanceof SupportsLineColor) ((SupportsLineColor) t).lineColor (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Turtle;
+import java.awt.Color;
+
+public interface SupportsLineColor<T extends Turtle> {
+  public Color lineColor ();
+  public T     lineColor (Color c);
+}
+\end{javacode}
+
+\subsection {LineSize} \label{sec:linesize}
+        Sets the thickness of lines generated by the turtle.
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public class LineSize extends UnaryCommand<Double> {
+  public LineSize (final double value) {super (value);}
+  public LineSize applyTo (final Turtle t) {
+    if (t instanceof SupportsLineSize) ((SupportsLineSize) t).lineSize (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public interface SupportsLineSize<T extends Turtle> {
+  public double lineSize ();
+  public T      lineSize (double size);
+}
+\end{javacode}
+
+\subsection {NullCommand} \label{sec:nullcommand}
+        This command does nothing. It becomes useful much later on, especially for inductive replication (\Ref{section}{sec:inductive-replication}). Naturally,
+        it works on all turtles.
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Turtle;
+import cheloniidae.TurtleCommand;
+
+public class NullCommand extends AtomicCommand {
+  public NullCommand applyTo (final Turtle t) {return this;}
+}
+\end{javacode}
+
+\section {Utility Commands} \label{sec:utility-commands}
+      Some commands don't directly influence the behavior of a turtle, but rather are helpful for debugging or attribute-marking (see
+      \Ref{section}{sec:attributes}).
+
+\subsection {Debug} \label{sec:debug}
+        Causes the turtle to print its {\tt toString()} to standard output. You can provide a string to prepend to the message to identify the source of the
+        debugging command. Because this command doesn't do any special interfacing with the turtle, there is no {\tt SupportsDebug} interface; this command
+        works with all turtles.
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public class Debug extends UnaryCommand<String> {
+  public Debug (final String value) {super (value);}
+  public Debug applyTo (final Turtle t) {
+    System.err.println (value + " " + t.toString ());
+    return this;
+  }
+}
+\end{javacode}
+
+\subsection {Pause} \label{sec:pause}
+        It can be very helpful to see a scene materialize slowly. The {\tt Pause} command causes the turtle to take a short break, showing the intermediate
+        results on the window. The only thing a turtle needs to do is support the {\tt window()} method, allowing the command access to its window.
+
+        Note that this command is specific to the {\tt TurtleWindow} (\Ref{section}{sec:turtlewindow}) viewport class; it is not portable.
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.Turtle;
+public final class Pause extends UnaryCommand<Long> {
+  public Pause (final long value) {super (value);}
+  public Pause applyTo (final Turtle t) {
+    if (t instanceof SupportsWindow) ((SupportsWindow) t).window ().pause (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.TurtleWindow;
+public interface SupportsWindow {
+  public TurtleWindow window ();
+}
+\end{javacode}
+
+\subsection {AddAttribute} \label{sec:addattribute}
+        Adds an attribute to a turtle. See \Ref{section}{sec:attributes} for more information about this.
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.*;
+public class AddAttribute extends UnaryCommand<Attribute> {
+  public AddAttribute (final Attribute _value) {super (_value);}
+  public TurtleCommand applyTo (final Turtle t) {
+    t.attributes ().add (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\subsection {RemoveAttribute} \label{sec:removeattribute}
+        Removes an attribute from a turtle.
+
+\begin{javacode}
+package cheloniidae.commands;
+import cheloniidae.*;
+public class RemoveAttribute extends UnaryCommand<Attribute> {
+  public RemoveAttribute (final Attribute _value) {super (_value);}
+  public TurtleCommand applyTo (final Turtle t) {
+    t.attributes ().remove (value);
+    return this;
+  }
+}
+\end{javacode}
+
+\chapter {Predicates} \label{sec:predicates}
+    Predicates exist to let you define logical propositions for objects. They could be useful in any number of different ways, including matching against a
+    particular type of turtle command, selecting a turtle from a group, or anything else requiring identification of an object as being either in or out of a
+    set.
+
+\section {Basic Predicates} \label{sec:basic-predicates}
+      A predicate at its core is just an object that implements a method called {\tt matches} which takes an object and returns a boolean. Because it extends
+      {\tt Transformable} (see \Ref{chapter}{sec:transformation}), predicates must also implement the {\tt map} method.
+
+\begin{javacode}
+package cheloniidae;
+public interface Predicate<T> extends Transformable<Predicate<T>> {
+  public boolean matches (T value);
+}
+\end{javacode}
+
+\subsection {AtomicPredicate} \label{sec:atomicpredicate}
+        The idea of atomic objects comes into play with transformations (see \Ref{chapter}{sec:transformation}). Basically, the idea is that an atomic predicate
+        can't contain others, so the transformation must be applied only to one predicate. (This is not true, for instance, for the {\tt Conjunction} complex
+        predicate defined in \Ref{section}{sec:conjunction}.)
+
+\begin{javacode}
+package cheloniidae.predicates;
+import cheloniidae.Predicate;
+import cheloniidae.Transformation;
+public abstract class AtomicPredicate<T> implements Predicate<T> {
+  public Predicate<T> map (final Transformation<Predicate<T>> t) {return t.transform (this);}
+}
+\end{javacode}
+
+\subsection {The True Predicate} \label{sec:the-true-predicate}
+        There are cases where it's useful to have a predicate that matches everything. The {\tt True} predicate does just that:
+
+\begin{javacode}
+package cheloniidae.predicates;
+import cheloniidae.Predicate;
+public class True<T> extends AtomicPredicate<T> {
+  public boolean matches (final T value) {return true;}
+}
+\end{javacode}
+
+\subsection {HasAttribute} \label{sec:hasattribute}
+        Sometimes it's valuable to know whether an object has an attribute (\Ref{section}{sec:attributes}) that matches a given predicate. This predicate goes
+        through all of the attributes of an object to determine whether any of them match:
+
+\begin{javacode}
+package cheloniidae.predicates;
+import cheloniidae.*;
+public class HasAttribute<T extends HasAttributes> extends AtomicPredicate<T> {
+  public final Predicate<Attribute> predicate;
+  public HasAttribute (final Predicate<Attribute> _predicate) {predicate = _predicate;}
+
+  public boolean matches (final T attributeContainer) {
+    for (final Attribute a : attributeContainer.attributes ())
+      if (predicate.matches (a)) return true;
+    return false;
+  }
+}
+\end{javacode}
+
+\section {Composition} \label{sec:composition}
+      There are a few different combinators for predicates including negation, conjunction, and type refinement.
+
+\subsection {Negation} \label{sec:negation}
+        The output of any predicate can be negated.
+
+\begin{javacode}
+package cheloniidae.predicates;
+import cheloniidae.*;
+public class Negation<T> implements Predicate<T> {
+  public final Predicate<T> predicate;
+  public Negation (final Predicate<T> _predicate) {predicate = _predicate;}
+  public boolean matches (final T value) {return ! predicate.matches (value);}
+
+  public Predicate<T> map (final Transformation<Predicate<T>> t) {
+    final Predicate<T> newPredicate = t.transform (this);
+    if (newPredicate == this) return new Negation (predicate.map (t));
+    else                      return newPredicate;
+  }
+}
+\end{javacode}
+
+\subsection {Conjunction} \label{sec:conjunction}
+        Predicates can be conjoined, resulting in a new predicate $P(x) = Q(x) \wedge R(x)$.
+
+\begin{javacode}
+package cheloniidae;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
+public class Conjunction<T> implements Predicate<T> {
+  public final List<Predicate<T>> conjuncts = new LinkedList<Predicate<T>> ();
+  public Conjunction (final Predicate<T> ... _conjuncts)
+    {for (final Predicate<T> p : _conjuncts) conjuncts.add (p);}
+  public Conjunction (final Collection<Predicate<T>> _conjuncts) {conjuncts.addAll (_conjuncts);}
+
+  public boolean matches (final T value) {
+    for (final Predicate<T> p : conjuncts) if (! p.matches (value)) return false;
+    return true;
+  }
+
+  public Predicate<T> map (final Transformation<Predicate<T>> t) {
+    final Predicate<T> newPredicate = t.transform (this);
+    if (newPredicate == this) {
+      final List<Predicate<T>> newConjuncts = new LinkedList<Predicate<T>> ();
+      for (final Predicate<T> p : conjuncts) newConjuncts.add (p.map (t));
+      return new Conjunction<T> (newConjuncts);
+    } else return newPredicate;
+  }
+}
+\end{javacode}
+
+\subsection {Disjunction} \label{sec:disjunction}
+        Just like conjunction, predicates can also be disjoined ($Q \vee R$). Ideally, this and {\tt Conjunction} (see \Ref{section}{sec:conjunction}) should be
+        factored into a single base class that implements a binary reduction on the predicates' outputs. However, the optimized traversal of sub-predicates
+        (that is, the fact that we stop computing once we know the final outcome) is valuable and would require a non-standard encoding of binary reduction.
+
+\begin{javacode}
+package cheloniidae;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
+public class Disjunction<T> implements Predicate<T> {
+  public final List<Predicate<T>> disjuncts = new LinkedList<Predicate<T>> ();
+  public Disjunction (final Predicate<T> ... _disjuncts)
+    {for (final Predicate<T> p : _disjuncts) disjuncts.add (p);}
+  public Disjunction (final Collection<Predicate<T>> _disjuncts) {disjuncts.addAll (_disjuncts);}
+
+  public boolean matches (final T value) {
+    for (final Predicate<T> p : disjuncts) if (p.matches (value)) return true;
+    return false;
+  }
+
+  public Predicate<T> map (final Transformation<Predicate<T>> t) {
+    final Predicate<T> newPredicate = t.transform (this);
+    if (newPredicate == this) {
+      final List<Predicate<T>> newDisjuncts = new LinkedList<Predicate<T>> ();
+      for (final Predicate<T> p : disjuncts) newDisjuncts.add (p.map (t));
+      return new Disjunction<T> (newDisjuncts);
+    } else return newPredicate;
+  }
+}
+\end{javacode}
+
+\subsection {Type refinement} \label{sec:type-refinement}
+        When you have a group of generic objects and want to measure a property that only some of those objects possess, you're using an abstraction called type
+        refinement. The idea is that you ignore all of the objects that don't have the property you're looking for, and run a more specialized predicate on the
+        objects that do support it. So, for example, if you have these classes:
+
+\begin{verbatim}
+class Point                {public double x, y;}
+class Point3 extends Point {public double z;}
+\end{verbatim}
+
+        \noindent you could write a predicate to find positive $z$-coordinates like this:
+
+\begin{verbatim}
+class ZPositive implements Predicate<Point> {
+  boolean matches (final Point p) {
+    if (p instanceof Point3) return ((Point3) p).z > 0;
+    else                     return false;
+  }
+}
+\end{verbatim}
+
+        Simpler, though, is to use a type refinement:
+
+\begin{verbatim}
+class ZPositive implements Predicate<Point3> {
+  public boolean matches (final Point3 p) {
+    return p.z > 0;
+  }
+}
+
+Predicate<Point> zplus = new CastableTo<Point, Point3> (Point3.class, new ZPositive ());
+\end{verbatim}
+
+\begin{javacode}
+package cheloniidae.predicates;
+
+import cheloniidae.Predicate;
+import cheloniidae.Transformation;
+
+public class CastableTo<T, U extends T> extends AtomicPredicate<T> {
+  public final Class<U>     type;
+  public final Predicate<U> predicate;
+
+  public CastableTo (final Class<U> _type) {type = _type; predicate = null;}
+  public CastableTo (final Class<U> _type, final Predicate<U> _predicate)
+    {type = _type; predicate = _predicate;}
+
+  public boolean matches (final T value) {
+    return type.isAssignableFrom (value.getClass ()) &&
+           (predicate == null || predicate.matches (type.cast (value)));
+  }
+}
+\end{javacode}
+
+\section {Attributes} \label{sec:attributes}
+      While you could write a predicate that matched a particular property of an object, it's often easier to put a tag on the object instead. The attribute
+      framework allows you to do just that; all turtles, for example, are required to support attribute lists.
+
+      There are a few supporting interface definitions involved. First, the {\tt Attribute} itself:
+
+\begin{javacode}
+package cheloniidae;
+public interface Attribute
+         extends Transformable<Attribute>, HasEquivalenceClass<Attribute> {}
+\end{javacode}
+
+      Of note are the {\tt HasEquivalenceClass} and {\tt Comparable} definitions. {\tt HasEquivalenceClass} indicates that we can construct a predicate to
+      compare two attributes (this is explained further in \Ref{section}{sec:equivalence-classes}). {\tt Comparable} is required so that attributes can be put
+      into a {\tt TreeSet} object -- this is the default set used by {\tt BasicTurtle}. The comparison function can be structurally inconsistent, but must be
+      referentially consistent.
+
+\begin{javacode}
+package cheloniidae;
+import java.util.Set;
+public interface HasAttributes {
+  public Set<Attribute> attributes ();
+}
+\end{javacode}
+
+\subsection {AtomicAttribute} \label{sec:atomicattribute}
+        Some attributes are atomic in the sense that they have no capacity to store other attributes. For these we can make some assumptions that ease
+        implementation:
+
+\begin{javacode}
+package cheloniidae.attributes;
+import cheloniidae.Attribute;
+import cheloniidae.Transformation;
+public abstract class AtomicAttribute implements Attribute {
+  public Attribute map (final Transformation<Attribute> t) {return t.transform (this);}
+}
+\end{javacode}
+
+        Notice the implementation of {\tt compareTo}; the output will be meaningless but referentially consistent. This is acceptable, however.
+
+\subsection {NamedAttribute} \label{sec:namedattribute}
+        One kind of atomic attribute is a named attribute, which is simply a tag with a name on it. This can be used to mark objects as being inside named sets,
+        or to identify them uniquely. This particular attribute is useful when differentiating turtles; you might want different turtles to follow different
+        instructions. Used in conjunction with the {\tt When} command (\Ref{section}{sec:conditional-execution}), you can write the equivalent of an {\tt if}
+        statement in pure turtle command language.
+
+\begin{javacode}
+package cheloniidae.attributes;
+
+import cheloniidae.Attribute;
+import cheloniidae.Predicate;
+
+import cheloniidae.predicates.CastableTo;
+import cheloniidae.predicates.AtomicPredicate;
+
+public class Named extends AtomicAttribute {
+  public final String name;
+  public Named (final String _name) {name = _name;}
+  
+  public Predicate<Attribute> projectivePredicate () {
+    return new CastableTo<Attribute, Named> (Named.class, new AtomicPredicate<Named> () {
+      public boolean matches (final Named value) {return value.name.equals (name);}
+    });
+  }
+}
+\end{javacode}
+
+\section {Equivalence Classes} \label{sec:equivalence-classes}
+      How should attributes be compared? For instance, suppose you add a named attribute to a turtle:
+
+\begin{verbatim}
+t.attribute (new Named ("foo"));
+\end{verbatim}
+
+      If you then try to ask whether my turtle has that name:
+
+\begin{verbatim}
+t.attributes ().contains (new Named ("foo"))
+\end{verbatim}
+
+      \noindent you get {\tt false} because the attribute set uses comparison functions instead of (inferred) structural equality. This is where you need some
+      way to identify whether two instances are really the same thing, and each attribute provides a {\em projective predicate} to determine this. A projective
+      predicate projects the attribute into an equivalence class where attributes that share semantics are considered equal. So, for example:
+
+\begin{verbatim}
+new Named ("foo").projectivePredicate ().matches (someAttribute)
+\end{verbatim}
+
+      \noindent would correctly determine whether {\tt someAttribute} matches \verb|Named ("foo")|.
+
+\begin{javacode}
+package cheloniidae;
+public interface HasEquivalenceClass<T> {
+  public Predicate<T> projectivePredicate ();
+}
+\end{javacode}
+
+\chapter {Transformation} \label{sec:transformation}
+    Cheloniidae provides a way to take an object and run it through a transformer to produce a variant. Because most things in Cheloniidae are immutable,
+    transformations return a modified copy, leaving the original intact.
+
+    The {\tt Transformable} interface defines a single {\tt map} method. This allows the object being transformed to invoke the transformation on its children,
+    if it has any, and reconstruct itself with modified child copies. Here is the signature for the {\tt Transformable} interface:
+
+\begin{javacode}
+package cheloniidae;
+public interface Transformable<T> {
+  public T map (Transformation<T> transformation);
+}
+\end{javacode}
+
+    Correspondingly, there is a {\tt Transformation} interface that defines a {\tt transform} method:
+
+\begin{javacode}
+package cheloniidae;
+public interface Transformation<T> {
+  public T transform (T input);
+}
+\end{javacode}
+
+    Note that the type is fixed on transformations; so, for example, a \verb|Transformation<Turtle>| must both take and return only instances of {\tt Turtle}.
+    This isn't the most general form; transformations could be defined as mapping across types, but for the sake of simplicity I've chosen to fix the type.
+    
+    The {\tt transform} method is very straightforward; this transformation, for instance, will append \verb|"foo"| to a string:
+
+\begin{verbatim}
+class AppendFoo implements Transformation<String> {
+  public String transform (final String input) {return input + "foo";}
+}
+\end{verbatim}
+
+    By default, strings don't supply a {\tt map} method, so this transformation would have to be invoked directly on a string: \verb|t.transform (s)|.
+
+\section {The {\tt map} Method} \label{sec:the---tt-map--method}
+      In its simplest form (i.e.~for atomic objects), {\tt map} simply returns the result of applying a transformation to {\tt this}. The {\tt AtomicPredicate}
+      (\Ref{section}{sec:atomicpredicate}) and {\tt AtomicAttribute} (\Ref{section}{sec:atomicattribute}) classes illustrate this case. More complex objects
+      require that {\tt map} iterate through their children as well.
+
+      For example, suppose we are writing an arithmetic expression library and we want to write a transformation to reduce an expression tree. The class
+      hierarchy could look like this:
+
+\begin{verbatim}
+abstract class Expression {}
+
+class Constant extends Expression {
+  public final double x;
+  public Constant (final double _x) {x = _x;}
+}
+
+abstract class BinaryExpression extends Expression {
+  public final Expression e1;
+  public final Expression e2;
+  public BinaryExpression (final Expression _e1, final Expression _e2)
+    {e1 = _e1; e2 = _e2;}
+}
+
+class Sum extends BinaryExpression {
+  public Sum (final Expression _e1, final Expression _e2)
+    {super (_e1, _e2);}
+}
+
+class Product extends BinaryExpression {
+  public Product (final Expression _e1, final Expression _e2)
+    {super (_e1, _e2);}
+}
+\end{verbatim}
+
+      Now we want to make these expressions transformable. We need a {\tt map} method for each one, since the transformation shouldn't have to know anything
+      about how the expressions store sub-expressions. After some factoring, it might be implemented like this.
+
+\begin{verbatim}
+abstract class Expression implements Transformable<Expression> {}
+
+class Constant extends Expression {
+  public final double x;
+  public Constant (final double _x) {x = _x;}
+  public Expression map (final Transformation<Expression> t) {
+    // Simple case: Map only over this.
+    return t.transform (this);
+  }
+}
+
+abstract class BinaryExpression extends Expression {
+  public final Expression e1;
+  public final Expression e2;
+  public BinaryExpression (final Expression _e1, final Expression _e2)
+    {e1 = _e1; e2 = _e2;}
+
+  // Should return whatever type this expression is. There are multiple types of
+  // binary expressions, so this should construct an instance of whichever child
+  // class is currently subclassing.
+  public abstract BinaryExpression create (final Expression _e1, final Expression _e2);
+
+  public Expression map (final Transformation<Expression> t) {
+    // Complex case: Map over this, and then see whether we got something different.
+    // If the transformation modifies this binary expression, then we don't descend,
+    // since we wouldn't know what to do with the transformations of e1 and e2.
+    // However, if it left this binary expression alone, then we create a new binary
+    // expression of this type with the transformations of e1 and e2.
+
+    final Expression firstResult = t.transform (this);
+    if (firstResult == this) return create (e1.map (t), e2.map (t));
+    else                     return firstResult;
+  }
+}
+
+class Sum extends BinaryExpression {
+  public Sum (final Expression _e1, final Expression _e2)
+    {super (_e1, _e2);}
+  public BinaryExpression create (final Expression _e1, final Expression _e2)
+    {return new Sum (_e1, _e2);}
+}
+
+class Product extends BinaryExpression {
+  public Product (final Expression _e1, final Expression _e2)
+    {super (_e1, _e2);}
+  public BinaryExpression create (final Expression _e1, final Expression _e2)
+    {return new Product (_e1, _e2);}
+}
+\end{verbatim}
+
+      Now let's write the transformation. The strategy is simple: Each time we arrive at a binary expression with two constant children, we perform the
+      operation on those children. There is no post-order traversal in the {\tt map} function we defined, so we'll have to keep running the transformation on
+      the expression tree until we get just a constant out of it.
+
+\begin{verbatim}
+class Evaluator implements Transformation<Expression> {
+  public Expression transform (final Expression e) {
+    if (e instanceof BinaryExpression) {
+      final BinaryExpression be = (BinaryExpression) e;
+      if (be.e1 instanceof Constant && be.e2 instanceof Constant)
+        if      (be instanceof Sum)     return new Constant (be.e1.x + be.e2.x);
+        else if (be instanceof Product) return new Constant (be.e1.x * be.e2.x);
+        else                            throw new Exception ("Unsupported operator");
+      else
+        return e;
+    } else
+      return e;
+  }
+}
+\end{verbatim}
+
+      To invoke the transformation on an expression:
+
+\begin{verbatim}
+Expression      e  = ...;
+final Evaluator ev = new Evaluator ();
+while (! e instanceof Constant) e = e.map (ev);
+\end{verbatim}
+
+      So the {\tt map} method serves two purposes. One is to provide a top-level interface for transforming things (you shouldn't use the transformation's {\tt
+      transform} method directly because its purpose is to act on only one object), and the other is to give transformations a way to transform the pieces of
+      complex objects in addition to transforming the objects themselves.
+
+\section {Basic Transformations} \label{sec:basic-transformations}
+\subsection {Identity} \label{sec:identity}
+        This transformation just maps objects to themselves.
+
+\begin{javacode}
+package cheloniidae.transformations;
+import cheloniidae.*;
+public class Identity<T> implements Transformation<T> {
+  public Identity () {}
+  public T transform (final T x) {return x;}
+}
+\end{javacode}
+
+\subsection {Scale} \label{sec:scale}
+        Slightly more complex is the transformation that finds {\tt Move} and {\tt Jump} turtle commands and scales their distances by a given factor. This is
+        primarily useful for recursion (\Ref{section}{sec:recursion}). This transformation makes sense only for turtle commands.
+
+\begin{javacode}
+package cheloniidae.transformations;
+
+import cheloniidae.*;
+import cheloniidae.commands.*;
+
+public class Scale implements Transformation<TurtleCommand> {
+  public final double  factor;
+  public final boolean scaleLineSizes;
+
+  public Scale (final double _factor)                                {this (_factor, false);}
+  public Scale (final double _factor, final boolean _scaleLineSizes) {factor = _factor; scaleLineSizes = _scaleLineSizes;}
+
+  public TurtleCommand transform (final TurtleCommand c) {
+    if                        (c instanceof Move)     return new Move     (((Move) c).value     * factor);
+    else if                   (c instanceof Jump)     return new Jump     (((Jump) c).value     * factor);
+    else if (scaleLineSizes && c instanceof LineSize) return new LineSize (((LineSize) c).value * factor);
+    else                                              return c;
+  }
+}
+\end{javacode}
+
+\section {Composition} \label{sec:composition}
+      There are a couple of wrappers for transformations. The first one is {\tt Compose}, which takes a bunch of transformations and applies each of them to an
+      input. {\em Note!} This composition runs backwards from a mathematical perspective; that is, $(f_1 \circ f_2 \circ \cdots \circ f_n) (x)$ evaluates to
+      $f_n (\cdots (f_2 (f_1 (x))) \cdots )$, not $f_1 (f_2 (\cdots (f_n (x)) \cdots ))$.
+
+\begin{javacode}
+package cheloniidae.transformations;
+import cheloniidae.*;
+public class Compose<T extends Transformable<T>> implements Transformation<T> {
+  public final Transformation<T>[] transformations;
+  public Compose (final Transformation<T> ... _transformations) {transformations = _transformations;}
+
+  public T transform (final T c) {
+    T immediate = c;
+    for (final Transformation<T> t : transformations) immediate = immediate.map (t);
+    return immediate;
+  }
+}
+\end{javacode}
+
+\section {Predicated Transformations} \label{sec:predicated-transformations}
+      Another wrapper for transformations is one which conditionally applies a given transform. It uses a predicate to decide whether each object it runs across
+      should be transformed; if it should, then the transformation is applied; otherwise, it applies the identity transformation leaving the object unchanged.
+
+\begin{javacode}
+package cheloniidae.transformations;
+import cheloniidae.*;
+public class PredicatedTransformation<T extends Transformable<T>> implements Transformation<T> {
+  public final Predicate<T>      predicate;
+  public final Transformation<T> transformation;
+
+  public PredicatedTransformation (final Predicate<T> _predicate, final Transformation<T> _transformation)
+    {predicate = _predicate; transformation = _transformation;}
+
+  public T transform (final T input) {
+    if (predicate.matches (input)) return input.map (transformation);
+    else                           return input;
+  }
+}
+\end{javacode}
+
+\chapter {Replication} \label{sec:replication}
+    Similar to the concept of transformation (\Ref{chapter}{sec:transformation}) is replication. The goal of replication is to create a transformed clone of a
+    mutable object such as a turtle. Since the replication framework was written with turtles in mind, I'll sacrifice generality for simplicity by making the
+    assumption that turtles are the only things we would want to replicate this way.
+
+\section {Motivation} \label{sec:motivation}
+\subsection {Creating a tree} \label{sec:creating-a-tree}
+        So, why would you want to replicate a turtle? Well, one reason is to draw some sort of recursive structure. For example, you could draw a tree like this
+        (pseudocode):
+
+\begin{verbatim}
+define stack as a stack of turtle states
+define tree (turtle, recursion limit) as
+  move some distance
+  if recursion limit > 0 then
+    repeat 2
+      push turtle state onto stack
+      do some random setup
+      tree (turtle, recursion limit - 1)
+      pop turtle state from stack
+\end{verbatim}
+
+        However, this implementation is a bit clunky and the imperative structure obscures the meaning of what's going on. What we'd like to say is this:
+
+\begin{verbatim}
+define tree (turtle, recursion limit) as
+  move some distance
+  if recursion limit > 0 then
+    repeat 2
+      with a copy of turtle
+        do some random setup
+        tree (the copy of turtle, recursion limit - 1)
+\end{verbatim}
+
+        So at each point the turtle splits off into two new turtles, and each one performs the next iteration. This design pattern is called splitting, and is
+        described in \Ref{section}{sec:splitting}. For a more advanced use, see \Ref{section}{sec:bandsplitreplicator}.
+
+\subsection {Making a circle of things} \label{sec:making-a-circle-of-things}
+        Let's suppose you have a square initially:
+
+\begin{verbatim}
+define square (turtle, distance) as
+  repeat 4 turtle move distance turn 90
+\end{verbatim}
+
+        \noindent and you decide you want a ring of them. This isn't too hard to do, since drawing a square leaves the turtle where it started, but perhaps you
+        want to change the square to a half-circle at some point in the future and don't want to worry about breaking your code. So you insulate calls to {\tt
+        square} by using a temporary turtle state:
+
+\begin{verbatim}
+define protected (shape, turtle, <stuff>) as
+  define state as turtle serialize in
+    shape (turtle, <stuff>)
+    turtle deserialize state
+\end{verbatim}
+
+        So now you make a circle of squares like this:
+
+\begin{verbatim}
+define circle of (shape, turtle, <stuff>) as
+  repeat 10
+    turtle jump 100 turn 36
+    protected (shape, turtle, <stuff>)
+\end{verbatim}
+
+        And this works fairly well. However, the design pattern can be abstracted away just a bit. The pattern here is called {\em inductive replication}
+        because each turtle copy is computed from the previous one by an inductive step. The replicator for this is described in
+        \Ref{section}{sec:inductive-replication}.
+
+\section {Replicable} \label{sec:replicable}
+      Unfortunately, replication isn't quite as simple as it could be. We don't want a complete copy of a replicated turtle, since the copy shouldn't inherit
+      the lines of the original. Also, we want an object of the same type as the original, so we need to provide a per-subclass method to create an instance of
+      that subclass. In this case, it's called {\tt create}.
+
+      Because replication requires clonability, I'm using the Java notion of a {\tt clone} method. The {\tt Turtle} interface (\Ref{section}{sec:turtle})
+      inherits from Java's {\tt Cloneable} interface to indicate that the {\tt clone} method does what it should. The default implementation provided by the
+      {\tt Replicable} interface should always work (the semantics are correct), but it may be necessary to make modifications in subclasses.
+
+\begin{javacode}
+package cheloniidae;
+import cheloniidae.commands.*;
+public abstract class Replicable<T extends Turtle> implements Turtle<T>, TurtleCommand {
+  public abstract T create ();
+
+  public T clone () {
+    final T result = this.create ();
+    this.applyTo (result);
+    return result;
+  }
+}
+\end{javacode}
+
+\section {Replicator} \label{sec:replicator}
+      The {\tt Replicable} class isn't strictly required for replication, but it provides the correct semantics for {\tt clone}. Replicators should work on any
+      object that implements {\tt Cloneable}, though they're restricted to turtles for the purposes of Cheloniidae.\footnote{This may change in the future.} The
+      idea is that a replicator takes one turtle and returns a collection of new turtles with some initial configuration.
+
+\begin{javacode}
+package cheloniidae;
+public interface Replicator extends NonDistributiveTurtleCommand {
+  public TurtleGroup<Turtle> replicate (Turtle base);
+}
+\end{javacode}
+
+\section {Inductive Replication} \label{sec:inductive-replication}
+      The simplest way to get a bunch of turtles is follow a system like this:
+
+\begin{verbatim}
+define copy (turtle, configuration command, n) as
+  if n > 0 then
+    a copy of turtle configured by the configuration command, along with
+      copy (the copy of turtle, configuration command, n - 1)
+  else
+    an empty turtle group
+\end{verbatim}
+
+      \noindent so that each new copy is a transformed version of the previous copy. The Cheloniidae class to implement this is:
+
+\begin{javacode}
+package cheloniidae.replicators;
+
+import cheloniidae.*;
+import cheloniidae.commands.*;
+
+public class InductiveReplicator<T extends Turtle> implements Replicator {
+  public final TurtleCommand step;
+  public final int           copies;
+  public final Sequence      actions;
+  public InductiveReplicator (final int _copies, final TurtleCommand _step, final TurtleCommand ... _actions)
+    {step = _step; copies = _copies; actions = new Sequence (_actions);}
+
+  public TurtleGroup<Turtle> replicate (final Turtle turtle) {
+    final TurtleGroup<Turtle> result   = new TurtleGroup<Turtle> ();
+    Turtle                    previous = turtle;
+    for (int i = 0; i < copies; ++i) result.turtles ().add (previous = previous.clone ().run (step));
+    return result;
+  }
+
+  public TurtleCommand applyTo (final Turtle turtle) {
+    final TurtleGroup<Turtle> copies = this.replicate (turtle);
+    turtle.window ().add (copies);
+    copies.run (actions);
+    return this;
+  }
+
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {
+    final TurtleCommand newCommand = t.transform (this);
+    if (newCommand == this) return new InductiveReplicator (copies, step.map (t), actions.map (t));
+    else                    return newCommand;
+  }
+}
+\end{javacode}
+
+\section {Splitting} \label{sec:splitting}
+      Often you'll just want a single copy of a turtle instead of a series of transformed ones. An easy way to do this is to use the inductive replicator to
+      obtain a single copy:
+
+\begin{verbatim}
+t.run (new InductiveReplicator (1, new NullCommand (), <commands>));
+\end{verbatim}
+
+      Doing this will run \verb|<commmands>| on a copy of {\tt t}. The {\tt NullCommand} command is a no-op; it does nothing, and is useful for situations like
+      this. {\tt CoreCommands} (\Ref{section}{sec:corecommands}) provides a convenient shorthand for split operations, allowing this code to be used instead:
+
+\begin{verbatim}
+t.run (copy (<commands>));
+\end{verbatim}
+
+\chapter {Triangles} \label{sec:triangles}
+    Unlike most regular turtles, turtles in Cheloniidae can produce triangles. This isn't as straightforward as producing lines because it usually involves a
+    split of some sort, but there are several different models that simplify the process.
+
+\section {Using the {\tt Triangle} Turtle Command} \label{sec:using-the---tt-triangle--turtle-command}
+      This is the simplest way to produce a triangle. The command takes two other turtle commands and works like this:
+
+\begin{enumerate}
+\item Take the current turtle position -- this is the first vertex of the triangle.
+\item Copy the turtle and run the first turtle command on the copy. The location of the copy is the second vertex of the triangle.
+\item Copy the original and run the second turtle command on the copy. The location of this copy is the third vertex of the triangle.
+\end{enumerate}
+
+      Alternately, you can pass in two other turtles and the command will generate a triangle connecting them.
+
+      Internally there is some finagling to make this work; a new preloaded turtle is created (see below), and this new turtle contains the triangle. Also, the
+      original turtle must have a location that makes sense in Cartesian space (indicated by implementing the {\tt SupportsPosition} interface).
+
+\begin{javacode}
+package cheloniidae;
+
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+public class PreloadedTurtle<T extends PreloadedTurtle> extends BasicTurtle<T> {
+  public final Set<RenderAction> actions;
+  public PreloadedTurtle (final Set<RenderAction> _actions) {actions = _actions;}
+
+  public SortedSet<RenderAction> actions (final Viewport v) {
+    final SortedSet<RenderAction> result = new TreeSet<RenderAction> (new PerspectiveComparator (v));
+    for (final RenderAction a : actions) if (v.shouldCancel ()) break;
+                                         else                   result.add (a);
+    return result;
+  }
+
+  public TurtleState serialize   ()                    {return null;}
+  public T           deserialize (final TurtleState t) {return (T) this;}
+
+  public T             create  ()               {return (T) this;}
+  public T             clone   ()               {return (T) this;}
+  public TurtleCommand applyTo (final Turtle t) {return this;}
+}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import java.awt.Color;
+import java.util.Set;
+import java.util.HashSet;
+
+import cheloniidae.*;
+
+public class Triangle implements TurtleCommand {
+  public final SupportsPosition p1;
+  public final SupportsPosition p2;
+
+  public final TurtleCommand c1;
+  public final TurtleCommand c2;
+
+  public Triangle (final SupportsPosition _p1, final SupportsPosition _p2) {
+    p1 = _p1; p2 = _p2;
+    c1 = c2 = null;
+  }
+
+  public Triangle (final TurtleCommand _c1, final TurtleCommand _c2) {
+    p1 = p2 = null;
+    c1 = _c1; c2 = _c2;
+  }
+
+  public TurtleCommand applyTo (final Turtle t) {
+    if (t instanceof SupportsPosition && t instanceof SupportsLineColor) {
+      final SupportsPosition  p3      = (SupportsPosition) t;
+      final Color             color   = ((SupportsLineColor) t).lineColor ();
+      final Set<RenderAction> actions = new HashSet<RenderAction> ();
+
+      if (p1 != null) actions.add (new CartesianTriangle (p1.position (), p2.position (), p3.position (), color));
+      else {
+        // Construct positions by creating temporary clones of the turtle.
+        final Turtle clone1 = t.clone ().run (c1);
+        final Turtle clone2 = t.clone ().run (c2);
+
+        actions.add (new CartesianTriangle (((SupportsPosition) clone1).position (),
+                                            ((SupportsPosition) clone2).position (),
+                                            p3.position (), color));
+      }
+
+      t.window ().add (new PreloadedTurtle (actions));
+    }
+
+    return this;
+  }
+
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {
+    final TurtleCommand newCommand = t.transform (this);
+    if (newCommand == this && c1 != null) return new Triangle (c1.map (t), c2.map (t));
+    else                                  return newCommand;
+  }
+}
+\end{javacode}
+
+\section {PathwiseTriangleConnector} \label{sec:pathwisetriangleconnector}
+      The pathwise triangle connector connects a group of turtles together and constructs quads between them. It is a low-level interface (a higher-level
+      interface more suited to standard use is the {\tt BandSplitReplicator} in \Ref{section}{sec:bandsplitreplicator}). The idea is fairly straightforward:
+      Given $n$ turtles, track their positions and draw virtual lines between them. Each time {\tt emit()} is called, draw a new set of virtual lines between
+      each pair of turtles and construct quads to connect the last set of virtual lines with the new set.
+
+      This interface is one of the most counterintuitive in Cheloniidae. For a more intuitive presentation, take a look at
+      \Ref{section}{sec:bandsplitreplicator} and the example using it in the {\tt bandsplit.java} file.
+
+      The {\tt TriangleEmitter} interface provides turtle commands to initialize and emit triangles.
+
+\begin{javacode}
+package cheloniidae;
+
+import cheloniidae.commands.AtomicCommand;
+
+public interface TriangleEmitter<T extends Turtle> {
+  public static class Start extends AtomicCommand implements NonDistributiveTurtleCommand {
+    public Start () {}
+    public TurtleCommand applyTo (final Turtle t) {
+      if (t instanceof TriangleEmitter) ((TriangleEmitter) t).start ();
+      return this;
+    }
+  }
+
+  public static class Emit extends AtomicCommand implements NonDistributiveTurtleCommand {
+    public Emit () {}
+    public TurtleCommand applyTo (final Turtle t) {
+      if (t instanceof TriangleEmitter) ((TriangleEmitter) t).emit ();
+      return this;
+    }
+  }
+
+  public T start ();
+  public T emit ();
+}
+\end{javacode}
+
+      A quick note about pathwise triangle connectors: There is some seriously gnarly stuff that has to happen to get sequences and repeats to work properly.
+      All of the logic to do this is in the {\tt Parallelize} transformation implemented in \Ref{section}{sec:parallelize}, and this is ultimately why the {\tt
+      SerialTurtleCommandComposition} interface exists.
+
+\begin{javacode}
+package cheloniidae;
+
+import cheloniidae.transformations.Parallelize;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+public class PathwiseTriangleConnector<T extends EuclideanTurtle>
+     extends TurtleGroup<T>
+  implements TriangleEmitter<PathwiseTriangleConnector<T>> {
+
+  public final List<Vector>            points    = new ArrayList<Vector> ();
+  public final List<CartesianTriangle> triangles = new LinkedList<CartesianTriangle> ();
+
+  public PathwiseTriangleConnector (final T ...         _turtles) {super (_turtles); start ();}
+  public PathwiseTriangleConnector (final Collection<T> _turtles) {super (_turtles); start ();}
+
+  public SortedSet<RenderAction> actions (final Viewport v) {
+    final SortedSet<RenderAction> result = super.actions (v);
+    for (final CartesianTriangle t : triangles) if (v.shouldCancel ()) break;
+                                                else                   result.add (t);
+    return result;
+  }
+
+  public PathwiseTriangleConnector<T> create () {
+    final PathwiseTriangleConnector<T> result = new PathwiseTriangleConnector<T> ();
+    for (final T t : turtles) result.add ((T) t.clone ());
+    result.start ();
+    return result;
+  }
+
+  public PathwiseTriangleConnector<T> add (final T turtle) {
+    super.add (turtle);
+    points.add (turtle.position ().clone ());
+    return this;
+  }
+
+  public PathwiseTriangleConnector start () {
+    // Keep track of all of the locations of all of the turtles.
+    points.clear ();
+    for (final EuclideanTurtle t : turtles) points.add (t.position ().clone ());
+    return this;
+  }
+
+  public PathwiseTriangleConnector emit () {
+    // Emit triangles connecting all of the turtles. For n turtles, there will be O(n^2) triangles.
+    for (int i = 0; i < turtles.size () - 1; ++i)
+      for (int j = i + 1; j < turtles.size (); ++j) {
+        final EuclideanTurtle t1  = turtles.get (i);
+        final EuclideanTurtle t2  = turtles.get (j);
+        final Vector          tv1 = t1.position ();
+        final Vector          tv2 = t2.position ();
+        final Vector          sv1 = points.get (i);
+        final Vector          sv2 = points.get (j);
+
+        // If the triangle's area is below a certain amount, then we don't add the triangle.
+        // This is to prevent degenerate triangles from slowing the scene render operations,
+        // which might occur if the user moved one turtle but not the other.
+        if (tv1.clone ().subtract (sv1).cross (sv2.clone ().subtract (sv1)).lengthSquared () > 1.0e-10)
+          triangles.add (new CartesianTriangle (tv1, sv1, sv2, t1.color ()));
+
+        if (tv1.clone ().subtract (tv2).cross (sv2.clone ().subtract (tv2)).lengthSquared () > 1.0e-10)
+          triangles.add (new CartesianTriangle (tv1, tv2, sv2, t2.color ()));
+      }
+
+    return start ();
+  }
+
+  public PathwiseTriangleConnector<T> run (final TurtleCommand c) {
+    super.run (c.map (new Parallelize ()));
+    return this;
+  }
+}
+\end{javacode}
+
+\section {BandSplitReplicator} \label{sec:bandsplitreplicator}
+      This class hides a lot of the practical difficulties that arise when using {\tt PathwiseTriangleConnector}s. Instead of taking two pre-existing turtles,
+      it operates on a single turtle, performs a split, initializes the copy, and then runs a series of commands. This enables you to use it inline, as in the
+      example file {\tt bandsplit.java}.
+      
+\begin{javacode}
+package cheloniidae.replicators;
+
+import cheloniidae.*;
+import cheloniidae.commands.*;
+
+public class BandSplitReplicator implements Replicator, TurtleCommand {
+  public final TurtleCommand firstTurtlePrimer;
+  public final Sequence      actions;
+
+  public BandSplitReplicator (final TurtleCommand _firstTurtlePrimer, final TurtleCommand ... _actions)
+    {firstTurtlePrimer = _firstTurtlePrimer; actions = new Sequence (_actions);}
+
+  public TurtleGroup<Turtle> replicate (final Turtle turtle) {
+    if (turtle instanceof EuclideanTurtle)
+      // We have to wrap the pathwise connector in a new turtle group because of type annotations.
+      // Specifying a generic with <EuclideanTurtle> makes it unassignable to anything specified
+      // with <Turtle> because Java doesn't know whether the type will be in a contravariant position.
+      // (In this case it isn't, but Java can't prove that.) The best we can do is wrap it.
+      return new TurtleGroup<Turtle> (
+               new PathwiseTriangleConnector<EuclideanTurtle> ()
+                 .add ((EuclideanTurtle) turtle.clone ().run (firstTurtlePrimer))
+                 .add ((EuclideanTurtle) turtle.clone ()));
+    else return null;
+  }
+
+  public TurtleCommand applyTo (final Turtle turtle) {
+    final TurtleGroup<Turtle> copies = this.replicate (turtle);
+    turtle.window ().add (copies);      // Very important! Otherwise the copies will have no way of producing visible lines.
+    copies.run (actions);
+    return this;
+  }
+
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {
+    final TurtleCommand newCommand = t.transform (this);
+    if (newCommand == this) return new BandSplitReplicator (firstTurtlePrimer.map (t), actions.map (t));
+    else                    return newCommand;
+  }
+}
+\end{javacode}
+
+\chapter {Commands 2} \label{sec:commands-2}
+    Most of the commands we've seen so far are straightforward; they generate some form of output immediately and don't really change the behavior of things
+    very much. The commands in this chapter are geared more towards transformation of other commands, doing things like simulating control flow and leveraging
+    transformation (\Ref{chapter}{sec:transformation}) to modify pieces of the command structure.
+
+\section {Sequencing} \label{sec:sequencing}
+      Just as most imperative programming languages execute one statement after another, Cheloniidae provides a construct that executes one turtle command after
+      another. It has shown up in some classes already, often to bundle a sequence of commands into a single {\tt TurtleCommand} object.
+
+      Notice the {\tt SerialTurtleCommandComposition} interface. This is a flag indicating that sequences string together a bunch of logical operations.
+      \Ref{Section}{sec:parallelize} explains why this is important.
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.SerialTurtleCommandComposition;
+import cheloniidae.Turtle;
+import cheloniidae.TurtleCommand;
+import cheloniidae.Transformation;
+
+public class Sequence implements TurtleCommand, SerialTurtleCommandComposition {
+  protected TurtleCommand intersperse = null;
+
+  public final TurtleCommand[] commands;
+  public Sequence (final TurtleCommand ... _commands) {commands = _commands;}
+
+  public Sequence applyTo (final Turtle t) {if (intersperse != null) t.run (intersperse);
+                                            for (TurtleCommand c : commands) {
+                                              t.run (c);
+                                              if (intersperse != null) t.run (intersperse);
+                                            }
+                                            return this;}
+
+  public Sequence interspersing (final TurtleCommand c) {
+    intersperse = intersperse == null || c == null ? c : new Sequence (c, intersperse);
+    return this;
+  }
+
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {
+    final TurtleCommand newCommand = t.transform (this);
+    if (newCommand == this) {
+      final TurtleCommand[] cs = new TurtleCommand[commands.length];
+      for (int i = 0; i < commands.length; ++i) cs[i] = commands[i].map (t);
+      return new Sequence (cs).interspersing (intersperse != null ? intersperse.map (t) : null);
+    } else return newCommand;
+  }
+}
+\end{javacode}
+
+\section {Repetition} \label{sec:repetition}
+      The {\tt Repeat} command lets you reduce a series of repeated commands:
+
+\begin{verbatim}
+move (100), turn (90),
+move (100), turn (90)
+\end{verbatim}
+
+      \noindent to a single repetition invocation:
+
+\begin{verbatim}
+repeat (2, move (100), turn (90))
+\end{verbatim}
+
+      It doesn't expand the commands in memory. Rather, when run on a turtle it loops over its body a number of times; this saves memory for large repeat
+      counts.
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.SerialTurtleCommandComposition;
+import cheloniidae.Turtle;
+import cheloniidae.TurtleCommand;
+import cheloniidae.Transformation;
+
+public class Repeat implements TurtleCommand, SerialTurtleCommandComposition {
+  public final int      repetitions;
+  public final Sequence body;
+
+  public Repeat (final int _repetitions, final TurtleCommand ... _body)
+    {repetitions = _repetitions; body = new Sequence (_body);}
+
+  public Repeat applyTo (final Turtle t) {
+    for (int i = 0; i < repetitions; ++i) t.run (body);
+    return this;
+  }
+
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {
+    final TurtleCommand newCommand = t.transform (this);
+    if (newCommand == this) return new Repeat (repetitions, body.map (t));
+    else                    return newCommand;
+  }
+}
+\end{javacode}
+
+\section {Conditional Execution} \label{sec:conditional-execution}
+      Commands can be predicated on turtles. This can be useful if you have a group of turtles and you want only some of them to follow a command path. The way
+      to do this is to use the {\tt When} command on a turtle predicate:
+
+\begin{verbatim}
+group.run (new When (someTurtlePredicate, <commands>));
+\end{verbatim}
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.Predicate;
+import cheloniidae.Transformation;
+import cheloniidae.Turtle;
+import cheloniidae.TurtleCommand;
+
+public class When implements TurtleCommand {
+  public final Predicate<Turtle> predicate;
+  public final TurtleCommand     action;
+
+  public When (final Predicate<Turtle> _predicate, final TurtleCommand ... _actions)
+    {predicate = _predicate; action = new Sequence (_actions);}
+
+  public TurtleCommand applyTo (final Turtle t) {
+    if (predicate.matches (t)) t.run (action);
+    return this;
+  }
+
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {
+    final TurtleCommand newCommand = t.transform (this);
+    if (newCommand == this) return new When (predicate, action.map (t));
+    else                    return newCommand;
+  }
+}
+\end{javacode}
+
+\section {Recursion} \label{sec:recursion}
+      This is where things get complicated. Turtle commands weren't really designed with recursive expansion in mind, so a few hacks are required to implement
+      recursion. What we are ultimately trying to achieve is analogous to recursion in a functional language:
+
+\begin{verbatim}
+factorial (0) = 1
+factorial (n) = n * factorial (n - 1)
+\end{verbatim}
+
+      \noindent which yields:
+
+\begin{verbatim}
+factorial (5) = 5 * factorial (4)
+              = 5 * 4 * factorial (3)
+              = 5 * 4 * 3 * factorial (2)
+              = 5 * 4 * 3 * 2 * factorial (1)
+              = 5 * 4 * 3 * 2 * 1 * factorial (0)
+              = 5 * 4 * 3 * 2 * 1 * 1
+\end{verbatim}
+
+      In Cheloniidae, recursion looks a little bit different. Instead of being a computational construct, it ends up looking more like a rewrite system and
+      provides an interface that lets you customize how the terms are rewritten. The recursive construct of a square would look like this:
+
+\begin{verbatim}
+new RecursiveExpansion ("square", new Move (100), new Turn (90),
+                                  new RecursiveExpansion.Marker (
+                                    "square", 3,
+                                    new Identity<TurtleCommand> (), new NullCommand ()))
+\end{verbatim}
+
+      The {\tt Marker} instance tells the {\tt RecursiveExpansion} that an expansion should be inserted there. Each marker stores the name of the code to be
+      expanded, enabling multiple-level recursion. The \verb|3| indicates that the marker should survive for three more expansions before turning into a base
+      case. This should yield a total of four move-turn sequences.
+
+      Each marker also has the ability to transform its expansion in some way; this lets you do things traditionally done by passing parameters into the
+      recursive invocation. In this case, we use the identity transformation because we don't want to change either the move or the turn; however, we could just
+      as easily make the other sides of the square decrease in length exponentially:
+
+\begin{verbatim}
+new RecursiveExpansion.Marker (
+  "square", 3,
+  new Scale (0.5), new NullCommand ())
+\end{verbatim}
+
+      The final parameter is the value that the expansion should take when its expansion count reaches zero. So here is the rewriting that happens when a turtle
+      executes our square definition:
+
+\begin{verbatim}
+move, turn,
+  marker ("square", 3, identity, null)
+
+move, turn, sequence (move, turn,
+  marker ("square", 2, identity, null)).map (identity)
+
+move, turn, sequence (move, turn, sequence (move, turn,
+  marker ("square", 1, identity, null)).map (identity))
+
+move, turn, sequence (move, turn, sequence (move, turn, sequence (move, turn, null)))
+\end{verbatim}
+
+      Since the null command does nothing, the turtle executes four moves and four turns, producing a square as expected.
+
+\begin{javacode}
+package cheloniidae.commands;
+
+import cheloniidae.*;
+import cheloniidae.transformations.*;
+
+public class RecursiveExpansion implements TurtleCommand {
+  public static class Marker implements TurtleCommand {
+    public final String                        name;
+    public final int                           remainingExpansions;
+    public final Transformation<TurtleCommand> inductiveTransformation;
+    public final TurtleCommand                 base;
+    public       TurtleCommand                 inductiveExpansion = null;
+
+    public Marker (final String _name, final int _remainingExpansions,
+                   final Transformation<TurtleCommand> _inductiveTransformation, final TurtleCommand _base)
+      {name                    = _name;                    remainingExpansions = _remainingExpansions;
+       inductiveTransformation = _inductiveTransformation; base                = _base;}
+
+    public Marker inductiveExpansion (final TurtleCommand _inductiveExpansion) {
+      inductiveExpansion = _inductiveExpansion;
+      return this;
+    }
+
+    public TurtleCommand applyTo (final Turtle t) {
+      if (remainingExpansions <= 0) t.run (base);
+      else {
+        final TurtleCommand transformedExpansion =
+          inductiveExpansion.map (inductiveTransformation).map (new DecrementTransformation (name));
+        t.run (transformedExpansion.map (new ExpansionPopulator (name, transformedExpansion)));
+      }
+      return this;
+    }
+
+    public TurtleCommand map (final Transformation<TurtleCommand> t) {
+      final TurtleCommand newCommand = t.transform (this);
+      if (newCommand == this)
+        return new Marker (name, remainingExpansions,
+                           inductiveTransformation, base.map (t)).inductiveExpansion (inductiveExpansion);
+      else
+        return newCommand;
+    }
+  }
+
+  public static class DecrementTransformation implements Transformation<TurtleCommand> {
+    public final String name;
+    public DecrementTransformation (final String _name) {name = _name;}
+
+    public TurtleCommand transform (final TurtleCommand c) {
+      if (c instanceof Marker && ((Marker) c).name.equals (name)) {
+        final Marker cprime = (Marker) c;
+        return new Marker (cprime.name, cprime.remainingExpansions - 1, cprime.inductiveTransformation, cprime.base);
+      } else return c;
+    }
+  }
+
+  public static class ExpansionPopulator implements Transformation<TurtleCommand> {
+    public final String        name;
+    public final TurtleCommand expansion;
+    public ExpansionPopulator (final String _name, final TurtleCommand _expansion)
+      {name = _name; expansion = _expansion;}
+
+    public TurtleCommand transform (final TurtleCommand c) {
+      if (c instanceof Marker && ((Marker) c).name.equals (name)) ((Marker) c).inductiveExpansion (expansion);
+      return c;
+    }
+  }
+
+  public final String        name;
+  public final TurtleCommand body;
+
+  public RecursiveExpansion (final String _name, final TurtleCommand _body) {name = _name; body = _body;}
+
+  public TurtleCommand applyTo (final Turtle t) {
+    t.run (body.map (new ExpansionPopulator (name, body)));
+    return this;
+  }
+
+  public TurtleCommand map (final Transformation<TurtleCommand> t) {
+    final TurtleCommand newCommand = t.transform (this);
+    if (newCommand == this) return new RecursiveExpansion (name, body.map (t));
+    else                    return newCommand;
+  }
+}
+\end{javacode}
+
+\section {Parallelize} \label{sec:parallelize}
+      This isn't a turtle command {\em per se}; rather, it transforms turtle commands to work better with the {\tt PathwiseTriangleConnector}
+      (\Ref{section}{sec:pathwisetriangleconnector}). The fundamental problem that needs addressing is subtle and arises from the way {\tt TurtleGroup} handles
+      sequences and repetition.
+
+      To see the problem, imagine you have two people, each holding the end of a chalkline, standing next to each other and facing the same direction. All of
+      the commands you give to these people go through a proxy that issues your command first to the first person, and then to the second one. The commands you
+      give to the proxy are ``move'' and ``create a line,'' so you can get a series of lines fairly easily:
+
+\begin{verbatim}
+proxy.run (move (10))
+     .run (createALine ())
+     .run (move (10))
+     ...
+\end{verbatim}
+
+      The difficulty arises when you specify any complex command such as a repeat or sequence. In this case, the proxy receives the command as usual:
+
+\begin{verbatim}
+proxy.run (repeat (2, move (10), createALine ()))
+\end{verbatim}
+
+      \noindent and proceeds to translate it like this:
+
+\begin{verbatim}
+person1.run (repeat (2, move (10), createALine ()));
+person2.run (repeat (2, move (10), createALine ()));
+\end{verbatim}
+
+      \noindent With this arrangement, all of the movement will be done by one person before the other person starts moving, resulting in a bunch of diagonal
+      lines instead of the desired parallel lines. The way to fix it is to rewrite the sequences (including {\tt Repeat}) as {\tt NonDistributiveTurtleCommands}
+      that apply themselves in parallel to all of the people/turtles managed by the proxy.
+
+\begin{javacode}
+package cheloniidae;
+public interface SerialTurtleCommandComposition extends TurtleCommand {}
+\end{javacode}
+
+\begin{javacode}
+package cheloniidae.transformations;
+
+import cheloniidae.*;
+import cheloniidae.predicates.*;
+
+public class Parallelize implements Transformation<TurtleCommand> {
+  // Sometimes the order of execution of turtle commands matters. One example of this is when they're
+  // operating in parallel constructing triangles using a pathwise triangle connector. In this case,
+  // each turtle should move one step and then the emitter should be run. However, normally serial
+  // turtle command compositions distribute across turtle groups such as connectors. To fix this, we
+  // wrap those commands inside of non-distributive proxies.
+  //
+  // There's a slight catch here. When we grab a serial composition, we need to transform the
+  // original. Well, we can't just run it back through this transformation, since that would result in
+  // an infinite loop. Instead, we create a new child instance of this transformation that is primed
+  // to ignore the thing we're wrapping. This is why we have a private constructor.
+
+  private final TurtleCommand commandBeingWrapped;
+
+  public  Parallelize ()                                         {commandBeingWrapped = null;}
+  private Parallelize (final TurtleCommand _commandBeingWrapped) {commandBeingWrapped = _commandBeingWrapped;}
+
+  public TurtleCommand transform (final TurtleCommand c) {
+    if (c instanceof SerialTurtleCommandComposition && c != commandBeingWrapped)
+      return new NonDistributiveProxy (c.map (new Parallelize (c)));
+    else return c;
+  }
+}
+\end{javacode}
+
+\part {Implementation} \label{sec:implementation}
+\chapter {Displaying Scenes} \label{sec:displaying-scenes}
+    These components, in descending order of dependency, make up Cheloniidae's rendering framework:
+
+\begin{enumerate}
+\item {\tt TurtleWindow} -- \Ref{section}{sec:turtlewindow}
+\item {\tt Viewport} -- \Ref{section}{sec:viewport}
+\item {\tt Renderable} -- \Ref{section}{sec:renderable}
+\item {\tt RenderAction} -- \Ref{section}{sec:renderaction}; implementations include {\tt CartesianLine} (\Ref{section}{sec:cartesianline}) and {\tt
+        CartesianTriangle} (\Ref{section}{sec:cartesiantriangle})
+\item {\tt HasPerspectiveProjection} -- \Ref{section}{sec:hasperspectiveprojection}
+\item {\tt PerspectiveComparator} -- \Ref{section}{sec:perspectivecomparator}
+\end{enumerate}
+
+\section {Renderable} \label{sec:renderable}
+      Objects that provide visual output should implement the {\tt Renderable} interface. Turtles do this because they draw stuff to the screen.
+
+\begin{javacode}
+package cheloniidae;
+import java.util.SortedSet;
+public interface Renderable {
+  public SortedSet<RenderAction> actions (Viewport v);
+}
+\end{javacode}
+
+\section {RenderAction} \label{sec:renderaction}
+      Turtles display their output by providing a set of {\tt RenderAction}s. A render action must support two basic operations:
+
+\begin{enumerate}
+\item It must be able to draw itself to a Java graphics context.
+\item It must provide its distance from the camera.
+\end{enumerate}
+
+      The second requirement exists so that objects can be rendered from back-to-front in the viewspace (see \Ref{section}{sec:hasperspectiveprojection}).
+
+      The two render actions currently defined are {\tt CartesianLine} (\Ref{section}{sec:cartesianline}) and {\tt CartesianTriangle}
+      (\Ref{section}{sec:cartesiantriangle}). Some turtles also define render actions to display themselves; these can be found in the definition of those
+      turtle classes in \Ref{chapter}{sec:turtles}. (All of these render actions, by convention, are nested classes called {\tt View}.)
+
+\begin{javacode}
+package cheloniidae;
+public interface RenderAction extends HasPerspectiveProjection {
+  public void render (Viewport viewport);
+}
+\end{javacode}
+
+\section {HasPerspectiveProjection} \label{sec:hasperspectiveprojection}
+      Depth-sorting ensures that objects are rendered in a reasonable order. Particularly, we want objects that are far away from the camera to be rendered
+      first, followed by objects that are close to the camera. This is important because it allows closer objects to occlude more distant ones, which is what
+      happens in real life. The viewport provides methods to transform points into camera-space (see \Ref{section}{sec:viewport}).
+
+\begin{javacode}
+package cheloniidae;
+public interface HasPerspectiveProjection {
+  public double depth (Viewport v);
+}
+\end{javacode}
+
+\section {PerspectiveComparator} \label{sec:perspectivecomparator}
+      This is the wrapper necessary to construct a {\tt SortedSet} of render actions, sorted in reverse by depth.
+
+\begin{javacode}
+package cheloniidae;
+
+import java.util.Comparator;
+
+public final class PerspectiveComparator implements Comparator<HasPerspectiveProjection> {
+  public final Viewport v;
+  public PerspectiveComparator (final Viewport _v) {v = _v;}
+
+  public final int compare (final HasPerspectiveProjection p1, final HasPerspectiveProjection p2) {
+    // A couple of notes about this. First, notice that we're comparing in reverse. This is intentional.
+    // We want to sort such that the objects farthest away from the point of view are at the beginning,
+    // since they should be rendered first. Second, notice that we never return equality. This is because
+    // a TreeSet is a proper set, not just a bag of elements. Items that compare equal belong to the same
+    // equivalence class, so they would be considered duplicates. Thus we make sure that the comparison
+    // never returns equality. (This was the cause of a weird bug.)
+
+    return p2.depth (v) < p1.depth (v) ? -1 : 1;
+  }
+}
+\end{javacode}
+
+\section {TurtleWindow} \label{sec:turtlewindow}
+      This is where all of the graphical stuff happens. The structure is not too complex, either. Each {\tt RenderAction} provided by a turtle is given the
+      graphics context of the window, and is allowed to draw on it arbitrarily. So the turtle window is really just a shell that delegates the actual drawing to
+      the render actions specified by its turtles.
+
+\begin{javacode}
+package cheloniidae;
+
+import java.awt.image.BufferedImage;
+import java.awt.event.*;
+
+import java.awt.Color;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+
+import java.util.SortedSet;
+import java.util.Iterator;
+import java.util.Random;
+
+public class TurtleWindow<T extends Turtle> extends Frame implements Viewport {
+  public class RenderOperation extends Thread {
+    protected final Viewport viewport;
+    public RenderOperation (final Viewport v) {viewport = v;}
+
+    public void run () {
+      final Graphics2D c = context ();
+      c.setColor (getBackground ());
+      c.fillRect (0, 0, getWidth (), getHeight ());
+
+      final SortedSet<RenderAction> actions        = turtles.actions (viewport);
+      final Iterator<RenderAction>  actionIterator = actions.iterator ();
+
+      int objectsDrawnSoFar = 0;
+      while (! shouldCancel && actionIterator.hasNext ()) {
+        actionIterator.next ().render (viewport);
+        if (++objectsDrawnSoFar % drawingRefreshInterval == 0) repaint ();
+      }
+
+      if (! shouldCancel) {
+        if (shouldShowObjectCount) setTitle ("Cheloniidae (" + objectsDrawnSoFar + " objects)");
+        repaint ();
+      }
+    }
+  }
+
+  public class IntermediateRenderOperation extends Thread {
+    public void run () {
+      final Graphics2D c          = context ();
+      final int        pointColor = (~ getBackground ().getRGB ()) & 0xffffff;
+      c.setColor (getBackground ());
+      c.fillRect (0, 0, getWidth (), getHeight ());
+
+      for (int i = 0; ! shouldCancel && i < intermediatePointCloud.length; ++i)
+        if (intermediatePointCloud[i] != null) {
+          final Vector tp = transformPoint (intermediatePointCloud[i]);
+          if (tp.z > 0.0) {
+            final Vector pp = projectPoint (tp);
+            if (pp.x >= 0.0 && pp.x < getWidth () && pp.y >= 0.0 && pp.y < getHeight ())
+              offscreen.setRGB ((int) pp.x, (int) pp.y, pointColor);
+          }
+        }
+
+      repaint ();
+    }
+  }
+
+  protected int            drawingRefreshInterval    = 1000;
+  protected boolean        shouldShowObjectCount     = true;
+
+  protected BufferedImage  offscreen                 = null;
+  protected Graphics2D     cachedContext             = null;
+  protected TurtleGroup<T> turtles                   = new TurtleGroup<T> ();
+
+  protected Vector         virtualPOV                = new Vector (0, 0, -500.0);
+  protected Vector         virtualPOVUp              = new Vector (0, 1, 0);
+  protected Vector         virtualPOVForward         = new Vector (0, 0, 1);
+
+  protected Vector         minimumExtent             = new Vector (0, 0, 0);
+  protected Vector         maximumExtent             = new Vector (0, 0, 0);
+
+  protected Vector[]       intermediatePointCloud    = new Vector[5000];
+
+  protected int            mouseDownX                = 0;
+  protected int            mouseDownY                = 0;
+  protected boolean        mouseDown                 = false;
+  protected Thread         graphicsRequestRunner     = null;
+  protected boolean        graphicsRequestCancelFlag = false;
+  protected boolean        fisheye3D                 = false;
+  protected long           lastChange                = 0;
+  protected boolean        shouldCancel              = false;
+  
+  public TurtleWindow () {initialize ();}
+
+  public int          drawingRefreshInterval     () {return drawingRefreshInterval;}
+  public TurtleWindow drawingRefreshInterval     (final int _drawingRefreshInterval) 
+    {drawingRefreshInterval = _drawingRefreshInterval; return this;}
+
+  public boolean      shouldShowObjectCount      () {return shouldShowObjectCount;}
+  public TurtleWindow shouldShowObjectCount      (final boolean _shouldShowObjectCount)
+    {shouldShowObjectCount = _shouldShowObjectCount; return this;}
+
+  public int          intermediatePointCloudSize () {return intermediatePointCloud.length;}
+  public TurtleWindow intermediatePointCloudSize (final int _intermediatePointCloudSize)
+    {intermediatePointCloud = new Vector[_intermediatePointCloudSize]; return this;}
+
+  protected void handleResize () {
+    offscreen     = new BufferedImage (super.getWidth (), super.getHeight (), BufferedImage.TYPE_3BYTE_BGR);
+    cachedContext = null;
+    enqueueGraphicsRefreshRequest (new RenderOperation (this));
+  }
+
+  protected void initialize () {
+    final TurtleWindow t = this;
+
+    super.addWindowListener (new WindowListener ()
+      {public void windowClosing     (final WindowEvent e) {dispose ();}
+       public void windowActivated   (final WindowEvent e) {}
+       public void windowClosed      (final WindowEvent e) {}
+       public void windowDeactivated (final WindowEvent e) {}
+       public void windowDeiconified (final WindowEvent e) {}
+       public void windowIconified   (final WindowEvent e) {}
+       public void windowOpened      (final WindowEvent e) {}});
+
+    super.addComponentListener (new ComponentListener ()
+      {public void componentResized (final ComponentEvent e) {handleResize ();}
+       public void componentMoved   (final ComponentEvent e) {}
+       public void componentHidden  (final ComponentEvent e) {}
+       public void componentShown   (final ComponentEvent e) {}});
+
+    super.addMouseListener (new MouseListener () {public void mouseReleased (final MouseEvent e)
+                                                    {mouseDown = false;
+                                                     lastChange = System.currentTimeMillis ();
+                                                     enqueueGraphicsRefreshRequest (new RenderOperation (t));}
+
+                                                  public void mousePressed  (final MouseEvent e)
+                                                    {mouseDown = true;
+                                                     mouseDownX = e.getX ();
+                                                     mouseDownY = e.getY ();}
+
+                                                  public void mouseClicked  (final MouseEvent e) {}
+                                                  public void mouseEntered  (final MouseEvent e) {}
+                                                  public void mouseExited   (final MouseEvent e) {}});
+
+    super.addMouseMotionListener (new MouseMotionListener () {
+      public void mouseDragged (final MouseEvent e) {
+        if (mouseDown) {
+          final Vector virtualPOVRight = virtualPOVForward.cross (virtualPOVUp);
+          final Vector center          = new Vector (maximumExtent).multiply (0.5).
+                                                                    addScaled (minimumExtent, 0.5);
+          final double factor          = e.isControlDown () ? 0.1 : 1.0;
+
+          // A normal drag translates the view locally.
+          if (! e.isShiftDown ())
+            virtualPOV.addScaled (virtualPOVUp,    factor * (mouseDownY - e.getY ())).
+                       addScaled (virtualPOVRight, factor * (e.getX () - mouseDownX));
+          else {
+            final double pitchAngle = (e.getY () - mouseDownY) * factor;
+            final double turnAngle  = (e.getX () - mouseDownX) * factor;
+
+            virtualPOV = virtualPOV.subtract (center).rotatedAbout (virtualPOVUp,    turnAngle).
+                                                      rotatedAbout (virtualPOVRight, pitchAngle).add (center);
+
+            virtualPOVForward = virtualPOVForward.rotatedAbout (virtualPOVUp,    turnAngle).
+                                                  rotatedAbout (virtualPOVRight, pitchAngle).normalize ();
+            virtualPOVUp      = virtualPOVUp.rotatedAbout      (virtualPOVRight, pitchAngle).normalize ();
+          }
+
+          lastChange = System.currentTimeMillis ();
+
+          mouseDownX = e.getX ();
+          mouseDownY = e.getY ();
+          enqueueGraphicsRefreshRequest (new IntermediateRenderOperation ());
+        }
+      }
+      public void mouseMoved (final MouseEvent e) {}
+    });
+
+    super.addMouseWheelListener (new MouseWheelListener  () {
+      public void mouseWheelMoved (final MouseWheelEvent e) {
+        virtualPOV.addScaled (virtualPOVForward, (e.isControlDown () ? -1 : -10) * e.getWheelRotation ());
+        lastChange = System.currentTimeMillis ();
+        enqueueGraphicsRefreshRequest (new IntermediateRenderOperation ());
+      }});
+
+    super.setSize       (600, 372);
+    super.setTitle      ("Cheloniidae");
+    super.setVisible    (true);
+    super.setBackground (Color.WHITE);
+
+    handleResize ();
+  }
+
+  public void update (final Graphics g) {paint (g);}
+  public void paint  (final Graphics g) {g.drawImage (offscreen, 0, 0, null);}
+
+  public TurtleWindow add (final T t) {turtles.turtles ().add (t); t.window (this); return this;}
+
+  public void enqueueGraphicsRefreshRequest (final Thread t) {
+    if (offscreen != null) {
+      if (graphicsRequestRunner != null && graphicsRequestRunner.isAlive ()) {
+        cancel ();
+        try {graphicsRequestRunner.join ();}
+        catch (final InterruptedException e) {}
+      }
+
+      shouldCancel = false;
+      (graphicsRequestRunner = t).start ();
+    }
+  }
+
+  public TurtleWindow pause (final long milliseconds) {
+    enqueueGraphicsRefreshRequest (new RenderOperation (this));
+    try {Thread.sleep (milliseconds);}
+    catch (final InterruptedException e) {}
+    return this;
+  }
+
+  public TurtleWindow cancel () {shouldCancel = true; return this;}
+
+  public boolean shouldCancel () {return shouldCancel;}
+  public long    lastChange   () {return lastChange;}
+  public double  scaleFactor  () {return getHeight ();}
+
+  public TurtleWindow representativePoint (final Vector v) {
+    final int index = Math.abs (new Random ().nextInt ()) % intermediatePointCloud.length;
+    if (intermediatePointCloud[index] == null || new Random ().nextDouble () > 0.97) intermediatePointCloud[index] = v;
+    minimumExtent.componentwiseMinimum (v);
+    maximumExtent.componentwiseMaximum (v);
+    return this;
+  }
+
+  public Vector transformPoint (final Vector v)
+    {return new Vector (v).subtract (virtualPOV).toCoordinateSpace (
+      virtualPOVUp.cross (virtualPOVForward), virtualPOVUp, virtualPOVForward);}
+
+  public Vector projectPoint (final Vector v)
+    {return (fisheye3D ? new Vector (v).normalize () :
+                         new Vector (v).divide (v.z)).multiply (
+                           super.getHeight ()).add (new Vector (super.getWidth () >> 1, super.getHeight () >> 1, 0));}
+
+  public Graphics2D context () {
+    if (cachedContext != null) return cachedContext;
+    else {
+      final Graphics2D     g  = (Graphics2D) offscreen.getGraphics ();
+      final RenderingHints rh = g.getRenderingHints ();
+      rh.put (rh.KEY_ANTIALIASING, rh.VALUE_ANTIALIAS_ON);
+      g.setRenderingHints (rh);
+      return g;
+    }
+  }
+}
+\end{javacode}
+
+\section {Viewport} \label{sec:viewport}
+      A subset of the {\tt TurtleWindow} is used to interface with render actions; this is called a {\tt Viewport}. It's an abstraction to allow generalization
+      of the user interface, one of the options I'm considering taking advantage of with Cheloniidae 4.
+
+      Most of these methods should be self-explanatory (see \Ref{section}{sec:viewport-caching} for an explanation of {\tt lastChange}), but one deserves some
+      attention. The {\tt representativePoint} method appears to do nothing; it just returns the viewport. However, it is provided to update the viewport's
+      state. It is intended to let render actions specify points that they consider to be significant; this enables a faster point-cloud display to be used for
+      intermediate renders instead of rendering a subset of actions from the turtles. The {\tt TurtleWindow} class (see \Ref{section}{sec:turtlewindow}) also
+      uses these points to compute a bounding box for the scene, enabling the camera to rotate around the middle of the scene instead of just around the origin.
+
+\begin{javacode}
+package cheloniidae;
+
+import java.awt.Graphics2D;
+
+public interface Viewport {
+  public boolean    shouldCancel        ();
+  public Graphics2D context             ();
+  public double     scaleFactor         ();
+  public Vector     transformPoint      (Vector v);
+  public Vector     projectPoint        (Vector v);
+  public Viewport   representativePoint (Vector v);
+  public long       lastChange          ();
+}
+\end{javacode}
+
+\chapter {Render Actions} \label{sec:render-actions}
+\section {Vector} \label{sec:vector}
+      A vector is Cheloniidae's mechanism for representing a three-dimensional point. It includes a bunch of helpful vector mathematics methods, most of which
+      modify the point somehow and then return it. A notable exception to this rule is {\tt rotatedAbout}, which creates a new vector. In general, methods which
+      are phrased in the present tense will modify the vector, and methods phrased in past tense will return a new one.
+
+\begin{javacode}
+package cheloniidae;
+
+import java.io.Serializable;
+
+public final class Vector implements Serializable, Cloneable, Comparable<Vector> {
+  public double x = 0.0;
+  public double y = 0.0;
+  public double z = 0.0;
+
+  public Vector ()                                               {}
+  public Vector (final Vector existing)                          {this (existing.x, existing.y, existing.z);}
+  public Vector (final double all)                               {this (all, all, all);}
+  public Vector (final double x, final double y, final double z) {this.assign (x, y, z);}
+
+  public Vector clone     ()                   {return new Vector (this);}
+  public int    compareTo (final Vector other) {return Double.compare (lengthSquared (), other.lengthSquared ());}
+  public String toString  ()                   {return "<" + Double.toString (x) + ", " +
+                                                             Double.toString (y) + ", " +
+                                                             Double.toString (z) + ">";}
+
+  public Vector assign (final Vector v)                                    {return this.assign (v.x, v.y, v.z);}
+  public Vector assign (final double nx, final double ny, final double nz) {x = nx; y = ny; z = nz; return this;}
+  public Vector center ()                                                  {return this.assign (0, 0, 0);}
+
+  public Vector addScaled (final Vector other, final double factor) {x += other.x * factor;
+                                                                     y += other.y * factor;
+                                                                     z += other.z * factor;
+                                                                     return this;}
+
+  public Vector add      (final Vector other)  {x += other.x; y += other.y; z += other.z; return this;}
+  public Vector subtract (final Vector other)  {x -= other.x; y -= other.y; z -= other.z; return this;}
+  public Vector multiply (final Vector other)  {x *= other.x; y *= other.y; z *= other.z; return this;}
+  public Vector multiply (final double factor) {x *= factor;  y *= factor;  z *= factor;  return this;}
+  public Vector divide   (final Vector other)  {x /= other.x; y /= other.y; z /= other.z; return this;}
+  public Vector divide   (final double factor) {x /= factor;  y /= factor;  z /= factor;  return this;}
+
+  public Vector componentwiseMinimum (final Vector other) {return this.assign (other.x < this.x ? other.x : this.x,
+                                                                               other.y < this.y ? other.y : this.y,
+                                                                               other.z < this.z ? other.z : this.z);}
+  public Vector componentwiseMaximum (final Vector other) {return this.assign (other.x > this.x ? other.x : this.x,
+                                                                               other.y > this.y ? other.y : this.y,
+                                                                               other.z > this.z ? other.z : this.z);}
+
+  public double dot (final Vector other) {return x * other.x + y * other.y + z * other.z;}
+  public double length ()                {return Math.sqrt (x*x + y*y + z*z);}
+  public double lengthSquared ()         {return x*x + y*y + z*z;}
+
+  public Vector proj (final Vector base) {return new Vector (base).multiply (this.dot (base) / base.lengthSquared ());}
+  public Vector orth (final Vector base) {return this.proj (base).multiply (-1.0).add (this);}
+
+  public Vector normalize () {return divide (length ());}
+
+  public double distanceFrom (final Vector other) {return Math.sqrt ((x - other.x) * (x - other.x) +
+                                                                     (y - other.y) * (y - other.y) +
+                                                                     (z - other.z) * (z - other.z));}
+
+  public Vector cross (final Vector other) {return new Vector (y * other.z - z * other.y,
+                                                               z * other.x - x * other.z,
+                                                               x * other.y - y * other.x);}
+
+  public Vector toCoordinateSpace (final Vector v1, final Vector v2, final Vector v3)
+    {return new Vector (this.dot (v1) / v1.length (), this.dot (v2) / v2.length (), this.dot (v3) / v3.length ());}
+
+  public Vector fromCoordinateSpace (final Vector v1, final Vector v2, final Vector v3)
+    {return new Vector (v1).multiply (x).addScaled (v2, y).addScaled (v3, z);}
+
+  public Vector rotatedAbout (final Vector v, final double degrees) {
+    final Vector b1 = new Vector (v).normalize ();
+    final Vector b2 = this.orth (b1).normalize ();
+    final Vector b3 = b1.cross (b2);                  // The cross product of orthogonal unit vectors is a unit vector.
+    final double l  = this.orth (b1).length ();
+
+    return this.proj (b1).addScaled (b2, Math.cos (degrees * Math.PI / 180.0) * l).
+                          addScaled (b3, Math.sin (degrees * Math.PI / 180.0) * l);
+  }
+}
+\end{javacode}
+
+\section {CartesianLine} \label{sec:cartesianline}
+      This object represents a Euclidean line whose endpoints have Cartesian coordinates. It knows how to approximate the incidence angle relative to the
+      viewpoint (this can be inferred by using the viewport to transform the endpoints and midpoint), and uses this to shade the line according to the
+      calculations for thickness-based shading (see \Ref{section}{sec:incidence-angles}).
+
+\begin{javacode}
+package cheloniidae;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+
+public class CartesianLine extends ViewportCaching implements HasPerspectiveProjection, RenderAction {
+  public final Vector v1;
+  public final Vector v2;
+  public final double width;
+  public final Color  color;
+  public final Vector midpoint;
+
+  public CartesianLine (final Vector _v1, final Vector _v2, final double _width, final Color _color) {
+    v1       = new Vector (_v1);
+    v2       = new Vector (_v2);
+    width    = _width;
+    color    = _color;
+    midpoint = v1.clone ().multiply (0.5).addScaled (v2, 0.5);
+  }
+
+  public double computeDepth (final Viewport v) {return v.transformPoint (midpoint).length ();}
+
+  public void render (final Viewport v) {
+    final Vector tv1 = v.transformPoint (v1);
+    final Vector tv2 = v.transformPoint (v2);
+
+    // If either point is behind the POV, then solve for z = 1.0. If both points are behind,
+    // then the line does not get rendered.
+    if (tv1.z > 0 || tv2.z > 0) {
+      v.representativePoint (midpoint).representativePoint (v1).representativePoint (v2);
+
+      if (tv1.z <= 0) {
+        final double factor = (1.0 - tv1.z) / (tv2.z - tv1.z);
+        tv1.multiply (1.0 - factor).addScaled (tv2, factor);
+      } else if (tv2.z <= 0) {
+        final double factor = (1.0 - tv2.z) / (tv1.z - tv2.z);
+        tv2.multiply (1.0 - factor).addScaled (tv1, factor);
+      }
+
+      final double     thickness = 2.0 * v.scaleFactor () / (tv1.z + tv2.z);
+      final Vector     pv1       = v.projectPoint (tv1);
+      final Vector     pv2       = v.projectPoint (tv2);
+      final Graphics2D g         = v.context ();
+
+      final Vector transformedMidpoint = v.transformPoint (midpoint);
+      final Vector transformedNormal   = tv1.clone ().subtract (tv2);
+      final Color  newColor            = IncidentAngleComputation.adjustForThickness (color,
+                                          IncidentAngleComputation.cylindricalThickness (
+                                            transformedNormal, transformedMidpoint));
+
+      g.setStroke (new BasicStroke ((float) Math.abs (thickness * width)));
+      g.setColor  (newColor);
+      g.drawLine  ((int) pv1.x, (int) pv1.y, (int) pv2.x, (int) pv2.y);
+    }
+  }
+}
+\end{javacode}
+
+\section {CartesianTriangle} \label{sec:cartesiantriangle}
+      This represents a Euclidean triangle whose vertices are represented by Cartesian coordinates. Like the {\tt CartesianLine}
+      (\Ref{section}{sec:cartesianline}), it is shaded according to the perceived incidence angle.
+
+\begin{javacode}
+package cheloniidae;
+
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+
+public class CartesianTriangle extends ViewportCaching implements HasPerspectiveProjection, RenderAction {
+  public final Vector v1;
+  public final Vector v2;
+  public final Vector v3;
+  public final Color  color;
+  public final Vector midpoint;
+
+  public CartesianTriangle (final Vector _v1, final Vector _v2, final Vector _v3, final Color _color) {
+    v1       = new Vector (_v1);
+    v2       = new Vector (_v2);
+    v3       = new Vector (_v3);
+    color    = _color;
+    midpoint = v1.clone ().multiply (1.0 / 3.0).addScaled (v2, 1.0 / 3.0).addScaled (v3, 1.0 / 3.0);
+  }
+
+  public double computeDepth (final Viewport v) {return v.transformPoint (midpoint).length ();}
+
+  public void render (final Viewport v) {
+    final Vector tv1 = v.transformPoint (v1);
+    final Vector tv2 = v.transformPoint (v2);
+    final Vector tv3 = v.transformPoint (v3);
+
+    v.representativePoint (midpoint).representativePoint (v1).representativePoint (v2).representativePoint (v3);
+
+    // Render the triangle only when all three points are in front of the camera.
+    // I'm being lazy here -- there is a way to solve for the points' projections to
+    // z = 1 like we did for Cartesian lines, but the number of cases is much larger.
+    if (tv1.z > 0 && tv2.z > 0 && tv3.z > 0) {
+      final Vector     pv1 = v.projectPoint (tv1);
+      final Vector     pv2 = v.projectPoint (tv2);
+      final Vector     pv3 = v.projectPoint (tv3);
+      final Graphics2D g   = v.context ();
+
+      final int[] xs = new int[] {(int) pv1.x, (int) pv2.x, (int) pv3.x};
+      final int[] ys = new int[] {(int) pv1.y, (int) pv2.y, (int) pv3.y};
+
+      // Render only real triangles. If they become degenerate when projected into 2D,
+      // then we ignore them.
+      if (! (xs[0] == xs[1] && ys[0] == ys[1] ||
+             xs[1] == xs[2] && ys[1] == ys[2] ||
+             xs[0] == xs[2] && ys[0] == ys[2])) {
+        final Vector transformedMidpoint    = v.transformPoint (midpoint);
+        final Vector transformedNormal      = tv1.clone ().subtract (tv2).cross (tv3.clone ().subtract (tv2));
+        final Color  newColor               = IncidentAngleComputation.adjustForThickness (color,
+                                                IncidentAngleComputation.planarThickness (
+                                                  transformedNormal, transformedMidpoint));
+        g.setColor (newColor);
+        g.fill     (new Polygon (xs, ys, 3));
+      }
+    }
+  }
+}
+\end{javacode}
+
+\section {Viewport Caching} \label{sec:viewport-caching}
+      This is a hack for optimization purposes. When the render actions are depth-sorted, $O(n \log n)$ comparisons will be done between render actions'
+      computed depths.\footnote{See the {\tt HasPerspectiveProjection} interface in \Ref{section}{sec:hasperspectiveprojection}.} If done naïvely, this would
+      result in $O(n \log n)$ distance computations for $n$ objects. However, the distance of an object is unlikely to change during a depth-sort operation, so
+      the naïve algorithm will be a factor of $\log n$ slower than it could be.
+
+      This is where viewport caching comes in. The viewport maintains a timestamp of the last state change (only state changes that would affect the
+      depth-sorting are considered), and objects that inherit from the {\tt ViewportCaching} class have the optimization that they recompute their distance only
+      if the viewport's timestamp is after their last recomputation.
+
+\begin{javacode}
+package cheloniidae;
+
+public abstract class ViewportCaching {
+  private Viewport cachedViewport   = null;
+  private long     cachedLastChange = 0;
+  private double   cachedDepth      = 0.0;
+
+  public abstract double computeDepth (Viewport v);
+
+  public double depth (final Viewport v) {
+    final double result = (cachedViewport == v && v.lastChange () == cachedLastChange) ?
+                          cachedDepth : (cachedDepth = computeDepth (v));
+    cachedViewport   = v;
+    cachedLastChange = v.lastChange ();
+    return result;
+  }
+}
+\end{javacode}
+
+\section {Incidence Angles} \label{sec:incidence-angles}
+      Incident angle computation is about finding out how much light passes through a translucent material based on the angle. Here's why the angle matters.
+      Suppose you have a one-inch thick sheet of smoked glass:
+
+      \setlength{\unitlength}{1in}
+      \begin{center}
+      \begin{picture}(4,1.5)(0,0)
+        \color{slate}
+        \put(0,0.2){\framebox(4,0.6)}
+        \put(1,0){\line(0,1){1.5}}
+        \put(2,0){\line(1,2){0.75}}
+
+        \put(1.1,1.4){\sffamily Ray \#1}
+        \put(2.85,1.4){\sffamily Ray \#2}
+
+        \put(1.1,0.9){\sffamily 90 degrees}
+        \put(2.6,0.9){\sffamily 60 degrees}
+      \end{picture}
+      \end{center}
+
+      Looking through it vertically (ray \#1) results in the attenuation from one inch of smoked glass. However, if we look through it from a different angle
+      (ray \#2), the ray will pass through more glass. In each case, the amount of glass traveled through is the secant of the ray's incident angle, so for ray
+      1 it would be $\sec 90\degrees = 1$, and for ray 2 it would be $\sec 60\degrees = {2 \over \sqrt 3}$. Conveniently, the secant of the angle is simply the
+      reciprocal of the dot product of the ray's direction and the surface normal of the glass. (That is, $\sec\theta = (\vec r \cdot \vec N)^{-1}$, where
+      $\theta$ is the incidence angle, $\vec r$ is the ray's direction, and $\vec N$ is the surface normal vector.)
+
+      Slightly more difficult is figuring out how much light is left after traveling through $x$ amount of material. Doing this requires a separable
+      differential equation:
+
+      $$
+      {dL \over dx} = - o L
+      $$
+
+      \noindent where $L(x)$ is the amount of light after traveling through $x$ amount of glass, and $o$ is the opacity of the glass. Solving yields:
+
+      $$
+      L(x) = C e^{-o x}
+      $$
+
+      \noindent Solving for $C$ is simple if we make the assumption that ray \#1 should perceive $o$ opacity from one inch of glass. So we can solve with that
+      constraint:
+
+      $$
+      1 - o = Ce^{-o} ~~~ \Rightarrow ~~~ C = {1 - o \over e^{-o}}
+      $$
+
+\begin{javacode}
+package cheloniidae;
+
+import java.awt.Color;
+import static java.lang.Math.*;
+
+public abstract class IncidentAngleComputation {
+  public static final double lightTransmission (final double thickness, final double opacity) {
+    final double c = (1.0 - opacity) / exp (-opacity);
+    return c * exp (-thickness * opacity);
+  }
+
+  public static final Color adjustForThickness (final Color original, final double thickness) {
+    final double originalOpacity  = original.getAlpha () / 255.0;
+    final double perceivedOpacity = 1.0 - lightTransmission (thickness, originalOpacity);
+    final double clippedOpacity   = perceivedOpacity > 1.0 ? 1.0 :
+                                    perceivedOpacity < 0.0 ? 0.0 : perceivedOpacity;
+
+    return new Color (original.getRed (), original.getGreen (), original.getBlue (), (int) (clippedOpacity * 255.0));
+  }
+
+  public static final double planarThickness (final Vector surfaceNormal, final Vector v) {
+    // This is a simplified way to compute the secant of the scalar angle between the two vectors.
+    return surfaceNormal.length () * v.length () / abs (surfaceNormal.dot (v));
+  }
+
+  public static final double cylindricalThickness (final Vector axis, final Vector v) {
+    final double cosineTheta = axis.dot (v) / (axis.length () * v.length ());
+    final double sineTheta   = sqrt (1.0 - cosineTheta * cosineTheta);
+    return 1.0 / sineTheta;
+  }
+}
+\end{javacode}
+
+\chapter {Frames} \label{sec:frames}
+    These classes exist to simplify turtle scene construction.
+
+\section {Resources} \label{sec:resources}
+      Over time, I would like to build up a standard library of resources for Cheloniidae. One of the more straightforward of these is a text rendering
+      interface, included here. Given a string it will return a sequence of commands that render each letter. Right now it supports lowercase letters and
+      spaces, though it can easily be extended.
+
+      Because the resulting sequence is split on letters and not on lines, you can do fun things with it; check out the {\tt text.java} example file for some
+      ideas.
+
+\begin{javacode}
+package cheloniidae.resources;
+
+import cheloniidae.*;
+import cheloniidae.commands.*;
+
+import static cheloniidae.frames.CoreCommands.*;
+
+import java.util.*;
+
+public class BasicTextRenderer {
+  public static final double diagonal = Math.sqrt (2);
+
+  public TurtleCommand line    (final double length) {return move (length);}
+  public TurtleCommand lateral (final double right)  {return sequence (turn (90), jump (right), turn (-90));}
+  public TurtleCommand right   ()                    {return sequence (turn ( 45), move (diagonal), turn ( 45));}
+  public TurtleCommand left    ()                    {return sequence (turn (-45), move (diagonal), turn (-45));}
+
+  public TurtleCommand wind    (final int ... xs) {
+    // 0 = change direction. By default, the direction is clockwise, or right.
+    final List<TurtleCommand> cs    = new LinkedList<TurtleCommand> ();
+    TurtleCommand             last  = null;
+    boolean                   right = true;
+
+    for (final int x : xs) if (x == 0) right ^= true;
+                           else if (x > 0) {
+                             cs.add (line (x));
+                             cs.add (last = right ? right () : left ());
+                           } else {
+                             cs.add (jump (-x));
+                             cs.add (last = right ? right () : left ());
+                           }
+
+    if (last != null) cs.remove (last);
+    return seq (cs.toArray (new TurtleCommand[0]));
+  }
+
+  public TurtleCommand topLeft     () {return new Sequence (new Jump (9), new Turn (180));}
+  public TurtleCommand topRight    () {return new Sequence (new Jump (9), new Turn (90), new Jump (6), new Turn (90));}
+  public TurtleCommand bottomLeft  () {return new NullCommand ();}
+  public TurtleCommand bottomRight () {return new Sequence (new Turn (90), new Jump (6), new Turn (-90));}
+
+  public TurtleCommand seq (final TurtleCommand ... commands) {return new Sequence (commands);}
+
+  public TurtleCommand drawCharacter (final char c) {
+    switch (c) {
+      case 'a': return seq (wind (-5, 4, 4, 4, 1, 5), lateral (3), jump (1), turn (-90));
+      case 'b': return seq (topLeft (), wind (0, 8, 4, 4, 5), lateral (-6), turn (180), jump (7), turn (-90));
+      case 'c': return seq (lateral (6), jump (5), left (), wind (0, 4, 4, 4), left (), jump (-1), lateral (1));
+      case 'd': return seq (topRight (), wind (8, 4, 4, 5), lateral (6), jump (1), turn (-90));
+      case 'e': return seq (jump (3), turn (90), wind (0, 5, 1, 4, 4, 4), left (), jump (-1), lateral (1));
+      case 'f': return seq (wind (8, 4), right (), jump (3), turn (90), jump (1), line (5), lateral (-5), turn (90),
+                            lateral (7));
+      case 'g': return seq (jump (-2), turn (180), left (), wind (0, 4, 7, 4, 4, 5), jump (1), turn (-90));
+      case 'h': return seq (topLeft (), line (9), jump (-5), turn (180), right (), wind (4, 5), turn (180),
+                            lateral (1));
+      case 'i': return seq (turn (90), line (6), jump (-3), turn (-90), wind (0, 5, 1), lateral (-6), turn (90),
+                            lateral (5));
+      case 'j': return seq (jump (-3), turn (90), wind (0, 2, 8), turn (-90), line (2), lateral (-6), turn (90),
+                            lateral (5));
+      case 'k': return seq (line (6), jump (-3), turn (45), line (3 * diagonal), jump (-3 * diagonal), turn (90),
+                            line (3 * diagonal), turn (-135), lateral (3));
+      case 'l': return seq (turn (90), line (6), jump (-3), turn (-90), wind (0, 8, 1), turn (90), jump (-9),
+                            lateral (6));
+      case 'm': return seq (wind (5, 1, 5), turn (180), wind (5, 1, 5), turn (180), lateral (1));
+      case 'n': return seq (wind (5, 4, 5), turn (180), lateral (1));
+      case 'o': return seq (jump (1), wind (4, 4, 4, 4), right (), jump (-1), lateral (7));
+      case 'p': return seq (jump (-3), wind (8, 4, 4, 5), turn (90), lateral (7));
+      case 'q': return seq (jump (-3), lateral (6), wind (0, 8, 4, 4, 5), turn (-90), lateral (1));
+      case 'r': return seq (wind (5, 4), turn (-90), jump (-6), lateral (2));
+      case 's': return seq (turn (90), wind (0, 5, 1, 0, 4, 1, 5), turn (-90), jump (-6), lateral (1));
+      case 't': return seq (lateral (3), line (6), turn (90), jump (-3), line (6), lateral (6),
+                            turn (-90), lateral (1));
+      case 'u': return seq (jump (6), turn (180), wind (0, 5, 4, 5), jump (-6), lateral (1));
+      case 'v': return seq (jump (6), turn (180), line (3), turn (-45), line (3 * diagonal), turn (-90),
+                            line (3 * diagonal), turn (-45), line (3), jump (-6), lateral (1));
+      case 'w': return seq (jump (6), turn (180), wind (0, 5, 1, 5), turn (180), wind (0, 5, 1, 5), jump (-6),
+                            lateral (1));
+      case 'x': return seq (turn (45), line (6 * diagonal), turn (-135), jump (6), turn (-135), line (6 * diagonal),
+                            turn (-135), lateral (1));
+      case 'y': return seq (jump (6), turn (180), wind (0, 5, 5), turn (-90), jump (6), turn (180), wind (8, 5),
+                            turn (90), jump (3), lateral (7));
+      case 'z': return seq (jump (6), turn (90), line (6), turn (135), line (6 * diagonal), turn (-135), line (6),
+                            turn (-90), lateral (1));
+
+      case ' ': return lateral (7);
+      default:  return new NullCommand ();
+    }
+  }
+
+  public Sequence drawText (final String text) {
+    final List<TurtleCommand> cs = new LinkedList<TurtleCommand> ();
+    for (int i = 0; i < text.length (); ++i) cs.add (drawCharacter (text.charAt (i)));
+    return new Sequence (cs.toArray (new TurtleCommand[0]));
+  }
+}
+\end{javacode}
+
+\section {SingleTurtleScene} \label{sec:singleturtlescene}
+      This automates the logic behind creating a scene with one turtle. There is some parameterization to allow a turtle group to be used as the turtle, but it
+      turns out to be somewhat difficult to use.
+
+\begin{javacode}
+package cheloniidae.frames;
+
+import cheloniidae.*;
+
+public abstract class SingleTurtleScene<T extends Turtle> {
+  protected final TurtleWindow window;
+  protected final T            turtle;
+
+  protected final TurtleStack  stack = new TurtleStack ();
+
+  public abstract TurtleCommand commands ();
+
+  public SingleTurtleScene () {
+    window = createWindow ();
+    turtle = createTurtle ();
+    initialize ();
+    run ();
+  }
+
+  public T            createTurtle () {return (T) new StandardRotationalTurtle ();}
+  public TurtleWindow createWindow () {return new TurtleWindow ();}
+
+  public SingleTurtleScene<T> initialize () {
+    window.add (turtle).setVisible (true);
+    return this;
+  }
+
+  public SingleTurtleScene<T> run () {
+    turtle.run (this.commands ());
+    window.pause (0);
+    return this;
+  }
+} 
+\end{javacode}
+
+\section {DarkSingleTurtleScene} \label{sec:darksingleturtlescene}
+      This is just like {\tt SingleTurtleScene}, except that it defaults to a dark background and light-colored lines.
+  
+\begin{javacode}
+package cheloniidae.frames;
+
+import cheloniidae.Turtle;
+import static cheloniidae.frames.CoreCommands.color;
+
+import java.awt.Color;
+
+public abstract class DarkSingleTurtleScene<T extends Turtle> extends SingleTurtleScene<T> {
+  public DarkSingleTurtleScene initialize () {
+    window.setBackground (new Color (0.05f, 0.06f, 0.08f));
+    turtle.run (color (new Color (0.8f, 0.8f, 0.9f, 0.3f)));
+    super.initialize ();
+    return this;
+  }
+}
+\end{javacode}
+
+\section {CoreCommands} \label{sec:corecommands}
+      These are constructors written for convenience. Instead of constructing turtle commands manually, e.g.~\verb|new Move (100)|, you can drop the {\tt new}
+      and write \verb|move (100)|. There are also shorthands to save typing when specifying colors and vectors, as the constructors for these can be implicitly
+      inferred.
+
+\begin{javacode}
+package cheloniidae.frames;
+
+import cheloniidae.*;
+import cheloniidae.attributes.*;
+import cheloniidae.commands.*;
+import cheloniidae.predicates.*;
+import cheloniidae.replicators.*;
+import cheloniidae.transformations.*;
+
+import java.awt.Color;
+
+import java.util.Random;
+
+public abstract class CoreCommands {
+  private static final Random rng = new Random ();
+
+  public static Move move (final double distance) {return new Move (distance);}
+  public static Jump jump (final double distance) {return new Jump (distance);}
+
+  public static Turn  turn  (final double angle) {return new Turn (angle);}
+  public static Bank  bank  (final double angle) {return new Bank (angle);}
+  public static Pitch pitch (final double angle) {return new Pitch (angle);}
+
+  public static LineSize  size    (final double size)     {return new LineSize (size);}
+  public static LineColor color   (final Color color)     {return new LineColor (color);}
+  public static Visible   visible (final boolean visible) {return new Visible (visible);}
+
+  public static LineColor color   (final double r, final double g, final double b)
+    {return color (r, g, b, 1.0);}
+  public static LineColor color   (final double r, final double g, final double b, final double a)
+    {return color (new Color ((float) r, (float) g, (float) b, (float) a));}
+
+  public static Position  position  (final Vector position)  {return new Position (position);}
+  public static Direction direction (final Vector direction) {return new Direction (direction);}
+  public static DirectionComplement directionComplement (final Vector directionComplement)
+    {return new DirectionComplement (directionComplement);}
+
+  public static Position  position  (final double x, final double y, final double z)
+    {return position  (new Vector (x, y, z));}
+
+  public static Direction direction (final double x, final double y, final double z) 
+    {return direction (new Vector (x, y, z));}
+
+  public static DirectionComplement directionComplement (final double x, final double y, final double z)
+    {return directionComplement (new Vector (x, y, z));}
+
+  public static NullCommand pass  ()                  {return new NullCommand ();}
+  public static Debug       debug (final String text) {return new Debug (text);}
+
+  public static When     when     (final Predicate<Turtle> decisional, final TurtleCommand ... commands) {
+    return new When (decisional, commands);
+  }
+
+  public static When     unless   (final Predicate<Turtle> decisional, final TurtleCommand ... commands) {
+    return when (new Negation<Turtle> (decisional), commands);
+  }
+
+  public static Repeat   repeat   (final int repetitions, final TurtleCommand ... commands)
+    {return new Repeat (repetitions, commands);}
+
+  public static Sequence sequence (final TurtleCommand ... commands) {return new Sequence (commands);}
+
+  public static Triangle triangle (final SupportsPosition p1, final SupportsPosition p2) {return new Triangle (p1, p2);}
+  public static Triangle triangle (final TurtleCommand    c1, final TurtleCommand    c2) {return new Triangle (c1, c2);}
+
+  public static InductiveReplicator<StandardRotationalTurtle> inductiveReplicator
+      (final int copies, final TurtleCommand inductiveStep, final TurtleCommand ... replicatedActions) {
+    return new InductiveReplicator<StandardRotationalTurtle> (copies, inductiveStep, replicatedActions);
+  }
+
+  public static InductiveReplicator<StandardRotationalTurtle> copy (final TurtleCommand ... copiedActions) {
+    return inductiveReplicator (1, pass (), copiedActions);
+  }
+
+  public static BandSplitReplicator bandSplitReplicator (final TurtleCommand firstTurtlePrimer,
+                                                         final TurtleCommand ... replicatedActions) {
+    return new BandSplitReplicator (firstTurtlePrimer, replicatedActions);
+  }
+
+  public static RecursiveExpansion recursiveBlock (final String name, final TurtleCommand ... body) {
+    return new RecursiveExpansion (name, sequence (body));
+  }
+
+  public static RecursiveExpansion.Marker recurse (final String name, final int remainingExpansions,
+                                                   final Transformation<TurtleCommand> inductiveTransformation,
+                                                   final TurtleCommand ... baseCommands) {
+    return new RecursiveExpansion.Marker (name, remainingExpansions, inductiveTransformation, sequence (baseCommands));
+  }
+
+  public static Scale scale (final double factor)                              {return new Scale (factor);}
+  public static Scale scale (final double factor, final boolean scaleLineSize) {return new Scale (factor, scaleLineSize);}
+  public static Identity identity ()                                           {return new Identity ();}
+
+  public static <T extends Transformable<T>> Compose<T> compose (final Transformation<T> ... transformations)
+    {return new Compose<T> (transformations);}
+
+  public static double random ()                                   {return rng.nextDouble ();}
+  public static double random (final double scale)                 {return random () * scale;}
+  public static double random (final double min, final double max) {return random (max - min) + min;}
+
+  public static Predicate<Turtle> hasAttribute (final Predicate<Attribute> predicate) {
+    return new HasAttribute (predicate);
+  }
+
+  public static AddAttribute addAttribute (final Attribute a) {return new AddAttribute (a);}
+  public static Named        named        (final String name) {return new Named (name);}
+  public static Pause        pause        (final long time)   {return new Pause (time);}
+
+  // Can't make this plural because then it would atomize a sequence and not the command that we want to atomize.
+  // To compensate, we could wrap each subcommand with a non-distributive proxy, but that sounds like a lot of
+  // work for such a simple function.
+  public static NonDistributiveProxy atomic (final TurtleCommand c) {return new NonDistributiveProxy (c);}
+
+  public static TriangleEmitter.Start triangleStart () {return new TriangleEmitter.Start ();}
+  public static TriangleEmitter.Emit  triangleEmit  () {return new TriangleEmitter.Emit  ();}
+}
+\end{javacode}
+
+\end{document}

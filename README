@@ -1,0 +1,6 @@
+Cheloniidae: 3D turtle graphics for Java
+
+When I wrote this I didn't really know how Java builds worked, so the layout
+is a bit unusual. Source is in src/, example source is in examples/, and all
+of the class files are in build/. I think I'm also copying src/ into build/ so
+that any JARs that get built contain the source as well as the class files.
