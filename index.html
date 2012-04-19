@@ -55,7 +55,7 @@
         padding: 2px;
         font-size: 24pt;
       }
-      
+
       div.section div.content {
         font-family: 'Liberation Serif', 'Luxi Serif', 'URW Palladio L', 'Palatino', 'Garamond', serif;
         font-size: 12pt;
@@ -105,7 +105,7 @@
       <div class='title'>What is Cheloniidae?</div>
       <div class='content'>
         <p>
-        Cheloniidae (formerly Terrapin) is an advanced Java turtle graphics library written by <a href='http://www.spencertipping.com/'>Spencer Tipping</a>. It
+        Cheloniidae (formerly Terrapin) is an advanced Java turtle graphics library written by <a href='http://spencertipping.com/'>Spencer Tipping</a>. It
         supports three-dimensional rendering, turtle replication, and other concepts not traditionally implemented in turtle systems. All of the images on this
         page were produced with Cheloniidae using the included example programs (or code next to the images).
         </p>
@@ -115,9 +115,9 @@
         Here are some of the examples included with Cheloniidae. Each of these images was produced with under 35 lines of Java.
         </p>
 
-        <a href='3.0-screenshots/replicatedtube.png'><img class='screenshot' src='3.0-screenshots/replicatedtube-small.png' alt='Inductive Replication'></a>
-        <a href='3.0-screenshots/morecircles2.png'><img class='screenshot' src='3.0-screenshots/morecircles2-small.png' alt='Inductive Replication and Recursion'></a>
-        <a href='3.0-screenshots/recursivetree.png'><img class='screenshot' src='3.0-screenshots/recursivetree-small.png' alt='Turtle Command Recursion'></a>
+        <a href='site/3.0-screenshots/replicatedtube.png'><img class='screenshot' src='site/3.0-screenshots/replicatedtube-small.png' alt='Inductive Replication'></a>
+        <a href='site/3.0-screenshots/morecircles2.png'><img class='screenshot' src='site/3.0-screenshots/morecircles2-small.png' alt='Inductive Replication and Recursion'></a>
+        <a href='site/3.0-screenshots/recursivetree.png'><img class='screenshot' src='site/3.0-screenshots/recursivetree-small.png' alt='Turtle Command Recursion'></a>
       </div>
     </div>
 
@@ -136,7 +136,7 @@
         </p>
 
         <h2>Turtle Command API</h2>
-        <a href='3.0-screenshots/brokengasket.png'><img class='screenshot' src='3.0-screenshots/brokengasket-small.png' alt='Recursion'></a>
+        <a href='site/3.0-screenshots/brokengasket.png'><img class='screenshot' src='site/3.0-screenshots/brokengasket-small.png' alt='Recursion'></a>
 
         <p>
         Turtle commands let you do more with less code. By constructing a series of commands to be run, you have the flexibility of transparently driving
@@ -147,13 +147,13 @@
         In version 2.1, all commands were given directly to the turtle, like this:
 
         <pre class='code'>
-for (int i = 0; i &lt; 4; ++i)
-  t.move (100).turn (90);</pre>
+for(int i = 0; i &lt; 4; ++i)
+  t.move(100).turn(90);</pre>
 
         Starting with version 3, however, you can construct the equivalent turtle command instead:
 
         <pre class='code'>
-repeat (4, move (100), turn (90));</pre>
+repeat(4, move(100), turn(90));</pre>
 
         While there are some cases that still require Java's control flow constructs, many common coding patterns have a pure turtle command representation.
         (Check out the example files included with Cheloniidae for more details.)
@@ -167,21 +167,21 @@ repeat (4, move (100), turn (90));</pre>
         <h2>Current Release</h2>
         <p>
         Cheloniidae is free software and is licensed under the terms of the MIT source code license. The current release (source code, binaries, documentation,
-        and sample files) is version 3.0, available here: <a href='cheloniidae-3.0.zip'>cheloniidae-3.0.zip</a>. Cheloniidae should work with the JRE 1.5 or
-        higher on any platform.
+        and sample files) is version 3.0, available <a href='http://github.com/spencertipping/cheloniidae'>on Github</a> and bundled here: <a
+        href='site/cheloniidae-3.0.zip'>cheloniidae-3.0.zip</a>. Cheloniidae should work with the JRE 1.5 or higher on any platform.
         </p>
 
-        <a href='3.0-screenshots/morecircles.png'><img class='screenshot' src='3.0-screenshots/morecircles-small.png' alt='Inductive Replication and Recursion'></a>
+        <a href='site/3.0-screenshots/morecircles.png'><img class='screenshot' src='site/3.0-screenshots/morecircles-small.png' alt='Inductive Replication and Recursion'></a>
 
         <h2>Previous Releases</h2>
         <p>
         The 3.0 prereleases and 2.x series are also available for download:<br/>
-        <a href='cheloniidae-3.0-pre2.zip'>cheloniidae-3.0-pre2.zip</a><br/>
-        <a href='cheloniidae-3.0-pre1.zip'>cheloniidae-3.0-pre1.zip</a><br/>
-        <a href='cheloniidae-2.1.zip'>cheloniidae-2.1.zip</a><br/>
-        <a href='cheloniidae-2.0.zip'>cheloniidae-2.0.zip</a><br/>
+        <a href='site/cheloniidae-3.0-pre2.zip'>cheloniidae-3.0-pre2.zip</a><br/>
+        <a href='site/cheloniidae-3.0-pre1.zip'>cheloniidae-3.0-pre1.zip</a><br/>
+        <a href='site/cheloniidae-2.1.zip'>cheloniidae-2.1.zip</a><br/>
+        <a href='site/cheloniidae-2.0.zip'>cheloniidae-2.0.zip</a><br/>
         </p>
-        <a href='3.0-screenshots/spirals.png'><img class='screenshot' src='3.0-screenshots/spirals-small.png' alt='Direct Control'></a>
+        <a href='site/3.0-screenshots/spirals.png'><img class='screenshot' src='site/3.0-screenshots/spirals-small.png' alt='Direct Control'></a>
 
         <h2>Common Problems</h2>
         <p>
@@ -197,17 +197,17 @@ repeat (4, move (100), turn (90));</pre>
         <p>
         With the new turtle command API, coding in Cheloniidae is now easier than ever.
         </p>
-        
+
         <h2>Creating a Square</h2>
-        <img src='square.png' alt='Square in Cheloniidae'>
+        <img src='site/square.png' alt='Square in Cheloniidae'>
 
         <pre class='code'>
 import cheloniidae.*;
 import cheloniidae.frames.*;
 public class Square extends SingleTurtleScene {
-  public static void main (String[] args) {new Square ();}
-  public TurtleCommand commands () {
-    return repeat (4, move (100), turn (90));
+  public static void main(String[] args) {new Square();}
+  public TurtleCommand commands() {
+    return repeat(4, move(100), turn(90));
   }
 }</pre>
 
@@ -216,24 +216,25 @@ public class Square extends SingleTurtleScene {
         Turtles support a <code>pitch</code> command that lets them turn up or down. We'll use this to create a spiral:
         </p>
 
-        <img src='spiral.png' alt='Spiral in Cheloniidae'>
-        
+        <img src='site/spiral.png' alt='Spiral in Cheloniidae'>
+
 <pre class='code'>
 import cheloniidae.*;
 import cheloniidae.frames.*;
 public class Spiral extends SingleTurtleScene {
-  public static void main (String[] args) {new Spiral ();}
-  public TurtleCommand commands () {
-    return sequence (size (0.25), color (new java.awt.Color (0.2f, 0.5f, 0.4f, 0.5f)),
-                     repeat (400, move (5), turn (5), pitch (5)));
+  public static void main(String[] args) {new Spiral();}
+  public TurtleCommand commands() {
+    return sequence(size(0.25), color(new java.awt.Color(0.2f, 0.5f, 0.4f, 0.5f)),
+                     repeat(400, move(5), turn(5), pitch(5)));
   }
 }
 </pre>
 
         <h2>Further Reading</h2>
         <p>
-        I haven't finished the documentation yet, but the examples are a great place to start. For the more adventurous, you can always look at the Cheloniidae
-        code itself, especially in <code>cheloniidae.frames.CoreCommands</code> and <code>cheloniidae.RotationalCartesianTurtle</code>.
+        I haven't finished the documentation yet, but the examples are a great place to start. For the more adventurous, you can always look at the
+        <a href='src/cheloniidae.pdf'>incredibly pretentious literate code</a>, especially in <code>cheloniidae.frames.CoreCommands</code> and
+        <code>cheloniidae.RotationalCartesianTurtle</code>.
         </p>
       </div>
     </div>
