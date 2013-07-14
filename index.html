@@ -1,5 +1,4 @@
-<!DOCTYPE html PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 'http://www.w3.org/TR/html4/loose.dtd'>
-
+<!DOCTYPE html>
 <html>
   <head>
     <meta http-equiv='Content-Type' content='text/html;charset=utf-8'>
@@ -105,9 +104,8 @@
       <div class='title'>What is Cheloniidae?</div>
       <div class='content'>
         <p>
-        Cheloniidae (formerly Terrapin) is an advanced Java turtle graphics library written by <a href='http://spencertipping.com/'>Spencer Tipping</a>. It
-        supports three-dimensional rendering, turtle replication, and other concepts not traditionally implemented in turtle systems. All of the images on this
-        page were produced with Cheloniidae using the included example programs (or code next to the images).
+        Cheloniidae is an absurdly overengineered turtle graphics library for Java. It supports three-dimensional rendering, turtle replication, and other concepts not traditionally
+        implemented in turtle systems. All of the images on this page were produced with Cheloniidae using the included example programs (or code next to the images).
         </p>
 
         <h2>Examples</h2>
@@ -126,7 +124,7 @@
       <div class='content'>
         <h2>Mouse and Keyboard Controls</h2>
         <p>
-        Version 3 brings more consistency to moving throughout the space. Here are the commands:
+        Version 3 supports better mouse controls:
         <ul>
           <li><span class='command'>Mouse drag:</span>         Shifts the camera's position.</li>
           <li><span class='command'>Shift + mouse drag:</span> Rotates the camera about the center of the structure.</li>
@@ -194,10 +192,6 @@ repeat(4, move(100), turn(90));</pre>
     <div class='section' id='coding'>
       <div class='title'>Coding in Cheloniidae 3</div>
       <div class='content'>
-        <p>
-        With the new turtle command API, coding in Cheloniidae is now easier than ever.
-        </p>
-
         <h2>Creating a Square</h2>
         <img src='site/square.png' alt='Square in Cheloniidae'>
 
@@ -213,7 +207,7 @@ public class Square extends SingleTurtleScene {
 
         <h2>Adding Depth</h2>
         <p>
-        Turtles support a <code>pitch</code> command that lets them turn up or down. We'll use this to create a spiral:
+        Turtles support a <code>pitch</code> command that lets them turn up or down. You can use this to create a spiral:
         </p>
 
         <img src='site/spiral.png' alt='Spiral in Cheloniidae'>
@@ -225,7 +219,7 @@ public class Spiral extends SingleTurtleScene {
   public static void main(String[] args) {new Spiral();}
   public TurtleCommand commands() {
     return sequence(size(0.25), color(new java.awt.Color(0.2f, 0.5f, 0.4f, 0.5f)),
-                     repeat(400, move(5), turn(5), pitch(5)));
+                    repeat(400, move(5), turn(5), pitch(5)));
   }
 }
 </pre>

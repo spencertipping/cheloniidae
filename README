@@ -9,4 +9,3 @@ To run examples:
 
 $ cd build/
 $ java spheres          # should work
-$ java -cp . spheres    # may be necessary
